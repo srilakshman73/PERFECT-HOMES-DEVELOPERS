@@ -112,14 +112,10 @@ export default function ContactPage({ onOpenScheduleVisit }) {
                 <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                   <PhoneCall size={18} color="var(--primary-teal)" style={{ flexShrink: 0 }} />
                   <div>
-                    <strong>Direct Lines:</strong>
+                    <strong>Direct Line / Call:</strong>
                     <div style={{ marginTop: '2px' }}>
-                      <a href={`tel:${COMPANY_CONTACT_INFO.phone}`} style={{ color: 'var(--primary-teal)', fontWeight: 700 }}>
+                      <a href={COMPANY_CONTACT_INFO.telLink} style={{ color: 'var(--primary-teal)', fontWeight: 700, fontSize: '1.05rem' }}>
                         {COMPANY_CONTACT_INFO.phoneDisplay}
-                      </a>
-                      {' '} / {' '}
-                      <a href={`tel:${COMPANY_CONTACT_INFO.alternatePhone}`} style={{ color: 'var(--text-secondary)' }}>
-                        {COMPANY_CONTACT_INFO.alternatePhone}
                       </a>
                     </div>
                   </div>

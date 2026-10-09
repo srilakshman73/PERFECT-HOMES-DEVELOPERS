@@ -690,11 +690,12 @@ export default function HomePage({
               <ArrowRight size={18} />
             </button>
             <a
-              href={`tel:${COMPANY_CONTACT_INFO.phone}`}
+              href={COMPANY_CONTACT_INFO.telLink || `tel:${COMPANY_CONTACT_INFO.phone}`}
               className="btn btn-outline-white btn-lg"
+              title="Call Perfect Homes & Developers"
             >
               <PhoneCall size={18} />
-              <span>Call +91 70102 73863</span>
+              <span>Call 78455 85919</span>
             </a>
           </div>
         </div>

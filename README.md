@@ -11,9 +11,9 @@ A modern, responsive, and feature-complete real estate platform built for **Perf
 - **Tagline:** *Your Dream Home, Our Priority*
 - **Slogan:** *Build Your Future Today*
 - **Main Office Address:** No: 3 Krishna Nagar, CTH Road, Thiruninravur – 602024, Tamil Nadu, India.
-- **Phone:** `+91 70102 73863`
+- **Phone:** `+91 78455 85919` (`78455 85919`)
 - **Email:** `perfecthomesd@gmail.com`
-- **WhatsApp:** `+91 70102 73863`
+- **WhatsApp:** `+91 78455 85919`
 
 ---
 

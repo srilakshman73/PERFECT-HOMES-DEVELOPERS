@@ -4,6 +4,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useProperties } from '../context/PropertyContext';
+import { COMPANY_CONTACT_INFO } from '../data/locationsData';
 import {
   Bot,
   X,
@@ -13,7 +14,8 @@ import {
   Minimize2,
   MapPin,
   CheckCircle2,
-  Sparkles
+  Sparkles,
+  PhoneCall
 } from 'lucide-react';
 
 const QUICK_PROMPTS = [
@@ -59,6 +61,15 @@ export default function AIAssistant({ isOpen, onClose, onViewProperty, onFilterC
   // NLP Query Processor
   const processUserQuery = (queryText) => {
     const text = queryText.toLowerCase();
+
+    // Check if user is asking for contact / phone / office details
+    if (text.includes('contact') || text.includes('phone') || text.includes('call') || text.includes('number') || text.includes('office') || text.includes('agent') || text.includes('speak')) {
+      return {
+        responseText: `You can reach our sales & consultation team directly:\n\n📞 Primary Contact: ${COMPANY_CONTACT_INFO.phoneDisplay}\n💬 WhatsApp: +${COMPANY_CONTACT_INFO.whatsappNumber}\n✉️ Email: ${COMPANY_CONTACT_INFO.email}\n📍 Main Office: ${COMPANY_CONTACT_INFO.officeAddress}\n\nWe are available 7 days a week from 9:00 AM to 8:00 PM for project consultations and free site visits!`,
+        results: properties.slice(0, 2),
+        isContact: true
+      };
+    }
 
     let matchedLocation = null;
     if (text.includes('avadi')) matchedLocation = 'Avadi';

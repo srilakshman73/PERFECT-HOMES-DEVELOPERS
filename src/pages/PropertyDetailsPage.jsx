@@ -841,11 +841,12 @@ export default function PropertyDetailsPage({
                 </a>
 
                 <a
-                  href={`tel:${COMPANY_CONTACT_INFO.phone}`}
+                  href={COMPANY_CONTACT_INFO.telLink}
                   className="btn btn-secondary"
                   style={{ width: '100%' }}
+                  title="Call Sales Advisor"
                 >
-                  <PhoneCall size={16} /> Call +91 98401 23456
+                  <PhoneCall size={16} /> Call {COMPANY_CONTACT_INFO.phoneDisplay}
                 </a>
               </div>
             </div>
