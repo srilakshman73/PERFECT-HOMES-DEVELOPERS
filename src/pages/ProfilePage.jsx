@@ -471,6 +471,7 @@ export default function ProfilePage({ navigate, initialTab = 'personal' }) {
                     <input
                       type="password"
                       required
+                      autoComplete="current-password"
                       className="form-input"
                       placeholder="Enter current password"
                       value={passForm.currentPassword}
@@ -483,6 +484,7 @@ export default function ProfilePage({ navigate, initialTab = 'personal' }) {
                     <input
                       type="password"
                       required
+                      autoComplete="new-password"
                       className="form-input"
                       placeholder="Minimum 6 characters"
                       value={passForm.newPassword}
@@ -495,6 +497,7 @@ export default function ProfilePage({ navigate, initialTab = 'personal' }) {
                     <input
                       type="password"
                       required
+                      autoComplete="new-password"
                       className="form-input"
                       placeholder="Re-enter new password"
                       value={passForm.confirmPassword}

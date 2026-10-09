@@ -132,6 +132,7 @@ export default function FirstTimePasswordModal() {
               <input
                 type={showPassword ? 'text' : 'password'}
                 required
+                autoComplete="new-password"
                 className="form-input"
                 placeholder="Minimum 8 characters"
                 value={newPassword}
@@ -159,6 +160,7 @@ export default function FirstTimePasswordModal() {
               <input
                 type={showPassword ? 'text' : 'password'}
                 required
+                autoComplete="new-password"
                 className="form-input"
                 placeholder="Re-enter new password"
                 value={confirmPassword}

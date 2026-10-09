@@ -214,6 +214,7 @@ export default function ForgotPasswordPage({ navigate }) {
               <label className="form-label">New Password</label>
               <input
                 type="password"
+                autoComplete="new-password"
                 className={`form-input ${errors.newPassword ? 'error' : ''}`}
                 placeholder="Minimum 6 characters"
                 value={newPassword}
@@ -226,6 +227,7 @@ export default function ForgotPasswordPage({ navigate }) {
               <label className="form-label">Confirm New Password</label>
               <input
                 type="password"
+                autoComplete="new-password"
                 className={`form-input ${errors.confirmPassword ? 'error' : ''}`}
                 placeholder="Confirm password"
                 value={confirmPassword}

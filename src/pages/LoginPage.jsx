@@ -13,12 +13,7 @@ import {
   Lock,
   ArrowRight,
   CheckCircle2,
-  ShieldCheck,
-  Building2,
-  Sparkles,
-  Phone,
-  UserCheck,
-  Shield
+  Sparkles
 } from 'lucide-react';
 
 export default function LoginPage({ navigate, redirectAfterLogin = 'home' }) {
@@ -54,19 +49,6 @@ export default function LoginPage({ navigate, redirectAfterLogin = 'home' }) {
       navigate(redirectAfterLogin);
     } catch (err) {
       setAuthError(err.message || 'Authentication failed. Please verify your credentials.');
-    }
-  };
-
-  // 1-Click Demo Login fill helper for easy review
-  const handleQuickDemo = async (email, pass) => {
-    setIdentifier(email);
-    setPassword(pass);
-    setAuthError('');
-    try {
-      await login(email, pass, true);
-      navigate(redirectAfterLogin);
-    } catch (err) {
-      setAuthError(err.message);
     }
   };
 
@@ -240,8 +222,9 @@ export default function LoginPage({ navigate, redirectAfterLogin = 'home' }) {
                 />
                 <input
                   type="text"
+                  autoComplete="username"
                   className={`form-input ${errors.identifier ? 'error' : ''}`}
-                  placeholder="e.g. prakash@example.com or 7845585919"
+                  placeholder="Enter email or mobile number"
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
                   style={{ paddingLeft: '2.5rem' }}
@@ -250,7 +233,7 @@ export default function LoginPage({ navigate, redirectAfterLogin = 'home' }) {
               {errors.identifier && <span className="form-error-msg">{errors.identifier}</span>}
             </div>
 
-            {/* Password Input */}
+            {/* Password Input (Clean controlled input - manual typing only) */}
             <div className="form-group">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <label className="form-label" style={{ marginBottom: 0 }}>Password</label>
@@ -270,8 +253,9 @@ export default function LoginPage({ navigate, redirectAfterLogin = 'home' }) {
                 />
                 <input
                   type={showPassword ? 'text' : 'password'}
+                  autoComplete="current-password"
                   className={`form-input ${errors.password ? 'error' : ''}`}
-                  placeholder="Enter your account password"
+                  placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   style={{ paddingLeft: '2.5rem', paddingRight: '2.5rem' }}
@@ -313,33 +297,6 @@ export default function LoginPage({ navigate, redirectAfterLogin = 'home' }) {
               <ArrowRight size={18} />
             </button>
           </form>
-
-          {/* Quick Demo Fill Buttons for Testing */}
-          <div style={{ marginTop: '1.5rem', backgroundColor: 'var(--bg-main)', padding: '0.85rem', borderRadius: 'var(--radius-md)', border: '1px dashed var(--border-color)' }}>
-            <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '6px' }}>
-              Quick 1-Click Demo Login:
-            </div>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button
-                type="button"
-                onClick={() => handleQuickDemo('prakash@example.com', 'password123')}
-                className="btn btn-secondary btn-sm"
-                style={{ flex: 1, fontSize: '0.78rem' }}
-              >
-                <UserCheck size={14} color="var(--primary-teal)" />
-                <span>Prakash (Buyer)</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickDemo('srilakshman73@gmail.com', 'Perfect@123')}
-                className="btn btn-secondary btn-sm"
-                style={{ flex: 1, fontSize: '0.78rem' }}
-              >
-                <ShieldCheck size={14} color="var(--primary-teal)" />
-                <span>Admin (srilakshman73)</span>
-              </button>
-            </div>
-          </div>
 
           {/* Register Link */}
           <div style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>

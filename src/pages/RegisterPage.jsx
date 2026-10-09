@@ -315,6 +315,7 @@ export default function RegisterPage({ navigate }) {
                 />
                 <input
                   type={showPassword ? 'text' : 'password'}
+                  autoComplete="new-password"
                   className={`form-input ${errors.password ? 'error' : ''}`}
                   placeholder="Minimum 6 characters"
                   value={formData.password}
@@ -353,6 +354,7 @@ export default function RegisterPage({ navigate }) {
                 />
                 <input
                   type={showPassword ? 'text' : 'password'}
+                  autoComplete="new-password"
                   className={`form-input ${errors.confirmPassword ? 'error' : ''}`}
                   placeholder="Re-enter password"
                   value={formData.confirmPassword}
