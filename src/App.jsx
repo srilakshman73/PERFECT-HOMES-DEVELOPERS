@@ -1,5 +1,5 @@
 /* ==========================================================================
-   PERFECT HOMES & DEVELOPERS - ROOT APP & CLIENT ROUTER
+   PERFECT HOMES & DEVELOPERS - ROOT APP & LOGIN-FIRST ROUTER
    ========================================================================== */
 
 import React, { useState, useEffect } from 'react';
@@ -15,6 +15,7 @@ import QuickSearchModal from './components/QuickSearchModal';
 import ComparisonModal from './components/ComparisonModal';
 import BrochureModal from './components/BrochureModal';
 import ScheduleVisitModal from './components/ScheduleVisitModal';
+import FirstTimePasswordModal from './components/FirstTimePasswordModal';
 
 // Pages
 import HomePage from './pages/HomePage';
@@ -32,11 +33,24 @@ import ContactPage from './pages/ContactPage';
 import AdminPage from './pages/AdminPage';
 
 function AppContent() {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, isLoading } = useAuth();
   const { properties, setFilters } = useProperties();
 
-  // Navigation state
-  const [currentPage, setCurrentPage] = useState('home');
+  // Public unauthenticated pages
+  const PUBLIC_PAGES = ['login', 'register', 'forgot-password'];
+
+  // Route state: default to 'login' if unauthenticated, 'home' if authenticated
+  const [currentPage, setCurrentPage] = useState(() => {
+    // Check if an existing session is in localStorage
+    try {
+      const activeSession = localStorage.getItem('ph_active_session_v1');
+      return activeSession ? 'home' : 'login';
+    } catch {
+      return 'login';
+    }
+  });
+
+  const [redirectTarget, setRedirectTarget] = useState('home');
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [initialProfileTab, setInitialProfileTab] = useState('personal');
 
@@ -46,6 +60,20 @@ function AppContent() {
   const [compareModalOpen, setCompareModalOpen] = useState(false);
   const [brochureProperty, setBrochureProperty] = useState(null);
   const [scheduleProperty, setScheduleProperty] = useState(null);
+
+  // Synchronize route if auth state changes
+  useEffect(() => {
+    if (!isLoading) {
+      if (!isAuthenticated && !PUBLIC_PAGES.includes(currentPage)) {
+        // Protect all pages: redirect unauthenticated visitor to login
+        setRedirectTarget(currentPage);
+        setCurrentPage('login');
+      } else if (isAuthenticated && PUBLIC_PAGES.includes(currentPage)) {
+        // If already logged in and visiting login/register, take them to home or intended target
+        setCurrentPage(redirectTarget || 'home');
+      }
+    }
+  }, [isAuthenticated, isLoading, currentPage]);
 
   // Router handler
   const navigate = (page, params = null) => {
@@ -63,6 +91,13 @@ function AppContent() {
       if (params.tab) {
         setInitialProfileTab(params.tab);
       }
+    }
+
+    // If user is not authenticated and trying to access a protected page, force login with redirect target
+    if (!isAuthenticated && !PUBLIC_PAGES.includes(page)) {
+      setRedirectTarget(page);
+      setCurrentPage('login');
+      return;
     }
 
     setCurrentPage(page);
@@ -84,9 +119,33 @@ function AppContent() {
     setScheduleProperty(prop);
   };
 
+  // =========================================================================
+  // 1. UNAUTHENTICATED EXPERIENCE: LOGIN FIRST / REGISTER / FORGOT PASSWORD
+  // =========================================================================
+  if (!isAuthenticated) {
+    return (
+      <div className="auth-first-wrapper" style={{ minHeight: '100vh', backgroundColor: 'var(--bg-main)' }}>
+        {currentPage === 'register' ? (
+          <RegisterPage navigate={navigate} />
+        ) : currentPage === 'forgot-password' ? (
+          <ForgotPasswordPage navigate={navigate} />
+        ) : (
+          <LoginPage
+            navigate={navigate}
+            redirectAfterLogin={redirectTarget || 'home'}
+          />
+        )}
+        <FirstTimePasswordModal />
+      </div>
+    );
+  }
+
+  // =========================================================================
+  // 2. AUTHENTICATED EXPERIENCE: COMPLETE WEBSITE AFTER LOGIN
+  // =========================================================================
   return (
     <div className="app-container" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      {/* Global Responsive Navigation Header */}
+      {/* Global Responsive Navigation Header with "Hi, [Name]" */}
       <Navbar
         currentPage={currentPage}
         navigate={navigate}
@@ -122,25 +181,6 @@ function AppContent() {
             onOpenBrochure={handleOpenBrochure}
             onOpenScheduleVisit={handleOpenScheduleVisit}
             onViewProperty={handleViewProperty}
-          />
-        )}
-
-        {currentPage === 'login' && (
-          <LoginPage
-            navigate={navigate}
-            redirectAfterLogin="home"
-          />
-        )}
-
-        {currentPage === 'register' && (
-          <RegisterPage
-            navigate={navigate}
-          />
-        )}
-
-        {currentPage === 'forgot-password' && (
-          <ForgotPasswordPage
-            navigate={navigate}
           />
         )}
 
@@ -193,7 +233,7 @@ function AppContent() {
         )}
       </main>
 
-      {/* Global Footer */}
+      {/* Global Footer on All Authenticated Pages */}
       <Footer
         navigate={navigate}
         onOpenAI={() => setAiAssistantOpen(true)}
@@ -241,6 +281,9 @@ function AppContent() {
         isOpen={!!scheduleProperty}
         onClose={() => setScheduleProperty(null)}
       />
+
+      {/* Mandatory First-Time Password Change Modal */}
+      <FirstTimePasswordModal />
     </div>
   );
 }

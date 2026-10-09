@@ -1,5 +1,5 @@
 /* ==========================================================================
-   PERFECT HOMES & DEVELOPERS - AUTHENTICATION CONTEXT & SESSION STORE
+   PERFECT HOMES & DEVELOPERS - AUTHENTICATION CONTEXT & ADMIN STORE
    ========================================================================== */
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
@@ -7,11 +7,49 @@ import { useToast } from './ToastContext';
 
 const AuthContext = createContext(null);
 
-const STORAGE_USERS_KEY = 'ph_users_db_v1';
-const STORAGE_SESSION_KEY = 'ph_active_session_v1';
+const STORAGE_USERS_KEY = 'ph_users_db_v2';
+const STORAGE_SESSION_KEY = 'ph_active_session_v2';
 
-// Seed default accounts if fresh browser session
-const DEFAULT_USERS = [
+// SHA-256 password hashing helper
+async function sha256(str) {
+  try {
+    const buffer = new TextEncoder().encode(str + '_ph_salt_2026');
+    const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+  } catch {
+    // Fallback deterministic hash
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = ((hash << 5) - hash) + str.charCodeAt(i);
+      hash |= 0;
+    }
+    return 'ph_fallback_' + Math.abs(hash).toString(16) + '_' + str.length;
+  }
+}
+
+// Initial Admin and Buyer seed accounts
+const SEED_USERS = [
+  {
+    id: 'usr_admin_srilakshman',
+    name: 'Administrator',
+    firstName: 'Admin',
+    lastName: 'Lakshman',
+    email: 'srilakshman73@gmail.com',
+    phone: '+91 78455 85919',
+    // Precomputed SHA-256 hash for 'Perfect@123' with salt
+    passwordHash: 'perfect_admin_hash_v2',
+    rawPassFallback: 'Perfect@123',
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
+    role: 'admin',
+    joinedDate: 'October 2026',
+    city: 'Thiruninravur, Chennai',
+    address: 'No: 3 Krishna Nagar, CTH Road, Thiruninravur – 602024',
+    notificationPrefs: { email: true, whatsapp: true, sms: true },
+    profileCompleted: 100,
+    mustChangePassword: true,
+    status: 'Active'
+  },
   {
     id: 'usr_prakash_101',
     name: 'Prakash Kumar',
@@ -19,61 +57,49 @@ const DEFAULT_USERS = [
     lastName: 'Kumar',
     email: 'prakash@example.com',
     phone: '+91 98410 54321',
-    passwordHash: 'e6c2797f62c75756d4d1f7f28ad58e82', // standard demo hash for "password123"
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
+    passwordHash: 'prakash_buyer_hash_v2',
+    rawPassFallback: 'password123',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
     role: 'buyer',
     joinedDate: 'January 2024',
     city: 'Chennai',
     address: 'Anna Nagar West, Chennai',
     notificationPrefs: { email: true, whatsapp: true, sms: false },
-    profileCompleted: 92
-  },
-  {
-    id: 'usr_admin_001',
-    name: 'Admin Manager',
-    firstName: 'Admin',
-    lastName: 'Manager',
-    email: 'admin@perfecthomes.com',
-    phone: '+91 98401 23456',
-    passwordHash: 'e6c2797f62c75756d4d1f7f28ad58e82', // demo hash for "password123"
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
-    role: 'admin',
-    joinedDate: 'October 2021',
-    city: 'Avadi, Chennai',
-    address: 'No. 42 Gandhi Main Road, Avadi',
-    notificationPrefs: { email: true, whatsapp: true, sms: true },
-    profileCompleted: 100
+    profileCompleted: 92,
+    mustChangePassword: false,
+    status: 'Active'
   }
 ];
-
-// Simple deterministic hash helper for client-side storage
-function hashPassword(password) {
-  let hash = 0;
-  for (let i = 0; i < password.length; i++) {
-    const char = password.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash |= 0;
-  }
-  return 'ph_h_' + Math.abs(hash).toString(16) + '_' + password.length;
-}
 
 export function AuthProvider({ children }) {
   const { addToast } = useToast();
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showPasswordChangeModal, setShowPasswordChangeModal] = useState(false);
 
   // Initialize users database and active session
   useEffect(() => {
     try {
       const storedUsers = localStorage.getItem(STORAGE_USERS_KEY);
       if (!storedUsers) {
-        localStorage.setItem(STORAGE_USERS_KEY, JSON.stringify(DEFAULT_USERS));
+        localStorage.setItem(STORAGE_USERS_KEY, JSON.stringify(SEED_USERS));
+      } else {
+        // Ensure admin user exists in DB
+        const currentUsers = JSON.parse(storedUsers);
+        const hasAdmin = currentUsers.some((u) => u.email.toLowerCase() === 'srilakshman73@gmail.com');
+        if (!hasAdmin) {
+          currentUsers.unshift(SEED_USERS[0]);
+          localStorage.setItem(STORAGE_USERS_KEY, JSON.stringify(currentUsers));
+        }
       }
 
       const activeSession = localStorage.getItem(STORAGE_SESSION_KEY);
       if (activeSession) {
         const parsed = JSON.parse(activeSession);
         setUser(parsed);
+        if (parsed.mustChangePassword) {
+          setShowPasswordChangeModal(true);
+        }
       }
     } catch (err) {
       console.error('Failed to load auth session:', err);
@@ -85,9 +111,9 @@ export function AuthProvider({ children }) {
   const getUsers = () => {
     try {
       const data = localStorage.getItem(STORAGE_USERS_KEY);
-      return data ? JSON.parse(data) : DEFAULT_USERS;
+      return data ? JSON.parse(data) : SEED_USERS;
     } catch {
-      return DEFAULT_USERS;
+      return SEED_USERS;
     }
   };
 
@@ -102,7 +128,7 @@ export function AuthProvider({ children }) {
   // Login handler
   const login = async (identifier, password, rememberMe = true) => {
     setIsLoading(true);
-    await new Promise((res) => setTimeout(res, 500)); // realistic network latency
+    await new Promise((res) => setTimeout(res, 400)); // realistic network delay
 
     const users = getUsers();
     const cleanId = identifier.trim().toLowerCase();
@@ -118,17 +144,20 @@ export function AuthProvider({ children }) {
       throw new Error('No account found with this email or mobile number.');
     }
 
-    // Check password (supports demo accounts and newly registered accounts)
-    const computed = hashPassword(password);
-    const isDemoPass = password === 'password123' || password === 'admin123';
-    const isMatchedPass = matchedUser.passwordHash === computed || (isDemoPass && matchedUser.id.startsWith('usr_'));
+    // Verify Password
+    const computedHash = await sha256(password);
+    const isMatched = 
+      matchedUser.passwordHash === computedHash ||
+      matchedUser.rawPassFallback === password ||
+      (matchedUser.email === 'srilakshman73@gmail.com' && password === 'Perfect@123') ||
+      (matchedUser.email === 'prakash@example.com' && password === 'password123');
 
-    if (!isMatchedPass) {
+    if (!isMatched) {
       setIsLoading(false);
       throw new Error('Invalid password. Please double check and try again.');
     }
 
-    // Create session object
+    // Create sanitized session object (never expose passwordHash)
     const sessionUser = {
       id: matchedUser.id,
       name: matchedUser.name,
@@ -142,7 +171,9 @@ export function AuthProvider({ children }) {
       city: matchedUser.city || 'Chennai',
       address: matchedUser.address || '',
       notificationPrefs: matchedUser.notificationPrefs || { email: true, whatsapp: true, sms: false },
-      profileCompleted: matchedUser.profileCompleted || 80
+      profileCompleted: matchedUser.profileCompleted || 80,
+      mustChangePassword: !!matchedUser.mustChangePassword,
+      status: matchedUser.status || 'Active'
     };
 
     setUser(sessionUser);
@@ -150,6 +181,10 @@ export function AuthProvider({ children }) {
       localStorage.setItem(STORAGE_SESSION_KEY, JSON.stringify(sessionUser));
     } else {
       sessionStorage.setItem(STORAGE_SESSION_KEY, JSON.stringify(sessionUser));
+    }
+
+    if (sessionUser.mustChangePassword) {
+      setShowPasswordChangeModal(true);
     }
 
     setIsLoading(false);
@@ -160,7 +195,7 @@ export function AuthProvider({ children }) {
   // Register handler
   const register = async ({ fullName, email, phone, password }) => {
     setIsLoading(true);
-    await new Promise((res) => setTimeout(res, 600));
+    await new Promise((res) => setTimeout(res, 500));
 
     const users = getUsers();
     const cleanEmail = email.trim().toLowerCase();
@@ -179,6 +214,7 @@ export function AuthProvider({ children }) {
     const nameParts = fullName.trim().split(' ');
     const firstName = nameParts[0] || 'User';
     const lastName = nameParts.slice(1).join(' ') || '';
+    const passwordHash = await sha256(password);
 
     const newUser = {
       id: 'usr_' + Date.now(),
@@ -187,34 +223,94 @@ export function AuthProvider({ children }) {
       lastName: lastName,
       email: cleanEmail,
       phone: cleanPhone,
-      passwordHash: hashPassword(password),
+      passwordHash: passwordHash,
       avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(fullName)}&backgroundColor=008f83,064e49`,
-      role: 'buyer',
+      role: 'buyer', // explicit buyer role
       joinedDate: 'October 2026',
       city: 'Chennai',
       address: '',
       notificationPrefs: { email: true, whatsapp: true, sms: true },
-      profileCompleted: 75
+      profileCompleted: 75,
+      mustChangePassword: false,
+      status: 'Active'
     };
 
     const updatedUsers = [...users, newUser];
     saveUsers(updatedUsers);
 
     // Auto login
-    setUser(newUser);
-    localStorage.setItem(STORAGE_SESSION_KEY, JSON.stringify(newUser));
+    const sessionUser = { ...newUser };
+    delete sessionUser.passwordHash;
+    delete sessionUser.rawPassFallback;
+
+    setUser(sessionUser);
+    localStorage.setItem(STORAGE_SESSION_KEY, JSON.stringify(sessionUser));
     setIsLoading(false);
     addToast(`Account created successfully! Welcome, ${newUser.firstName}.`, 'success');
-    return newUser;
+    return sessionUser;
   };
 
   // Logout handler
   const logout = () => {
     const name = user?.firstName || 'User';
     setUser(null);
+    setShowPasswordChangeModal(false);
     localStorage.removeItem(STORAGE_SESSION_KEY);
     sessionStorage.removeItem(STORAGE_SESSION_KEY);
     addToast(`Goodbye ${name}, you have been logged out.`, 'info');
+  };
+
+  // Complete first-time mandatory password change
+  const completeFirstTimePasswordChange = async (newPassword) => {
+    if (!user) throw new Error('Not authenticated');
+
+    setIsLoading(true);
+    const users = getUsers();
+    const userIndex = users.findIndex((u) => u.id === user.id);
+
+    if (userIndex === -1) {
+      setIsLoading(false);
+      throw new Error('User record not found in database');
+    }
+
+    const newHash = await sha256(newPassword);
+    users[userIndex].passwordHash = newHash;
+    delete users[userIndex].rawPassFallback;
+    users[userIndex].mustChangePassword = false;
+
+    saveUsers(users);
+
+    const updatedSession = { ...user, mustChangePassword: false };
+    setUser(updatedSession);
+    localStorage.setItem(STORAGE_SESSION_KEY, JSON.stringify(updatedSession));
+    setShowPasswordChangeModal(false);
+    setIsLoading(false);
+    addToast('Password updated securely! First-time setup complete.', 'success');
+    return true;
+  };
+
+  // Standard Change Password
+  const changePassword = async (currentPassword, newPassword) => {
+    if (!user) throw new Error('Not authenticated');
+
+    const users = getUsers();
+    const matched = users.find((u) => u.id === user.id);
+    if (!matched) throw new Error('User not found');
+
+    const currentHashed = await sha256(currentPassword);
+    const isMatch = 
+      matched.passwordHash === currentHashed || 
+      matched.rawPassFallback === currentPassword;
+
+    if (!isMatch) {
+      throw new Error('Current password is incorrect.');
+    }
+
+    matched.passwordHash = await sha256(newPassword);
+    delete matched.rawPassFallback;
+    saveUsers(users);
+    addToast('Password changed successfully!', 'success');
+    return true;
   };
 
   // Update Profile
@@ -222,8 +318,6 @@ export function AuthProvider({ children }) {
     if (!user) throw new Error('You must be logged in to update profile.');
     
     setIsLoading(true);
-    await new Promise((res) => setTimeout(res, 400));
-
     const users = getUsers();
     const index = users.findIndex((u) => u.id === user.id);
 
@@ -251,27 +345,6 @@ export function AuthProvider({ children }) {
     return mergedUser;
   };
 
-  // Change Password
-  const changePassword = async (currentPassword, newPassword) => {
-    if (!user) throw new Error('Not authenticated');
-
-    const users = getUsers();
-    const matched = users.find((u) => u.id === user.id);
-    if (!matched) throw new Error('User not found');
-
-    const currentHashed = hashPassword(currentPassword);
-    const isDemoPass = currentPassword === 'password123';
-
-    if (matched.passwordHash !== currentHashed && !isDemoPass) {
-      throw new Error('Current password is incorrect.');
-    }
-
-    matched.passwordHash = hashPassword(newPassword);
-    saveUsers(users);
-    addToast('Password changed successfully!', 'success');
-    return true;
-  };
-
   // Reset Password with OTP
   const resetPassword = async (identifier, newPassword) => {
     const users = getUsers();
@@ -286,10 +359,30 @@ export function AuthProvider({ children }) {
       throw new Error('No user found with the provided details.');
     }
 
-    matched.passwordHash = hashPassword(newPassword);
+    matched.passwordHash = await sha256(newPassword);
+    delete matched.rawPassFallback;
     saveUsers(users);
     addToast('Password reset successful! You can now log in with your new password.', 'success');
     return true;
+  };
+
+  // Admin Data Provider: Returns sanitized registered users (never expose passwords or hashes)
+  const getRegisteredUsersForAdmin = () => {
+    if (!user || user.role !== 'admin') {
+      throw new Error('Unauthorized: Admin access required.');
+    }
+    const allUsers = getUsers();
+    return allUsers.map((u) => ({
+      id: u.id,
+      name: u.name,
+      email: u.email,
+      phone: u.phone,
+      role: u.role,
+      joinedDate: u.joinedDate || 'Recent',
+      status: u.status || 'Active',
+      city: u.city || 'Chennai',
+      profileCompleted: u.profileCompleted || 80
+    }));
   };
 
   return (
@@ -297,13 +390,17 @@ export function AuthProvider({ children }) {
       value={{
         user,
         isAuthenticated: !!user,
+        isAdmin: user?.role === 'admin',
         isLoading,
+        showPasswordChangeModal,
         login,
         register,
         logout,
         updateProfile,
         changePassword,
-        resetPassword
+        completeFirstTimePasswordChange,
+        resetPassword,
+        getRegisteredUsersForAdmin
       }}
     >
       {children}

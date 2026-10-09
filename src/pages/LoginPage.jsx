@@ -1,5 +1,5 @@
 /* ==========================================================================
-   PERFECT HOMES & DEVELOPERS - DEDICATED LUXURY LOGIN PAGE
+   PERFECT HOMES & DEVELOPERS - DEDICATED LUXURY LOGIN FIRST PAGE
    ========================================================================== */
 
 import React, { useState } from 'react';
@@ -17,7 +17,8 @@ import {
   Building2,
   Sparkles,
   Phone,
-  UserCheck
+  UserCheck,
+  Shield
 } from 'lucide-react';
 
 export default function LoginPage({ navigate, redirectAfterLogin = 'home' }) {
@@ -72,33 +73,34 @@ export default function LoginPage({ navigate, redirectAfterLogin = 'home' }) {
   return (
     <div
       style={{
-        minHeight: 'calc(100vh - 140px)',
+        minHeight: '100vh',
         backgroundColor: 'var(--bg-main)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '3rem 1.5rem'
+        padding: '2rem 1.5rem',
+        backgroundImage: 'radial-gradient(circle at 10% 20%, rgba(0, 143, 131, 0.05) 0%, transparent 60%)'
       }}
     >
       <div
-        className="card"
+        className="card login-container-card"
         style={{
-          maxWidth: '1080px',
+          maxWidth: '1060px',
           width: '100%',
           display: 'grid',
           gridTemplateColumns: '1.1fr 1fr',
           borderRadius: 'var(--radius-xl)',
           overflow: 'hidden',
-          boxShadow: 'var(--shadow-xl)',
+          boxShadow: '0 25px 60px rgba(6, 78, 73, 0.18)',
           border: '1.5px solid var(--border-color)',
           backgroundColor: '#FFFFFF'
         }}
-        className="login-container-card"
       >
         {/* ========================================================
             LEFT LUXURY BRAND HERO SECTION
             ======================================================== */}
         <div
+          className="login-left-brand"
           style={{
             background: 'linear-gradient(145deg, #064E49 0%, #008F83 60%, #31D6C5 120%)',
             color: '#FFFFFF',
@@ -109,7 +111,6 @@ export default function LoginPage({ navigate, redirectAfterLogin = 'home' }) {
             position: 'relative',
             overflow: 'hidden'
           }}
-          className="login-left-brand"
         >
           {/* Background overlay artwork */}
           <div
@@ -125,7 +126,7 @@ export default function LoginPage({ navigate, redirectAfterLogin = 'home' }) {
           />
 
           <div style={{ position: 'relative', zIndex: 2 }}>
-            <Logo variant="white" size="lg" onClick={() => navigate('home')} />
+            <Logo variant="white" size="lg" onClick={() => navigate('login')} />
 
             <div style={{ marginTop: '2.5rem' }}>
               <div
@@ -147,19 +148,19 @@ export default function LoginPage({ navigate, redirectAfterLogin = 'home' }) {
               </div>
 
               <h2 style={{ color: '#FFFFFF', fontSize: '2.1rem', lineHeight: 1.25, marginBottom: '1rem' }}>
-                Welcome Back to Your Dream Home
+                Find Your Perfect Home with Us
               </h2>
 
-              <p style={{ color: 'rgba(255, 255, 255, 0.88)', fontSize: '0.96rem', lineHeight: 1.6, marginBottom: '2rem' }}>
-                Sign in to explore properties, save your favourites, manage enquiries, and discover homes that match your lifestyle.
+              <p style={{ color: 'rgba(255, 255, 255, 0.9)', fontSize: '0.96rem', lineHeight: 1.6, marginBottom: '2rem' }}>
+                Perfect Homes &amp; Developers helps you discover residential plots, independent houses, villas, and land with construction options across Chennai and surrounding areas. Sign in to explore properties and find a home that matches your needs.
               </p>
 
               {/* 3 Key Trust Benefits */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 {[
-                  { title: 'Discover Verified Properties', desc: '100% CMDA & DTCP layouts with clear legal approvals.' },
-                  { title: 'Save and Compare Favourite Homes', desc: 'Track price updates, view side-by-side specs, and shortlist.' },
-                  { title: 'Receive Real-Time Enquiry Updates', desc: 'Direct updates from sales managers and bank loan officers.' }
+                  { title: 'Explore properties across preferred locations', desc: 'Browse CMDA & DTCP verified plots and luxury villas across Avadi, Thiruninravur, and Veppampattu.' },
+                  { title: 'Save and compare your favourite properties', desc: 'Track prices, evaluate specs side-by-side, and save properties to your private wishlist.' },
+                  { title: 'Manage property enquiries in one place', desc: 'Direct direct-builder communication, instant brochure downloads, and site visit scheduling.' }
                 ].map((benefit, idx) => (
                   <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
                     <div
@@ -193,7 +194,7 @@ export default function LoginPage({ navigate, redirectAfterLogin = 'home' }) {
           </div>
 
           <div style={{ position: 'relative', zIndex: 2, marginTop: '2.5rem', paddingTop: '1.5rem', borderTop: '1px solid rgba(255, 255, 255, 0.15)', fontSize: '0.78rem', color: 'rgba(255, 255, 255, 0.75)' }}>
-            RERA Approved Agent: TN/RERA/Agent/0842/2021
+            Official RERA Agent: TN/RERA/Agent/0842/2021 • Thiruninravur, Chennai
           </div>
         </div>
 
@@ -203,10 +204,10 @@ export default function LoginPage({ navigate, redirectAfterLogin = 'home' }) {
         <div style={{ padding: '3.5rem 3rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
           <div style={{ marginBottom: '2rem' }}>
             <h3 style={{ fontSize: '1.8rem', color: 'var(--deep-teal)', marginBottom: '0.35rem' }}>
-              Sign In to Your Account
+              Welcome Back
             </h3>
             <p style={{ fontSize: '0.92rem', color: 'var(--text-secondary)' }}>
-              Enter your registered email or mobile number to continue.
+              Sign in to continue to your account.
             </p>
           </div>
 
@@ -240,7 +241,7 @@ export default function LoginPage({ navigate, redirectAfterLogin = 'home' }) {
                 <input
                   type="text"
                   className={`form-input ${errors.identifier ? 'error' : ''}`}
-                  placeholder="e.g. prakash@example.com or 9841054321"
+                  placeholder="e.g. prakash@example.com or 7845585919"
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
                   style={{ paddingLeft: '2.5rem' }}
@@ -297,7 +298,7 @@ export default function LoginPage({ navigate, redirectAfterLogin = 'home' }) {
                 style={{ width: '16px', height: '16px', accentColor: 'var(--primary-teal)', cursor: 'pointer' }}
               />
               <label htmlFor="rememberMeCheck" style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>
-                Remember my login on this device
+                Remember Me
               </label>
             </div>
 
@@ -308,7 +309,7 @@ export default function LoginPage({ navigate, redirectAfterLogin = 'home' }) {
               className="btn btn-primary"
               style={{ width: '100%', padding: '0.9rem', fontSize: '1rem', fontWeight: 700 }}
             >
-              {isLoading ? 'Signing In...' : 'Sign In to Account'}
+              {isLoading ? 'Signing In...' : 'Sign In'}
               <ArrowRight size={18} />
             </button>
           </form>
@@ -330,25 +331,33 @@ export default function LoginPage({ navigate, redirectAfterLogin = 'home' }) {
               </button>
               <button
                 type="button"
-                onClick={() => handleQuickDemo('admin@perfecthomes.com', 'password123')}
+                onClick={() => handleQuickDemo('srilakshman73@gmail.com', 'Perfect@123')}
                 className="btn btn-secondary btn-sm"
                 style={{ flex: 1, fontSize: '0.78rem' }}
               >
                 <ShieldCheck size={14} color="var(--primary-teal)" />
-                <span>Admin Manager</span>
+                <span>Admin (srilakshman73)</span>
               </button>
             </div>
           </div>
 
           {/* Register Link */}
           <div style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-            Don&apos;t have an account yet?{' '}
+            Don&apos;t have an account?{' '}
             <button
               onClick={() => navigate('register')}
               style={{ color: 'var(--primary-teal)', fontWeight: 700 }}
             >
-              Register Now
+              Register
             </button>
+          </div>
+
+          {/* Privacy & Terms Links */}
+          <div style={{ textAlign: 'center', marginTop: '1rem', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+            By signing in, you agree to our{' '}
+            <span style={{ color: 'var(--text-secondary)', textDecoration: 'underline', cursor: 'pointer' }}>Terms of Service</span>
+            {' '}and{' '}
+            <span style={{ color: 'var(--text-secondary)', textDecoration: 'underline', cursor: 'pointer' }}>Privacy Policy</span>.
           </div>
         </div>
       </div>
@@ -359,7 +368,7 @@ export default function LoginPage({ navigate, redirectAfterLogin = 'home' }) {
             grid-template-columns: 1fr !important;
           }
           .login-left-brand {
-            padding: 2rem !important;
+            padding: 2.25rem 1.5rem !important;
           }
         }
       `}</style>

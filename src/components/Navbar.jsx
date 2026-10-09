@@ -581,6 +581,12 @@ export default function Navbar({
                         <KeyRound size={15} color="var(--primary-teal)" />
                         <span>Change Password</span>
                       </button>
+                      {user.role === 'admin' && (
+                        <button onClick={() => handleNav('admin')} style={{ ...profileMenuItemStyle, color: 'var(--primary-teal)', fontWeight: 700 }}>
+                          <ShieldAlert size={15} color="var(--primary-teal)" />
+                          <span>Admin Portal</span>
+                        </button>
+                      )}
                     </div>
 
                     <div style={{ borderTop: '1px solid var(--border-light)', paddingTop: '0.35rem' }}>
