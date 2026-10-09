@@ -1,5 +1,6 @@
 /* ==========================================================================
    PERFECT HOMES & DEVELOPERS - DEDICATED REGISTRATION PAGE
+   Responsive Mobile-First Layout + Persistent Registration Sync
    ========================================================================== */
 
 import React, { useState } from 'react';
@@ -16,7 +17,8 @@ import {
   ArrowRight,
   CheckCircle2,
   ShieldCheck,
-  Sparkles
+  Sparkles,
+  RefreshCw
 } from 'lucide-react';
 
 export default function RegisterPage({ navigate }) {
@@ -33,8 +35,10 @@ export default function RegisterPage({ navigate }) {
   });
 
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Password strength calculation
   const getPasswordStrength = (pass) => {
@@ -54,7 +58,9 @@ export default function RegisterPage({ navigate }) {
 
   const validate = () => {
     const errs = {};
-    if (!formData.fullName.trim()) errs.fullName = 'Full name is required';
+    if (!formData.fullName.trim()) {
+      errs.fullName = 'Full name is required';
+    }
     if (!formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       errs.email = 'Valid email address is required';
     }
@@ -79,6 +85,7 @@ export default function RegisterPage({ navigate }) {
     setServerError('');
     if (!validate()) return;
 
+    setIsSubmitting(true);
     try {
       await register({
         fullName: formData.fullName,
@@ -88,38 +95,43 @@ export default function RegisterPage({ navigate }) {
       });
       navigate('home');
     } catch (err) {
-      setServerError(err.message || 'Registration failed. Please try again.');
+      setServerError(err.message || 'Registration failed. Please verify your details.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
     <div
       style={{
-        minHeight: 'calc(100vh - 140px)',
+        minHeight: '100vh',
         backgroundColor: 'var(--bg-main)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '3rem 1.5rem'
+        padding: '2rem 1rem',
+        backgroundImage: 'radial-gradient(circle at 10% 20%, rgba(0, 143, 131, 0.05) 0%, transparent 60%)'
       }}
     >
       <div
-        className="card"
+        className="card auth-container-card"
         style={{
-          maxWidth: '1080px',
+          maxWidth: '1060px',
           width: '100%',
           display: 'grid',
           gridTemplateColumns: '1.1fr 1fr',
           borderRadius: 'var(--radius-xl)',
           overflow: 'hidden',
-          boxShadow: 'var(--shadow-xl)',
+          boxShadow: '0 25px 60px rgba(6, 78, 73, 0.16)',
           border: '1.5px solid var(--border-color)',
           backgroundColor: '#FFFFFF'
         }}
-        className="login-container-card"
       >
-        {/* LEFT BRAND SECTION */}
+        {/* ========================================================
+            LEFT BRAND SECTION (DESKTOP / TABLET HERO)
+            ======================================================== */}
         <div
+          className="auth-left-brand"
           style={{
             background: 'linear-gradient(145deg, #064E49 0%, #008F83 60%, #31D6C5 120%)',
             color: '#FFFFFF',
@@ -130,7 +142,6 @@ export default function RegisterPage({ navigate }) {
             position: 'relative',
             overflow: 'hidden'
           }}
-          className="login-left-brand"
         >
           <div
             style={{
@@ -145,7 +156,7 @@ export default function RegisterPage({ navigate }) {
           />
 
           <div style={{ position: 'relative', zIndex: 2 }}>
-            <Logo variant="white" size="lg" onClick={() => navigate('home')} />
+            <Logo variant="white" size="lg" onClick={() => navigate('login')} />
 
             <div style={{ marginTop: '2.5rem' }}>
               <div
@@ -170,7 +181,7 @@ export default function RegisterPage({ navigate }) {
                 Start Your Journey to Land &amp; Home Ownership
               </h2>
 
-              <p style={{ color: 'rgba(255, 255, 255, 0.88)', fontSize: '0.96rem', lineHeight: 1.6, marginBottom: '2rem' }}>
+              <p style={{ color: 'rgba(255, 255, 255, 0.9)', fontSize: '0.96rem', lineHeight: 1.6, marginBottom: '2rem' }}>
                 Create your verified buyer account to access exclusive CMDA plot launches, download floor plans, and track your property enquiries.
               </p>
 
@@ -212,14 +223,16 @@ export default function RegisterPage({ navigate }) {
           </div>
         </div>
 
-        {/* RIGHT REGISTER CARD */}
-        <div style={{ padding: '3rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+        {/* ========================================================
+            RIGHT REGISTER FORM SECTION (MOBILE OPTIMIZED)
+            ======================================================== */}
+        <div className="auth-form-card" style={{ padding: '3.25rem 2.75rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
           <div style={{ marginBottom: '1.5rem' }}>
             <h3 style={{ fontSize: '1.8rem', color: 'var(--deep-teal)', marginBottom: '0.35rem' }}>
               Create Your Account
             </h3>
-            <p style={{ fontSize: '0.92rem', color: 'var(--text-secondary)' }}>
-              Fill in your details below to get started.
+            <p style={{ fontSize: '0.92rem', color: 'var(--text-secondary)', margin: 0 }}>
+              Fill in your details below to register as a verified buyer.
             </p>
           </div>
 
@@ -239,7 +252,7 @@ export default function RegisterPage({ navigate }) {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
             {/* Full Name */}
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label">Full Name *</label>
@@ -251,6 +264,7 @@ export default function RegisterPage({ navigate }) {
                 />
                 <input
                   type="text"
+                  autoComplete="name"
                   className={`form-input ${errors.fullName ? 'error' : ''}`}
                   placeholder="e.g. Suresh Kumar"
                   value={formData.fullName}
@@ -261,8 +275,9 @@ export default function RegisterPage({ navigate }) {
               {errors.fullName && <span className="form-error-msg">{errors.fullName}</span>}
             </div>
 
-            {/* Email & Phone */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+            {/* Responsive 2-Col on Desktop, 1-Col on Mobile */}
+            <div className="auth-form-row-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem' }}>
+              {/* Email */}
               <div className="form-group" style={{ marginBottom: 0 }}>
                 <label className="form-label">Email Address *</label>
                 <div style={{ position: 'relative' }}>
@@ -273,6 +288,7 @@ export default function RegisterPage({ navigate }) {
                   />
                   <input
                     type="email"
+                    autoComplete="email"
                     className={`form-input ${errors.email ? 'error' : ''}`}
                     placeholder="name@email.com"
                     value={formData.email}
@@ -283,6 +299,7 @@ export default function RegisterPage({ navigate }) {
                 {errors.email && <span className="form-error-msg">{errors.email}</span>}
               </div>
 
+              {/* Mobile Phone */}
               <div className="form-group" style={{ marginBottom: 0 }}>
                 <label className="form-label">Mobile Number *</label>
                 <div style={{ position: 'relative' }}>
@@ -293,6 +310,7 @@ export default function RegisterPage({ navigate }) {
                   />
                   <input
                     type="tel"
+                    autoComplete="tel"
                     className={`form-input ${errors.phone ? 'error' : ''}`}
                     placeholder="+91 98400..."
                     value={formData.phone}
@@ -325,7 +343,8 @@ export default function RegisterPage({ navigate }) {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}
+                  style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', padding: '4px' }}
+                  aria-label="Toggle password visibility"
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
@@ -333,7 +352,7 @@ export default function RegisterPage({ navigate }) {
               {formData.password && (
                 <div style={{ marginTop: '4px' }}>
                   <div style={{ height: '4px', width: '100%', backgroundColor: '#E5E7EB', borderRadius: '2px', overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: `${(strength / 4) * 100}%`, backgroundColor: strengthColors[strength] }} />
+                    <div style={{ height: '100%', width: `${(strength / 4) * 100}%`, backgroundColor: strengthColors[strength], transition: 'width 0.2s' }} />
                   </div>
                   <div style={{ fontSize: '0.72rem', color: strengthColors[strength], fontWeight: 600, marginTop: '2px' }}>
                     Password Strength: {strengthLabels[strength]}
@@ -353,41 +372,49 @@ export default function RegisterPage({ navigate }) {
                   style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }}
                 />
                 <input
-                  type={showPassword ? 'text' : 'password'}
+                  type={showConfirmPassword ? 'text' : 'password'}
                   autoComplete="new-password"
                   className={`form-input ${errors.confirmPassword ? 'error' : ''}`}
                   placeholder="Re-enter password"
                   value={formData.confirmPassword}
                   onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                  style={{ paddingLeft: '2.5rem' }}
+                  style={{ paddingLeft: '2.5rem', paddingRight: '2.5rem' }}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', padding: '4px' }}
+                  aria-label="Toggle confirm password visibility"
+                >
+                  {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
               </div>
               {errors.confirmPassword && <span className="form-error-msg">{errors.confirmPassword}</span>}
             </div>
 
-            {/* Agree Terms */}
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', margin: '0.5rem 0' }}>
+            {/* Agree Terms Checkbox */}
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', margin: '0.25rem 0' }}>
               <input
                 type="checkbox"
                 id="agreeTermsCheck"
                 checked={formData.agreeTerms}
                 onChange={(e) => setFormData({ ...formData, agreeTerms: e.target.checked })}
-                style={{ width: '16px', height: '16px', accentColor: 'var(--primary-teal)', cursor: 'pointer', marginTop: '3px' }}
+                style={{ width: '18px', height: '18px', accentColor: 'var(--primary-teal)', cursor: 'pointer', marginTop: '2px', flexShrink: 0 }}
               />
-              <label htmlFor="agreeTermsCheck" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+              <label htmlFor="agreeTermsCheck" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', cursor: 'pointer', lineHeight: 1.4 }}>
                 I agree to the Terms of Service and Privacy Policy for property notifications.
               </label>
             </div>
             {errors.agreeTerms && <span className="form-error-msg">{errors.agreeTerms}</span>}
 
-            {/* Submit */}
+            {/* Submit Button */}
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isSubmitting || isLoading}
               className="btn btn-primary"
-              style={{ width: '100%', padding: '0.9rem', fontSize: '1rem', fontWeight: 700 }}
+              style={{ width: '100%', padding: '0.9rem', fontSize: '1rem', fontWeight: 700, marginTop: '0.25rem' }}
             >
-              {isLoading ? 'Creating Account...' : 'Register Account'}
+              {isSubmitting || isLoading ? 'Creating Account & Saving...' : 'Register Account'}
               <ArrowRight size={18} />
             </button>
           </form>
@@ -404,6 +431,23 @@ export default function RegisterPage({ navigate }) {
           </div>
         </div>
       </div>
+
+      <style>{`
+        @media (max-width: 850px) {
+          .auth-container-card {
+            grid-template-columns: 1fr !important;
+          }
+          .auth-left-brand {
+            padding: 2.25rem 1.5rem !important;
+          }
+          .auth-form-card {
+            padding: 2.25rem 1.5rem !important;
+          }
+          .auth-form-row-2col {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

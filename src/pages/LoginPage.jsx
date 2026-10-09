@@ -1,5 +1,6 @@
 /* ==========================================================================
    PERFECT HOMES & DEVELOPERS - DEDICATED LUXURY LOGIN FIRST PAGE
+   Responsive Mobile Layout + Controlled Inputs
    ========================================================================== */
 
 import React, { useState } from 'react';
@@ -26,6 +27,7 @@ export default function LoginPage({ navigate, redirectAfterLogin = 'home' }) {
   const [rememberMe, setRememberMe] = useState(true);
   const [errors, setErrors] = useState({});
   const [authError, setAuthError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const validate = () => {
     const errs = {};
@@ -44,11 +46,14 @@ export default function LoginPage({ navigate, redirectAfterLogin = 'home' }) {
     setAuthError('');
     if (!validate()) return;
 
+    setIsSubmitting(true);
     try {
       await login(identifier, password, rememberMe);
       navigate(redirectAfterLogin);
     } catch (err) {
       setAuthError(err.message || 'Authentication failed. Please verify your credentials.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -60,12 +65,12 @@ export default function LoginPage({ navigate, redirectAfterLogin = 'home' }) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '2rem 1.5rem',
+        padding: '2rem 1rem',
         backgroundImage: 'radial-gradient(circle at 10% 20%, rgba(0, 143, 131, 0.05) 0%, transparent 60%)'
       }}
     >
       <div
-        className="card login-container-card"
+        className="card auth-container-card"
         style={{
           maxWidth: '1060px',
           width: '100%',
@@ -82,7 +87,7 @@ export default function LoginPage({ navigate, redirectAfterLogin = 'home' }) {
             LEFT LUXURY BRAND HERO SECTION
             ======================================================== */}
         <div
-          className="login-left-brand"
+          className="auth-left-brand"
           style={{
             background: 'linear-gradient(145deg, #064E49 0%, #008F83 60%, #31D6C5 120%)',
             color: '#FFFFFF',
@@ -183,12 +188,12 @@ export default function LoginPage({ navigate, redirectAfterLogin = 'home' }) {
         {/* ========================================================
             RIGHT CLEAN WHITE LOGIN CARD
             ======================================================== */}
-        <div style={{ padding: '3.5rem 3rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+        <div className="auth-form-card" style={{ padding: '3.5rem 3rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
           <div style={{ marginBottom: '2rem' }}>
             <h3 style={{ fontSize: '1.8rem', color: 'var(--deep-teal)', marginBottom: '0.35rem' }}>
               Welcome Back
             </h3>
-            <p style={{ fontSize: '0.92rem', color: 'var(--text-secondary)' }}>
+            <p style={{ fontSize: '0.92rem', color: 'var(--text-secondary)', margin: 0 }}>
               Sign in to continue to your account.
             </p>
           </div>
@@ -233,7 +238,7 @@ export default function LoginPage({ navigate, redirectAfterLogin = 'home' }) {
               {errors.identifier && <span className="form-error-msg">{errors.identifier}</span>}
             </div>
 
-            {/* Password Input (Clean controlled input - manual typing only) */}
+            {/* Password Input (Controlled input - manual typing only) */}
             <div className="form-group">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <label className="form-label" style={{ marginBottom: 0 }}>Password</label>
@@ -263,7 +268,7 @@ export default function LoginPage({ navigate, redirectAfterLogin = 'home' }) {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}
+                  style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', padding: '4px' }}
                   aria-label="Toggle password visibility"
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -279,7 +284,7 @@ export default function LoginPage({ navigate, redirectAfterLogin = 'home' }) {
                 id="rememberMeCheck"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
-                style={{ width: '16px', height: '16px', accentColor: 'var(--primary-teal)', cursor: 'pointer' }}
+                style={{ width: '18px', height: '18px', accentColor: 'var(--primary-teal)', cursor: 'pointer' }}
               />
               <label htmlFor="rememberMeCheck" style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>
                 Remember Me
@@ -289,11 +294,11 @@ export default function LoginPage({ navigate, redirectAfterLogin = 'home' }) {
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isSubmitting || isLoading}
               className="btn btn-primary"
               style={{ width: '100%', padding: '0.9rem', fontSize: '1rem', fontWeight: 700 }}
             >
-              {isLoading ? 'Signing In...' : 'Sign In'}
+              {isSubmitting || isLoading ? 'Signing In...' : 'Sign In'}
               <ArrowRight size={18} />
             </button>
           </form>
@@ -311,20 +316,20 @@ export default function LoginPage({ navigate, redirectAfterLogin = 'home' }) {
 
           {/* Privacy & Terms Links */}
           <div style={{ textAlign: 'center', marginTop: '1rem', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-            By signing in, you agree to our{' '}
-            <span style={{ color: 'var(--text-secondary)', textDecoration: 'underline', cursor: 'pointer' }}>Terms of Service</span>
-            {' '}and{' '}
-            <span style={{ color: 'var(--text-secondary)', textDecoration: 'underline', cursor: 'pointer' }}>Privacy Policy</span>.
+            By signing in, you agree to our Terms of Service and Privacy Policy.
           </div>
         </div>
       </div>
 
       <style>{`
         @media (max-width: 850px) {
-          .login-container-card {
+          .auth-container-card {
             grid-template-columns: 1fr !important;
           }
-          .login-left-brand {
+          .auth-left-brand {
+            padding: 2.25rem 1.5rem !important;
+          }
+          .auth-form-card {
             padding: 2.25rem 1.5rem !important;
           }
         }

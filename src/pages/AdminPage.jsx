@@ -1,8 +1,9 @@
 /* ==========================================================================
    PERFECT HOMES & DEVELOPERS - ADMIN MANAGEMENT DASHBOARD (PROTECTED)
+   Responsive mobile layout + Live persistent database synchronization
    ========================================================================== */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useProperties } from '../context/PropertyContext';
 import { useToast } from '../context/ToastContext';
@@ -27,11 +28,14 @@ import {
   Mail,
   Calendar,
   ShieldCheck,
-  AlertCircle
+  AlertCircle,
+  RefreshCw,
+  Layers,
+  MapPin
 } from 'lucide-react';
 
 export default function AdminPage({ navigate }) {
-  const { user, getRegisteredUsersForAdmin } = useAuth();
+  const { user, getRegisteredUsersForAdmin, syncUsers } = useAuth();
   const { properties, enquiries, adminAddProperty, adminUpdateProperty, adminDeleteProperty, updateEnquiryStatus } = useProperties();
   const { addToast } = useToast();
 
@@ -39,31 +43,49 @@ export default function AdminPage({ navigate }) {
   const [editingPropertyId, setEditingPropertyId] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [userSearchTerm, setUserSearchTerm] = useState('');
+  const [dbUsers, setDbUsers] = useState([]);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Fetch sanitized registered users (passwords and hashes strictly excluded)
-  const registeredUsers = useMemo(() => {
+  // Fetch live registered users from persistent database
+  const loadUsers = useCallback(async (showNotification = false) => {
+    if (user?.role !== 'admin') return;
     try {
-      if (user?.role === 'admin') {
-        return getRegisteredUsersForAdmin();
+      setIsRefreshing(true);
+      const list = await getRegisteredUsersForAdmin();
+      if (Array.isArray(list)) {
+        setDbUsers(list);
       }
-      return [];
-    } catch {
-      return [];
+      if (showNotification) {
+        addToast(`Registered accounts updated (${list.length} accounts loaded)`, 'success');
+      }
+    } catch (err) {
+      console.error('Failed to load registered users:', err);
+      if (showNotification) {
+        addToast('Failed to refresh users list: ' + err.message, 'error');
+      }
+    } finally {
+      setIsLoadingUsers(false);
+      setIsRefreshing(false);
     }
-  }, [user, getRegisteredUsersForAdmin]);
+  }, [user, getRegisteredUsersForAdmin, addToast]);
+
+  useEffect(() => {
+    loadUsers(false);
+  }, [loadUsers]);
 
   // Filtered users
   const filteredUsers = useMemo(() => {
-    if (!userSearchTerm.trim()) return registeredUsers;
+    if (!userSearchTerm.trim()) return dbUsers;
     const term = userSearchTerm.toLowerCase();
-    return registeredUsers.filter(
+    return dbUsers.filter(
       (u) =>
-        u.name.toLowerCase().includes(term) ||
-        u.email.toLowerCase().includes(term) ||
-        u.phone.includes(term) ||
-        u.role.toLowerCase().includes(term)
+        u.name?.toLowerCase().includes(term) ||
+        u.email?.toLowerCase().includes(term) ||
+        u.phone?.includes(term) ||
+        u.role?.toLowerCase().includes(term)
     );
-  }, [registeredUsers, userSearchTerm]);
+  }, [dbUsers, userSearchTerm]);
 
   // New property form state
   const [newProp, setNewProp] = useState({
@@ -139,14 +161,14 @@ export default function AdminPage({ navigate }) {
   };
 
   return (
-    <div style={{ backgroundColor: 'var(--bg-main)', minHeight: '100vh', padding: '3rem 0 5rem' }}>
+    <div style={{ backgroundColor: 'var(--bg-main)', minHeight: '100vh', padding: '2.5rem 0 5rem' }}>
       <div className="container">
         {/* Admin Header */}
         <div
           style={{
             display: 'flex',
             justifyContent: 'space-between',
-            alignItems: 'center',
+            alignItems: 'flex-start',
             flexWrap: 'wrap',
             gap: '1rem',
             marginBottom: '2rem',
@@ -155,103 +177,127 @@ export default function AdminPage({ navigate }) {
           }}
         >
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', flexWrap: 'wrap' }}>
               <span className="badge badge-teal">Administrator Portal</span>
               <span className="badge badge-gold">Active: {user.email}</span>
             </div>
-            <h1 style={{ fontSize: '2.1rem', color: 'var(--text-heading)' }}>
-              Perfect Homes &amp; Developers Admin Management
+            <h1 style={{ fontSize: 'clamp(1.5rem, 3vw, 2.1rem)', color: 'var(--text-heading)', margin: 0 }}>
+              Admin Management Dashboard
             </h1>
           </div>
 
-          <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+            <button
+              onClick={() => loadUsers(true)}
+              disabled={isRefreshing}
+              className="btn btn-secondary btn-sm"
+              title="Refresh database records"
+            >
+              <RefreshCw size={15} className={isRefreshing ? 'animate-spin' : ''} />
+              <span>{isRefreshing ? 'Syncing...' : 'Refresh DB'}</span>
+            </button>
             <button
               onClick={() => setShowAddModal(true)}
-              className="btn btn-primary"
+              className="btn btn-primary btn-sm"
             >
-              <Plus size={16} /> Add Property
+              <Plus size={15} /> Add Property
             </button>
-            <button onClick={() => navigate('home')} className="btn btn-secondary">
+            <button onClick={() => navigate('home')} className="btn btn-secondary btn-sm">
               View Website
             </button>
           </div>
         </div>
 
-        {/* Analytics Top Bar */}
+        {/* Analytics Metric Cards Grid */}
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: '1.25rem',
-            marginBottom: '2.5rem'
+            gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+            gap: '1rem',
+            marginBottom: '2rem'
           }}
         >
-          <div className="card" style={{ padding: '1.5rem', backgroundColor: '#FFFFFF', border: '1.5px solid var(--border-color)' }}>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>Total Registered Users</div>
-            <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--deep-teal)', marginTop: '4px' }}>
-              {registeredUsers.length}
+          <div className="card" style={{ padding: '1.25rem', backgroundColor: '#FFFFFF', border: '1.5px solid var(--border-color)' }}>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Registered Users</div>
+            <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--deep-teal)', marginTop: '4px' }}>
+              {isLoadingUsers ? '...' : dbUsers.length}
             </div>
           </div>
 
-          <div className="card" style={{ padding: '1.5rem', backgroundColor: '#FFFFFF', border: '1.5px solid var(--border-color)' }}>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>Total Properties Active</div>
-            <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--primary-teal)', marginTop: '4px' }}>
+          <div className="card" style={{ padding: '1.25rem', backgroundColor: '#FFFFFF', border: '1.5px solid var(--border-color)' }}>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Active Properties</div>
+            <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--primary-teal)', marginTop: '4px' }}>
               {properties.length}
             </div>
           </div>
 
-          <div className="card" style={{ padding: '1.5rem', backgroundColor: '#FFFFFF', border: '1.5px solid var(--border-color)' }}>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>Total Customer Enquiries</div>
-            <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--deep-teal)', marginTop: '4px' }}>
+          <div className="card" style={{ padding: '1.25rem', backgroundColor: '#FFFFFF', border: '1.5px solid var(--border-color)' }}>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Total Enquiries</div>
+            <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--deep-teal)', marginTop: '4px' }}>
               {enquiries.length}
             </div>
           </div>
 
-          <div className="card" style={{ padding: '1.5rem', backgroundColor: '#FFFFFF', border: '1.5px solid var(--border-color)' }}>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>New Leads Pending</div>
-            <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#D97706', marginTop: '4px' }}>
+          <div className="card" style={{ padding: '1.25rem', backgroundColor: '#FFFFFF', border: '1.5px solid var(--border-color)' }}>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>New Leads Pending</div>
+            <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#D97706', marginTop: '4px' }}>
               {enquiries.filter((e) => e.status === 'New').length}
             </div>
           </div>
         </div>
 
-        {/* Tab Toggle */}
-        <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+        {/* Tab Toggle Navigation */}
+        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', flexWrap: 'wrap', overflowX: 'auto', paddingBottom: '4px' }}>
           <button
             onClick={() => setActiveAdminTab('users')}
-            className={`btn ${activeAdminTab === 'users' ? 'btn-primary' : 'btn-secondary'}`}
+            className={`btn btn-sm ${activeAdminTab === 'users' ? 'btn-primary' : 'btn-secondary'}`}
           >
-            <Users size={16} /> Registered Users ({registeredUsers.length})
+            <Users size={15} /> Registered Users ({dbUsers.length})
           </button>
           <button
             onClick={() => setActiveAdminTab('properties')}
-            className={`btn ${activeAdminTab === 'properties' ? 'btn-primary' : 'btn-secondary'}`}
+            className={`btn btn-sm ${activeAdminTab === 'properties' ? 'btn-primary' : 'btn-secondary'}`}
           >
-            <Building size={16} /> Property Inventory ({properties.length})
+            <Building size={15} /> Property Inventory ({properties.length})
           </button>
           <button
             onClick={() => setActiveAdminTab('enquiries')}
-            className={`btn ${activeAdminTab === 'enquiries' ? 'btn-primary' : 'btn-secondary'}`}
+            className={`btn btn-sm ${activeAdminTab === 'enquiries' ? 'btn-primary' : 'btn-secondary'}`}
           >
-            <FileText size={16} /> Customer Enquiries ({enquiries.length})
+            <FileText size={15} /> Customer Enquiries ({enquiries.length})
           </button>
         </div>
 
-        {/* TAB 1: REGISTERED USERS MANAGEMENT (PROTECTED & SANITIZED) */}
+        {/* ========================================================
+            TAB 1: REGISTERED USERS MANAGEMENT
+            ======================================================== */}
         {activeAdminTab === 'users' && (
           <div className="card" style={{ backgroundColor: '#FFFFFF', border: '1.5px solid var(--border-color)', borderRadius: 'var(--radius-xl)', overflow: 'hidden' }}>
-            <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+            {/* Header & Search Bar */}
+            <div
+              style={{
+                padding: '1.25rem 1.5rem',
+                borderBottom: '1px solid var(--border-light)',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '1rem'
+              }}
+            >
               <div>
                 <h3 style={{ fontSize: '1.2rem', color: 'var(--deep-teal)', margin: 0 }}>Registered User Accounts</h3>
-                <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>Secure access list • Passwords &amp; hashes strictly protected</span>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                  Persistent Database • Passwords &amp; hashes strictly protected
+                </span>
               </div>
 
-              <div style={{ position: 'relative', minWidth: '260px' }}>
+              <div style={{ position: 'relative', width: '100%', maxWidth: '320px' }}>
                 <Search size={16} color="var(--text-muted)" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)' }} />
                 <input
                   type="text"
                   className="form-input"
-                  placeholder="Search user by name, email, phone..."
+                  placeholder="Search by name, email, phone..."
                   value={userSearchTerm}
                   onChange={(e) => setUserSearchTerm(e.target.value)}
                   style={{ paddingLeft: '2.2rem', fontSize: '0.85rem' }}
@@ -259,65 +305,152 @@ export default function AdminPage({ navigate }) {
               </div>
             </div>
 
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
-                <thead>
-                  <tr style={{ backgroundColor: 'var(--bg-main)', borderBottom: '1px solid var(--border-color)' }}>
-                    <th style={{ padding: '0.85rem 1.25rem' }}>User Name</th>
-                    <th style={{ padding: '0.85rem 1rem' }}>Email Address</th>
-                    <th style={{ padding: '0.85rem 1rem' }}>Phone Number</th>
-                    <th style={{ padding: '0.85rem 1rem' }}>Role</th>
-                    <th style={{ padding: '0.85rem 1rem' }}>Registration Date</th>
-                    <th style={{ padding: '0.85rem 1rem' }}>Account Status</th>
-                    <th style={{ padding: '0.85rem 1.25rem', textAlign: 'right' }}>Enquiries</th>
-                  </tr>
-                </thead>
-                <tbody>
+            {/* Loading / Empty State */}
+            {isLoadingUsers ? (
+              <div style={{ padding: '3rem 1.5rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                <RefreshCw size={28} className="animate-spin" color="var(--primary-teal)" style={{ margin: '0 auto 0.75rem' }} />
+                <div>Loading registered user database...</div>
+              </div>
+            ) : filteredUsers.length === 0 ? (
+              <div style={{ padding: '3rem 1.5rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                <Users size={36} color="var(--text-muted)" style={{ margin: '0 auto 0.75rem' }} />
+                <div>No users matched &ldquo;{userSearchTerm}&rdquo;</div>
+              </div>
+            ) : (
+              <>
+                {/* 1. DESKTOP VIEW: FULL TABLE (HIDDEN ON MOBILE) */}
+                <div className="admin-desktop-table" style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.88rem' }}>
+                    <thead>
+                      <tr style={{ backgroundColor: 'var(--bg-main)', borderBottom: '1px solid var(--border-color)' }}>
+                        <th style={{ padding: '0.85rem 1.25rem' }}>User Name</th>
+                        <th style={{ padding: '0.85rem 1rem' }}>Email Address</th>
+                        <th style={{ padding: '0.85rem 1rem' }}>Phone Number</th>
+                        <th style={{ padding: '0.85rem 1rem' }}>Role</th>
+                        <th style={{ padding: '0.85rem 1rem' }}>Registration Date</th>
+                        <th style={{ padding: '0.85rem 1rem' }}>Status</th>
+                        <th style={{ padding: '0.85rem 1.25rem', textAlign: 'right' }}>Enquiries</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredUsers.map((u) => {
+                        const userEnquiryCount = enquiries.filter((e) => e.email?.toLowerCase() === u.email?.toLowerCase()).length;
+                        return (
+                          <tr key={u.id} style={{ borderBottom: '1px solid var(--border-light)' }}>
+                            <td style={{ padding: '0.85rem 1.25rem' }}>
+                              <div style={{ fontWeight: 700, color: 'var(--text-heading)' }}>{u.name}</div>
+                              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>ID: {u.id}</div>
+                            </td>
+                            <td style={{ padding: '0.85rem 1rem', color: 'var(--text-heading)' }}>{u.email}</td>
+                            <td style={{ padding: '0.85rem 1rem', color: 'var(--text-secondary)' }}>{u.phone}</td>
+                            <td style={{ padding: '0.85rem 1rem' }}>
+                              <span className={`badge ${u.role === 'admin' ? 'badge-gold' : 'badge-teal'}`}>
+                                {u.role === 'admin' ? 'Administrator' : 'Buyer'}
+                              </span>
+                            </td>
+                            <td style={{ padding: '0.85rem 1rem', color: 'var(--text-secondary)', fontSize: '0.82rem' }}>
+                              {u.joinedDate}
+                            </td>
+                            <td style={{ padding: '0.85rem 1rem' }}>
+                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: 'var(--success)', fontWeight: 600, fontSize: '0.82rem' }}>
+                                <CheckCircle2 size={13} /> {u.status || 'Active'}
+                              </span>
+                            </td>
+                            <td style={{ padding: '0.85rem 1.25rem', textAlign: 'right', fontWeight: 700, color: 'var(--primary-teal)' }}>
+                              {userEnquiryCount}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* 2. MOBILE VIEW: RESPONSIVE STACKED USER CARDS (Zero Horizontal Overflow) */}
+                <div className="admin-mobile-cards" style={{ display: 'none', flexDirection: 'column', gap: '1rem', padding: '1rem' }}>
                   {filteredUsers.map((u) => {
                     const userEnquiryCount = enquiries.filter((e) => e.email?.toLowerCase() === u.email?.toLowerCase()).length;
                     return (
-                      <tr key={u.id} style={{ borderBottom: '1px solid var(--border-light)' }}>
-                        <td style={{ padding: '0.85rem 1.25rem' }}>
-                          <div style={{ fontWeight: 700, color: 'var(--text-heading)' }}>{u.name}</div>
-                          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>ID: {u.id}</div>
-                        </td>
-                        <td style={{ padding: '0.85rem 1rem', color: 'var(--text-heading)' }}>{u.email}</td>
-                        <td style={{ padding: '0.85rem 1rem', color: 'var(--text-secondary)' }}>{u.phone}</td>
-                        <td style={{ padding: '0.85rem 1rem' }}>
+                      <div
+                        key={u.id}
+                        style={{
+                          backgroundColor: '#FFFFFF',
+                          border: '1.5px solid var(--border-color)',
+                          borderRadius: 'var(--radius-md)',
+                          padding: '1.1rem',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '0.65rem',
+                          boxShadow: 'var(--shadow-xs)'
+                        }}
+                      >
+                        {/* Name and Role */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
+                          <div>
+                            <div style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--deep-teal)' }}>{u.name}</div>
+                            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>ID: {u.id}</div>
+                          </div>
                           <span className={`badge ${u.role === 'admin' ? 'badge-gold' : 'badge-teal'}`}>
-                            {u.role === 'admin' ? 'Administrator' : 'Buyer'}
+                            {u.role === 'admin' ? 'Admin' : 'Buyer'}
                           </span>
-                        </td>
-                        <td style={{ padding: '0.85rem 1rem', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-                          {u.joinedDate}
-                        </td>
-                        <td style={{ padding: '0.85rem 1rem' }}>
-                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: 'var(--success)', fontWeight: 600, fontSize: '0.82rem' }}>
-                            <CheckCircle2 size={13} /> {u.status || 'Active'}
-                          </span>
-                        </td>
-                        <td style={{ padding: '0.85rem 1.25rem', textAlign: 'right', fontWeight: 700, color: 'var(--primary-teal)' }}>
-                          {userEnquiryCount}
-                        </td>
-                      </tr>
+                        </div>
+
+                        {/* Email & Phone */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.86rem', color: 'var(--text-heading)' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <Mail size={14} color="var(--primary-teal)" />
+                            <span>{u.email}</span>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <Phone size={14} color="var(--primary-teal)" />
+                            <span>{u.phone}</span>
+                          </div>
+                        </div>
+
+                        {/* Date, Status, and Enquiry count footer */}
+                        <div
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            paddingTop: '0.6rem',
+                            borderTop: '1px solid var(--border-light)',
+                            fontSize: '0.8rem'
+                          }}
+                        >
+                          <div style={{ color: 'var(--text-secondary)' }}>
+                            📅 {u.joinedDate}
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <span style={{ color: 'var(--success)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                              <CheckCircle2 size={12} /> {u.status || 'Active'}
+                            </span>
+                            <span style={{ color: 'var(--primary-teal)', fontWeight: 700 }}>
+                              {userEnquiryCount} Enq
+                            </span>
+                          </div>
+                        </div>
+                      </div>
                     );
                   })}
-                </tbody>
-              </table>
-            </div>
+                </div>
+              </>
+            )}
           </div>
         )}
 
-        {/* TAB 2: PROPERTIES MANAGEMENT */}
+        {/* ========================================================
+            TAB 2: PROPERTIES MANAGEMENT
+            ======================================================== */}
         {activeAdminTab === 'properties' && (
           <div className="card" style={{ backgroundColor: '#FFFFFF', border: '1.5px solid var(--border-color)', borderRadius: 'var(--radius-xl)', overflow: 'hidden' }}>
             <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h3 style={{ fontSize: '1.2rem', color: 'var(--deep-teal)', margin: 0 }}>Property Inventory</h3>
-              <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Live database updates</span>
+              <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>{properties.length} active listings</span>
             </div>
 
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.88rem' }}>
                 <thead>
                   <tr style={{ backgroundColor: 'var(--bg-main)', borderBottom: '1px solid var(--border-color)' }}>
                     <th style={{ padding: '0.85rem 1.25rem' }}>Property</th>
@@ -335,7 +468,7 @@ export default function AdminPage({ navigate }) {
                         <img src={p.images[0]} alt={p.title} style={{ width: '45px', height: '45px', borderRadius: '6px', objectFit: 'cover' }} />
                         <div>
                           <div style={{ fontWeight: 700, color: 'var(--text-heading)' }}>{p.title}</div>
-                          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>ID: {p.id}</div>
+                          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>ID: {p.id}</div>
                         </div>
                       </td>
                       <td style={{ padding: '0.85rem 1rem' }}>
@@ -361,14 +494,16 @@ export default function AdminPage({ navigate }) {
           </div>
         )}
 
-        {/* TAB 3: ENQUIRIES MANAGEMENT */}
+        {/* ========================================================
+            TAB 3: ENQUIRIES MANAGEMENT
+            ======================================================== */}
         {activeAdminTab === 'enquiries' && (
           <div className="card" style={{ backgroundColor: '#FFFFFF', border: '1.5px solid var(--border-color)', borderRadius: 'var(--radius-xl)', overflow: 'hidden' }}>
             <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-light)' }}>
               <h3 style={{ fontSize: '1.2rem', color: 'var(--deep-teal)', margin: 0 }}>Customer Leads &amp; Site Visit Log</h3>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1.5rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1.25rem' }}>
               {enquiries.map((enq) => (
                 <div
                   key={enq.id}
@@ -413,14 +548,14 @@ export default function AdminPage({ navigate }) {
                     <strong>Customer Message:</strong> {enq.message}
                   </div>
 
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                     <input
                       type="text"
                       className="form-input"
                       placeholder="Add executive update note..."
                       defaultValue={enq.salesNotes || ''}
                       onBlur={(e) => updateEnquiryStatus(enq.id, enq.status, e.target.value)}
-                      style={{ fontSize: '0.82rem', padding: '0.4rem 0.75rem' }}
+                      style={{ fontSize: '0.82rem', padding: '0.4rem 0.75rem', flex: 1, minWidth: '200px' }}
                     />
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
                       (Auto-saves on blur)
@@ -522,6 +657,24 @@ export default function AdminPage({ navigate }) {
           </div>
         )}
       </div>
+
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        .animate-spin {
+          animation: spin 1s linear infinite;
+        }
+        @media (max-width: 768px) {
+          .admin-desktop-table {
+            display: none !important;
+          }
+          .admin-mobile-cards {
+            display: flex !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

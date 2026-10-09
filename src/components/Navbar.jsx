@@ -1,5 +1,6 @@
 /* ==========================================================================
    PERFECT HOMES & DEVELOPERS - GLOBAL RESPONSIVE NAVBAR
+   Responsive mobile drawer + Admin access + Contact bar
    ========================================================================== */
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -107,7 +108,7 @@ export default function Navbar({
           borderBottom: '1px solid rgba(49, 214, 197, 0.15)'
         }}
       >
-        <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+        <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.4rem' }}>
           {/* Office Address */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <MapPin size={13} color="#31D6C5" />
@@ -115,7 +116,7 @@ export default function Navbar({
           </div>
 
           {/* Right Contacts & Social Icons */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
             {/* Phone */}
             <a
               href={`tel:${COMPANY_CONTACT_INFO.phone}`}
@@ -140,7 +141,7 @@ export default function Navbar({
             <span className="hide-mobile" style={{ opacity: 0.4 }}>|</span>
 
             {/* Social Icons */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div className="hide-mobile" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               {/* Facebook */}
               <a
                 href={COMPANY_CONTACT_INFO.socialLinks.facebook}
@@ -433,7 +434,7 @@ export default function Navbar({
           </nav>
 
           {/* Right Header Controls (Search, Wishlist, Login / Register or Profile) */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             {/* Search Icon */}
             <button
               onClick={onOpenSearch}
@@ -557,10 +558,6 @@ export default function Navbar({
                         <Heart size={15} color="var(--primary-teal)" />
                         <span>My Wishlist ({wishlistCount})</span>
                       </button>
-                      <button onClick={() => handleNav('wishlist')} style={profileMenuItemStyle}>
-                        <BookmarkCheck size={15} color="var(--primary-teal)" />
-                        <span>Saved Properties</span>
-                      </button>
                       <button onClick={() => { setProfileDropdownOpen(false); onOpenCompare(); }} style={profileMenuItemStyle}>
                         <Scale size={15} color="var(--primary-teal)" />
                         <span>Compared Properties ({compareList.length})</span>
@@ -568,10 +565,6 @@ export default function Navbar({
                       <button onClick={() => handleNav('enquiries')} style={profileMenuItemStyle}>
                         <FileText size={15} color="var(--primary-teal)" />
                         <span>My Enquiries</span>
-                      </button>
-                      <button onClick={() => handleNav('listing', { sortBy: 'newest' })} style={profileMenuItemStyle}>
-                        <Clock size={15} color="var(--primary-teal)" />
-                        <span>Recently Viewed</span>
                       </button>
                       <button onClick={() => handleNav('profile', { tab: 'settings' })} style={profileMenuItemStyle}>
                         <Settings size={15} color="var(--primary-teal)" />
@@ -606,49 +599,33 @@ export default function Navbar({
                 )}
               </div>
             ) : (
-              /* Guest State: Login & Register matching screenshot */
+              /* Guest State: Login & Register */
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                {/* Login Button (Clean pill outline) */}
                 <button
                   onClick={() => handleNav('login')}
                   style={{
-                    padding: '0.5rem 1.15rem',
+                    padding: '0.45rem 1.1rem',
                     borderRadius: 'var(--radius-md)',
                     border: '1.5px solid #008F83',
                     backgroundColor: '#FFFFFF',
                     color: '#064E49',
                     fontWeight: 600,
-                    fontSize: '0.9rem',
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = 'var(--turquoise-light)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = '#FFFFFF';
+                    fontSize: '0.88rem'
                   }}
                 >
                   Login
                 </button>
 
-                {/* Register Button (Filled teal pill) */}
                 <button
                   onClick={() => handleNav('register')}
                   style={{
-                    padding: '0.5rem 1.25rem',
+                    padding: '0.45rem 1.15rem',
                     borderRadius: 'var(--radius-md)',
                     backgroundColor: '#008F83',
                     color: '#FFFFFF',
                     fontWeight: 600,
-                    fontSize: '0.9rem',
-                    boxShadow: '0 2px 8px rgba(0, 143, 131, 0.25)',
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#064E49';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = '#008F83';
+                    fontSize: '0.88rem',
+                    boxShadow: '0 2px 8px rgba(0, 143, 131, 0.25)'
                   }}
                 >
                   Register
@@ -665,7 +642,7 @@ export default function Navbar({
                 border: '1px solid var(--border-color)',
                 color: 'var(--text-heading)'
               }}
-              aria-label="Toggle Menu"
+              aria-label="Toggle Navigation Menu"
             >
               {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
@@ -673,28 +650,31 @@ export default function Navbar({
         </div>
       </div>
 
-      {/* Mobile Drawer */}
+      {/* ========================================================
+          MOBILE DRAWER MENU (RESPONSIVE OVERLAY)
+          ======================================================== */}
       {mobileMenuOpen && (
         <div
           style={{
             position: 'fixed',
             inset: 0,
-            top: '72px',
+            top: '65px',
             backgroundColor: '#FFFFFF',
-            zIndex: 999,
+            zIndex: 9999,
             overflowY: 'auto',
             padding: '1.5rem',
             display: 'flex',
             flexDirection: 'column',
             gap: '1rem',
-            animation: 'fadeIn 0.2s ease'
+            animation: 'fadeIn 0.2s ease',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.1)'
           }}
         >
           {isAuthenticated && user ? (
             <div style={{ backgroundColor: 'var(--turquoise-light)', padding: '1rem', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <img src={user.avatar} alt={user.name} style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} />
+              <img src={user.avatar} alt={user.name} style={{ width: '44px', height: '44px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--primary-teal)' }} />
               <div>
-                <div style={{ fontWeight: 700, color: 'var(--deep-teal)' }}>Hi, {user.firstName}</div>
+                <div style={{ fontWeight: 800, color: 'var(--deep-teal)', fontSize: '1.05rem' }}>Hi, {user.firstName || user.name}</div>
                 <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>{user.email}</div>
               </div>
             </div>
@@ -706,12 +686,37 @@ export default function Navbar({
           )}
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', borderTop: '1px solid var(--border-light)', paddingTop: '0.75rem' }}>
-            <button onClick={() => handleNav('home')} style={mobileBtnStyle}><Home size={17} color="var(--primary-teal)" /> Home</button>
-            <button onClick={() => handleNav('listing')} style={mobileBtnStyle}><FileText size={17} color="var(--primary-teal)" /> All Properties</button>
-            <button onClick={() => handleNav('locations')} style={mobileBtnStyle}><MapPin size={17} color="var(--primary-teal)" /> Locations Guide</button>
-            <button onClick={() => { setMobileMenuOpen(false); onOpenAI(); }} style={mobileBtnStyle}><Bot size={17} color="var(--primary-teal)" /> AI Assistant</button>
-            <button onClick={() => handleNav('about')} style={mobileBtnStyle}><User size={17} color="var(--primary-teal)" /> About Us</button>
-            <button onClick={() => handleNav('contact')} style={mobileBtnStyle}><PhoneCall size={17} color="var(--primary-teal)" /> Contact</button>
+            <button onClick={() => handleNav('home')} style={mobileBtnStyle}><Home size={18} color="var(--primary-teal)" /> Home</button>
+            <button onClick={() => handleNav('listing')} style={mobileBtnStyle}><FileText size={18} color="var(--primary-teal)" /> All Properties</button>
+            <button onClick={() => handleNav('locations')} style={mobileBtnStyle}><MapPin size={18} color="var(--primary-teal)" /> Locations Guide</button>
+            <button onClick={() => { setMobileMenuOpen(false); onOpenAI(); }} style={mobileBtnStyle}><Bot size={18} color="var(--primary-teal)" /> AI Assistant</button>
+            <button onClick={() => handleNav('about')} style={mobileBtnStyle}><User size={18} color="var(--primary-teal)" /> About Us</button>
+            <button onClick={() => handleNav('contact')} style={mobileBtnStyle}><PhoneCall size={18} color="var(--primary-teal)" /> Contact</button>
+
+            {isAuthenticated && user && (
+              <>
+                <div style={{ borderTop: '1px solid var(--border-light)', marginTop: '0.5rem', paddingTop: '0.5rem' }}>
+                  <button onClick={() => handleNav('profile', { tab: 'personal' })} style={mobileBtnStyle}><User size={18} color="var(--primary-teal)" /> My Profile</button>
+                  <button onClick={() => handleNav('wishlist')} style={mobileBtnStyle}><Heart size={18} color="var(--primary-teal)" /> My Wishlist ({wishlistCount})</button>
+                  <button onClick={() => handleNav('enquiries')} style={mobileBtnStyle}><FileText size={18} color="var(--primary-teal)" /> My Enquiries</button>
+                  {user.role === 'admin' && (
+                    <button onClick={() => handleNav('admin')} style={{ ...mobileBtnStyle, color: 'var(--primary-teal)', fontWeight: 700 }}>
+                      <ShieldAlert size={18} color="var(--primary-teal)" /> Admin Dashboard
+                    </button>
+                  )}
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      logout();
+                      navigate('home');
+                    }}
+                    style={{ ...mobileBtnStyle, color: 'var(--danger)', marginTop: '0.25rem' }}
+                  >
+                    <LogOut size={18} color="var(--danger)" /> Logout
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

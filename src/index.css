@@ -82,6 +82,8 @@ html {
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  width: 100%;
 }
 
 body {
@@ -90,15 +92,56 @@ body {
   color: var(--text-heading);
   line-height: 1.6;
   min-height: 100vh;
+  min-height: -webkit-fill-available;
   display: flex;
   flex-direction: column;
   overflow-x: hidden;
+  width: 100%;
+  padding-left: env(safe-area-inset-left, 0);
+  padding-right: env(safe-area-inset-right, 0);
 }
 
 #root {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+/* Responsive Visibility Helpers */
+.hide-mobile {
+  display: inline-flex;
+}
+
+.hide-mobile-tablet {
+  display: flex;
+}
+
+.show-mobile-tablet {
+  display: none;
+}
+
+.show-mobile {
+  display: none;
+}
+
+@media (max-width: 992px) {
+  .hide-mobile-tablet {
+    display: none !important;
+  }
+  .show-mobile-tablet {
+    display: inline-flex !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .hide-mobile {
+    display: none !important;
+  }
+  .show-mobile {
+    display: inline-flex !important;
+  }
 }
 
 /* Typography Utilities */
@@ -108,12 +151,13 @@ h1, h2, h3, h4, h5, h6 {
   line-height: 1.25;
   font-weight: 700;
   letter-spacing: -0.02em;
+  word-wrap: break-word;
 }
 
-h1 { font-size: clamp(2.2rem, 4.5vw, 3.6rem); }
-h2 { font-size: clamp(1.75rem, 3.2vw, 2.6rem); }
-h3 { font-size: clamp(1.35rem, 2.2vw, 1.85rem); }
-h4 { font-size: 1.25rem; font-weight: 600; }
+h1 { font-size: clamp(1.85rem, 4.5vw, 3.4rem); }
+h2 { font-size: clamp(1.5rem, 3.2vw, 2.4rem); }
+h3 { font-size: clamp(1.2rem, 2.2vw, 1.75rem); }
+h4 { font-size: 1.15rem; font-weight: 600; }
 h5 { font-size: 1.05rem; font-weight: 600; }
 h6 { font-size: 0.9rem; font-weight: 600; }
 
@@ -121,6 +165,7 @@ p {
   color: var(--text-secondary);
   font-size: 1rem;
   line-height: 1.65;
+  word-wrap: break-word;
 }
 
 a {
@@ -136,6 +181,7 @@ a:hover {
 button, input, select, textarea {
   font-family: inherit;
   font-size: 1rem;
+  max-width: 100%;
 }
 
 button {
@@ -143,6 +189,7 @@ button {
   border: none;
   background: none;
   transition: all var(--transition-normal);
+  touch-action: manipulation;
 }
 
 img {
@@ -194,6 +241,7 @@ img {
   user-select: none;
   position: relative;
   overflow: hidden;
+  min-height: 44px;
 }
 
 .btn:active {
@@ -273,12 +321,14 @@ img {
   padding: 0.45rem 0.9rem;
   font-size: 0.85rem;
   border-radius: var(--radius-sm);
+  min-height: 38px;
 }
 
 .btn-lg {
   padding: 0.95rem 2rem;
   font-size: 1.05rem;
   border-radius: var(--radius-md);
+  min-height: 48px;
 }
 
 .btn-icon {
@@ -302,6 +352,7 @@ img {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  white-space: nowrap;
 }
 
 .badge-teal {
@@ -347,25 +398,6 @@ img {
 .card:hover {
   box-shadow: var(--shadow-lg);
   border-color: rgba(0, 143, 131, 0.25);
-  transform: translateY(-4px);
-}
-
-/* Glassmorphism panel */
-.glass-panel {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-lg);
-}
-
-.glass-dark {
-  background: rgba(6, 78, 73, 0.88);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(49, 214, 197, 0.2);
-  color: var(--white);
 }
 
 /* Form Controls */
@@ -374,6 +406,7 @@ img {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
+  width: 100%;
 }
 
 .form-label {
@@ -392,6 +425,7 @@ img {
   font-size: 0.95rem;
   transition: all var(--transition-fast);
   outline: none;
+  min-height: 44px;
 }
 
 .form-input:focus, .form-select:focus, .form-textarea:focus {
@@ -450,8 +484,8 @@ img {
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
 }
 
 ::-webkit-scrollbar-track {
@@ -469,50 +503,27 @@ img {
 
 /* Animations */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes pulseGlow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(49, 214, 197, 0.6); }
-  50% { box-shadow: 0 0 0 12px rgba(49, 214, 197, 0); }
-}
-
-@keyframes floatAnim {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
-}
-
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-
 .animate-fade-in {
-  animation: fadeIn 0.4s ease-out forwards;
-}
-
-.animate-pulse-glow {
-  animation: pulseGlow 2.5s infinite;
-}
-
-.animate-float {
-  animation: floatAnim 4s ease-in-out infinite;
+  animation: fadeIn 0.3s ease-out forwards;
 }
 
 /* Modal Backdrop */
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(6, 78, 73, 0.6);
+  background: rgba(6, 78, 73, 0.65);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 9999;
-  padding: 1.5rem;
-  animation: fadeIn 0.25s ease-out;
+  padding: 1rem;
+  animation: fadeIn 0.2s ease-out;
 }
 
 .modal-content {
@@ -524,7 +535,7 @@ img {
   max-height: 90vh;
   overflow-y: auto;
   position: relative;
-  animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Toast Container */
@@ -550,7 +561,7 @@ img {
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);
   border-left: 4px solid var(--primary-teal);
-  min-width: 320px;
+  min-width: 300px;
   max-width: 420px;
   animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -559,7 +570,7 @@ img {
 .toast.error { border-left-color: var(--danger); }
 .toast.info { border-left-color: var(--primary-teal); }
 
-/* Responsive adjustments */
+/* Responsive Adjustments across all screen sizes */
 @media (max-width: 768px) {
   .container {
     padding-left: 1rem;
@@ -567,7 +578,7 @@ img {
   }
   
   .section-header {
-    margin-bottom: 2.5rem;
+    margin-bottom: 2rem;
   }
   
   .toast-container {
@@ -582,8 +593,24 @@ img {
   }
 
   .navbar-logo img {
-    height: 40px !important;
-    max-width: 190px !important;
+    height: 38px !important;
+    max-width: 180px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding-left: 0.85rem;
+    padding-right: 0.85rem;
+  }
+
+  h1 { font-size: 1.75rem; }
+  h2 { font-size: 1.4rem; }
+  h3 { font-size: 1.15rem; }
+
+  .btn {
+    padding: 0.65rem 1rem;
+    font-size: 0.9rem;
   }
 }
 
