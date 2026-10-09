@@ -580,4 +580,28 @@ img {
     min-width: unset;
     width: 100%;
   }
+
+  .navbar-logo img {
+    height: 40px !important;
+    max-width: 190px !important;
+  }
+}
+
+/* ==========================================================================
+   OFFICIAL BRAND LOGO STYLES
+   ========================================================================== */
+.logo-lockup {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+  user-select: none;
+}
+
+.logo-lockup[role="button"]:hover {
+  transform: translateY(-1px);
+  opacity: 0.95;
+}
+
+.logo-lockup img {
+  image-rendering: auto;
+  image-rendering: -webkit-optimize-contrast;
+  pointer-events: none;
 }
