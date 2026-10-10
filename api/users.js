@@ -1,4 +1,7 @@
 // Vercel Serverless Function: GET /api/users
+// STRICT PRIVACY PROTECTION: Strictly accessible ONLY by authorized administrators
+import { requireAdmin, getAllUsers, sanitizeUser } from './_db.js';
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -9,76 +12,30 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
-  const CLOUD_DB_ENDPOINT = 'https://api.restful-api.dev/objects/ff808181a09d98f701a120a277792d44';
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
 
   try {
-    const cloudRes = await fetch(CLOUD_DB_ENDPOINT, {
-      method: 'GET',
-      headers: { 'Accept': 'application/json' },
-      cache: 'no-cache'
-    });
+    // Enforce server-side administrator authorization guard
+    await requireAdmin(req);
 
-    let users = [];
-    if (cloudRes.ok) {
-      const json = await cloudRes.json();
-      users = json.data?.users || [];
-    }
+    // Retrieve fresh users from persistent database
+    const users = await getAllUsers();
 
-    if (!Array.isArray(users) || users.length === 0) {
-      users = [
-        {
-          id: 'usr_admin_srilakshman',
-          name: 'Administrator',
-          firstName: 'Admin',
-          lastName: 'Lakshman',
-          email: 'srilakshman73@gmail.com',
-          phone: '+91 78455 85919',
-          role: 'admin',
-          joinedDate: 'October 2026',
-          city: 'Thiruninravur, Chennai',
-          status: 'Active'
-        },
-        {
-          id: 'usr_prakash_101',
-          name: 'Prakash Kumar',
-          firstName: 'Prakash',
-          lastName: 'Kumar',
-          email: 'prakash@example.com',
-          phone: '+91 98410 54321',
-          role: 'buyer',
-          joinedDate: 'January 2024',
-          city: 'Chennai',
-          status: 'Active'
-        }
-      ];
-    }
-
-    // Sanitize user records (never return passwords or password hashes)
-    const sanitized = users.map((u) => ({
-      id: u.id,
-      name: u.name,
-      firstName: u.firstName || u.name?.split(' ')[0] || 'User',
-      lastName: u.lastName || '',
-      email: u.email,
-      phone: u.phone,
-      role: u.role || 'buyer',
-      joinedDate: u.joinedDate || 'Recent',
-      status: u.status || 'Active',
-      city: u.city || 'Chennai',
-      profileCompleted: u.profileCompleted || 80,
-      registeredAt: u.registeredAt || null
-    }));
+    // Sanitize user records (STRICT SECURITY: Never expose password or password hashes)
+    const sanitizedList = users.map((u) => sanitizeUser(u));
 
     return res.status(200).json({
       success: true,
-      count: sanitized.length,
-      users: sanitized
+      count: sanitizedList.length,
+      users: sanitizedList
     });
   } catch (err) {
-    return res.status(500).json({
+    const statusCode = err.statusCode || 500;
+    return res.status(statusCode).json({
       success: false,
-      error: 'Failed to fetch users from database',
-      message: err.message
+      error: err.message || 'Unauthorized access'
     });
   }
 }

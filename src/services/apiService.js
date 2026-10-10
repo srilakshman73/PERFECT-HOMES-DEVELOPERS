@@ -1,251 +1,168 @@
 /* ==========================================================================
-   PERFECT HOMES & DEVELOPERS - CENTRALIZED PERSISTENT DATABASE & API SERVICE
-   Shared Production Cloud Database: Synchronizes users across mobile & desktop
+   PERFECT HOMES & DEVELOPERS - AUTHENTICATION & PRODUCTION API SERVICE
+   Strict Server-Side Architecture: Never downloads password hashes or other
+   users' private details to client storage.
    ========================================================================== */
 
-const CLOUD_DB_ENDPOINT = 'https://api.restful-api.dev/objects/ff808181a09d98f701a120a277792d44';
+const API_BASE = '/api';
 
-// Safe localStorage access helpers
-function getLocalItem(key) {
-  try {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      return window.localStorage.getItem(key);
-    }
-  } catch {
-    // Ignore
+/**
+ * Normalizes Indian mobile number to 10 digits
+ */
+export function normalizeIndianPhone(phone) {
+  if (!phone) return '';
+  let digits = String(phone).replace(/\D/g, '');
+  if (digits.length === 12 && digits.startsWith('91')) {
+    digits = digits.slice(2);
+  } else if (digits.length === 11 && digits.startsWith('0')) {
+    digits = digits.slice(1);
   }
-  return null;
-}
-
-function setLocalItem(key, val) {
-  try {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      window.localStorage.setItem(key, val);
-    }
-  } catch {
-    // Ignore
-  }
-}
-
-// Default Seed Accounts
-export const DEFAULT_SEED_USERS = [
-  {
-    id: 'usr_admin_srilakshman',
-    name: 'Administrator',
-    firstName: 'Admin',
-    lastName: 'Lakshman',
-    email: 'srilakshman73@gmail.com',
-    phone: '+91 78455 85919',
-    passwordHash: 'perfect_admin_hash_v2',
-    rawPassFallback: 'Perfect@123',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
-    role: 'admin',
-    joinedDate: 'October 2026',
-    city: 'Thiruninravur, Chennai',
-    address: 'No: 3 Krishna Nagar, CTH Road, Thiruninravur – 602024',
-    notificationPrefs: { email: true, whatsapp: true, sms: true },
-    profileCompleted: 100,
-    mustChangePassword: true,
-    status: 'Active'
-  },
-  {
-    id: 'usr_prakash_101',
-    name: 'Prakash Kumar',
-    firstName: 'Prakash',
-    lastName: 'Kumar',
-    email: 'prakash@example.com',
-    phone: '+91 98410 54321',
-    passwordHash: 'prakash_buyer_hash_v2',
-    rawPassFallback: 'password123',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
-    role: 'buyer',
-    joinedDate: 'January 2024',
-    city: 'Chennai',
-    address: 'Anna Nagar West, Chennai',
-    notificationPrefs: { email: true, whatsapp: true, sms: false },
-    profileCompleted: 92,
-    mustChangePassword: false,
-    status: 'Active'
-  }
-];
-
-const LOCAL_STORAGE_USERS_KEY = 'ph_users_db_v3';
-
-// Cryptographic SHA-256 with project salt
-export async function hashPassword(str) {
-  try {
-    if (typeof crypto !== 'undefined' && crypto.subtle) {
-      const buffer = new TextEncoder().encode(str + '_ph_salt_2026_secure');
-      const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
-    }
-  } catch {
-    // fallback
-  }
-
-  // Fallback deterministic hash
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    hash = ((hash << 5) - hash) + str.charCodeAt(i);
-    hash |= 0;
-  }
-  return 'ph_fallback_' + Math.abs(hash).toString(16) + '_' + str.length;
+  return digits;
 }
 
 /**
- * Fetch all users from the shared centralized cloud database.
- * Falls back to local cache if network is unavailable.
+ * Validates Indian mobile number format (10 digits starting with 6, 7, 8, or 9)
  */
-export async function fetchUsersFromCloudDB() {
-  try {
-    const cloudRes = await fetch(CLOUD_DB_ENDPOINT, {
-      method: 'GET',
-      headers: { 'Accept': 'application/json' },
-      cache: 'no-cache'
-    });
-
-    if (cloudRes.ok) {
-      const json = await cloudRes.json();
-      const remoteUsers = json.data?.users;
-      if (Array.isArray(remoteUsers) && remoteUsers.length > 0) {
-        setLocalItem(LOCAL_STORAGE_USERS_KEY, JSON.stringify(remoteUsers));
-        return remoteUsers;
-      }
-    }
-
-    const local = getLocalItem(LOCAL_STORAGE_USERS_KEY);
-    if (local) {
-      return JSON.parse(local);
-    }
-
-    // Seed database if empty
-    await saveUsersToCloudDB(DEFAULT_SEED_USERS);
-    return DEFAULT_SEED_USERS;
-  } catch (err) {
-    console.warn('Persistent DB fetch failed, using local cache:', err.message);
-    const local = getLocalItem(LOCAL_STORAGE_USERS_KEY);
-    return local ? JSON.parse(local) : DEFAULT_SEED_USERS;
-  }
+export function validateIndianPhone(phone) {
+  const digits = normalizeIndianPhone(phone);
+  return /^[6-9]\d{9}$/.test(digits);
 }
 
 /**
- * Save users array to the shared persistent database and local cache.
+ * Formats phone number as '+91 XXXXX XXXXX'
  */
-export async function saveUsersToCloudDB(users) {
-  try {
-    setLocalItem(LOCAL_STORAGE_USERS_KEY, JSON.stringify(users));
-
-    const res = await fetch(CLOUD_DB_ENDPOINT, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: 'PH_PERFECT_HOMES_USERS_STORE_2026',
-        data: { users, updatedAt: new Date().toISOString() }
-      })
-    });
-
-    if (res.ok) {
-      await res.json();
-      return true;
-    }
-    return false;
-  } catch (err) {
-    console.error('Failed to sync to persistent cloud database:', err);
-    return false;
+export function formatIndianPhone(phone) {
+  const digits = normalizeIndianPhone(phone);
+  if (digits.length === 10) {
+    return `+91 ${digits.slice(0, 5)} ${digits.slice(5)}`;
   }
+  return phone ? String(phone).trim() : '';
 }
 
 /**
- * Register a new user:
- * 1. Validates uniqueness (email & phone) against the fresh cloud database.
- * 2. Appends new user with encrypted password hash.
- * 3. Persists to cloud database.
- * 4. Confirms record is saved before returning success.
+ * Normalizes email by trimming and converting to lowercase
  */
-export async function registerUserInDB({ fullName, email, phone, password }) {
-  const cleanEmail = email.trim().toLowerCase();
-  const cleanPhone = phone.trim();
-  const cleanName = fullName.trim();
+export function normalizeEmail(email) {
+  if (!email || typeof email !== 'string') return '';
+  return email.trim().toLowerCase();
+}
 
-  // 1. Fetch fresh users list from persistent cloud database
-  const currentUsers = await fetchUsersFromCloudDB();
-
-  // 2. Check for duplicate email or mobile number
-  const existingUser = currentUsers.find(
-    (u) =>
-      u.email?.toLowerCase() === cleanEmail ||
-      u.phone?.replace(/[^0-9]/g, '') === cleanPhone.replace(/[^0-9]/g, '')
-  );
-
-  if (existingUser) {
-    throw new Error('An account with this email address or mobile number is already registered.');
-  }
-
-  // 3. Construct new user record
-  const nameParts = cleanName.split(' ');
-  const firstName = nameParts[0] || 'User';
-  const lastName = nameParts.slice(1).join(' ') || '';
-  const passwordHash = await hashPassword(password);
-  const now = new Date();
-  const joinedDateStr = now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-
-  const newUser = {
-    id: 'usr_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
-    name: cleanName,
-    firstName: firstName,
-    lastName: lastName,
-    email: cleanEmail,
-    phone: cleanPhone,
-    passwordHash: passwordHash,
-    avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(cleanName)}&backgroundColor=008f83,064e49`,
-    role: 'buyer',
-    joinedDate: joinedDateStr,
-    city: 'Chennai',
-    address: '',
-    notificationPrefs: { email: true, whatsapp: true, sms: true },
-    profileCompleted: 75,
-    mustChangePassword: false,
-    status: 'Active',
-    registeredAt: now.toISOString()
+/**
+ * Generic API request helper with error handling
+ */
+async function request(endpoint, options = {}) {
+  const url = `${API_BASE}${endpoint}`;
+  const headers = {
+    'Content-Type': 'application/json',
+    ...(options.headers || {})
   };
 
-  // 4. Update cloud database
-  const updatedUsers = [newUser, ...currentUsers];
-  await saveUsersToCloudDB(updatedUsers);
+  const response = await fetch(url, {
+    ...options,
+    headers
+  });
 
-  // Return sanitized session user (never expose passwordHash)
-  const sessionUser = { ...newUser };
-  delete sessionUser.passwordHash;
-  delete sessionUser.rawPassFallback;
+  let data;
+  try {
+    data = await response.json();
+  } catch {
+    data = { error: `HTTP ${response.status}: Unexpected response` };
+  }
 
-  return sessionUser;
+  if (!response.ok) {
+    const errorMsg = data.error || data.message || `Request failed (${response.status})`;
+    const error = new Error(errorMsg);
+    error.statusCode = response.status;
+    error.data = data;
+    throw error;
+  }
+
+  return data;
 }
 
 /**
- * Get sanitized user list for the admin dashboard.
- * Strictly strips password hashes and sensitive tokens.
+ * Register a new buyer account on the server.
+ * Persists directly to the production database.
  */
-export async function getAdminUsersList(callerRole) {
-  if (callerRole !== 'admin') {
-    throw new Error('Unauthorized: Admin authorization required.');
-  }
+export async function apiRegister({ fullName, email, phone, password }) {
+  return await request('/register', {
+    method: 'POST',
+    body: JSON.stringify({ fullName, email, phone, password })
+  });
+}
 
-  const users = await fetchUsersFromCloudDB();
+/**
+ * Authenticate with Email OR Mobile Number and Password.
+ */
+export async function apiLogin(identifier, password) {
+  return await request('/login', {
+    method: 'POST',
+    body: JSON.stringify({ identifier, password })
+  });
+}
 
-  // Return sanitized objects
-  return users.map((u) => ({
-    id: u.id,
-    name: u.name,
-    firstName: u.firstName || u.name?.split(' ')[0] || 'User',
-    lastName: u.lastName || '',
-    email: u.email,
-    phone: u.phone,
-    role: u.role || 'buyer',
-    joinedDate: u.joinedDate || 'Recent',
-    status: u.status || 'Active',
-    city: u.city || 'Chennai',
-    profileCompleted: u.profileCompleted || 80,
-    registeredAt: u.registeredAt || null
-  }));
+/**
+ * Verify active session token and retrieve current user profile.
+ */
+export async function apiGetSession(token) {
+  if (!token) throw new Error('No session token provided');
+  return await request('/session', {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
+}
+
+/**
+ * Fetch all registered users (Strict Administrator Access Only).
+ * Server validates administrator authorization before returning data.
+ */
+export async function apiGetAdminUsers(token) {
+  if (!token) throw new Error('Admin token required');
+  const res = await request('/users', {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
+  return res.users || [];
+}
+
+/**
+ * Update authenticated user's password.
+ */
+export async function apiChangePassword(token, { currentPassword, newPassword }) {
+  if (!token) throw new Error('Authentication required');
+  return await request('/change-password', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify({ currentPassword, newPassword })
+  });
+}
+
+/**
+ * Update user's permitted profile fields (Name, Phone, City, Address, Avatar, Prefs).
+ */
+export async function apiUpdateProfile(token, profileData) {
+  if (!token) throw new Error('Authentication required');
+  return await request('/update-profile', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify(profileData)
+  });
+}
+
+/**
+ * Reset password via forgot password flow.
+ */
+export async function apiResetPassword(identifier, newPassword) {
+  return await request('/reset-password', {
+    method: 'POST',
+    body: JSON.stringify({ identifier, newPassword })
+  });
 }

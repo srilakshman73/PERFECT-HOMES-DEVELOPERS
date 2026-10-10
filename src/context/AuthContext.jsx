@@ -1,163 +1,157 @@
 /* ==========================================================================
-   PERFECT HOMES & DEVELOPERS - AUTHENTICATION CONTEXT & PERSISTENT DATABASE
+   PERFECT HOMES & DEVELOPERS - AUTHENTICATION CONTEXT & PERSISTENCE
+   Strict Server-Side Architecture: Enforces privacy, session persistence,
+   and server authorization.
    ========================================================================== */
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useToast } from './ToastContext';
 import {
-  fetchUsersFromCloudDB,
-  saveUsersToCloudDB,
-  registerUserInDB,
-  getAdminUsersList,
-  hashPassword,
-  DEFAULT_SEED_USERS
+  apiLogin,
+  apiRegister,
+  apiGetSession,
+  apiGetAdminUsers,
+  apiChangePassword,
+  apiUpdateProfile,
+  apiResetPassword
 } from '../services/apiService';
 
 const AuthContext = createContext(null);
 
-const STORAGE_SESSION_KEY = 'ph_active_session_v3';
+const STORAGE_TOKEN_KEY = 'ph_auth_token_v4';
+const STORAGE_USER_KEY = 'ph_session_user_v4';
+
+function getStoredToken() {
+  try {
+    return localStorage.getItem(STORAGE_TOKEN_KEY) || sessionStorage.getItem(STORAGE_TOKEN_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function getStoredUser() {
+  try {
+    const raw = localStorage.getItem(STORAGE_USER_KEY) || sessionStorage.getItem(STORAGE_USER_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function storeSession(token, user, rememberMe = true) {
+  try {
+    const target = rememberMe ? localStorage : sessionStorage;
+    target.setItem(STORAGE_TOKEN_KEY, token);
+    target.setItem(STORAGE_USER_KEY, JSON.stringify(user));
+    // Clean opposite storage to avoid duplicate out-of-sync tokens
+    const other = rememberMe ? sessionStorage : localStorage;
+    other.removeItem(STORAGE_TOKEN_KEY);
+    other.removeItem(STORAGE_USER_KEY);
+  } catch (err) {
+    console.warn('Storage write error:', err);
+  }
+}
+
+function clearSession() {
+  try {
+    localStorage.removeItem(STORAGE_TOKEN_KEY);
+    localStorage.removeItem(STORAGE_USER_KEY);
+    sessionStorage.removeItem(STORAGE_TOKEN_KEY);
+    sessionStorage.removeItem(STORAGE_USER_KEY);
+  } catch (err) {
+    console.warn('Storage clear error:', err);
+  }
+}
 
 export function AuthProvider({ children }) {
   const { addToast } = useToast();
-  const [user, setUser] = useState(null);
-  const [usersList, setUsersList] = useState(DEFAULT_SEED_USERS);
+  const [user, setUser] = useState(() => getStoredUser());
+  const [token, setToken] = useState(() => getStoredToken());
+  const [usersList, setUsersList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
   const [showPasswordChangeModal, setShowPasswordChangeModal] = useState(false);
 
-  // Synchronize users from persistent cloud database on mount
-  const syncUsers = useCallback(async () => {
-    try {
-      setIsSyncing(true);
-      const dbUsers = await fetchUsersFromCloudDB();
-      if (Array.isArray(dbUsers) && dbUsers.length > 0) {
-        setUsersList(dbUsers);
-      }
-    } catch (err) {
-      console.warn('Sync users warning:', err.message);
-    } finally {
-      setIsSyncing(false);
-    }
-  }, []);
-
+  // Synchronize authenticated session with server on initial app load
   useEffect(() => {
     let mounted = true;
 
-    async function initAuth() {
+    async function initSession() {
+      const activeToken = getStoredToken();
+      if (!activeToken) {
+        if (mounted) {
+          setUser(null);
+          setToken(null);
+          setIsLoading(false);
+        }
+        return;
+      }
+
       try {
-        // Load active session from local / session storage
-        const localSession = localStorage.getItem(STORAGE_SESSION_KEY) || sessionStorage.getItem(STORAGE_SESSION_KEY);
-        if (localSession) {
-          const parsed = JSON.parse(localSession);
-          if (mounted) {
-            setUser(parsed);
-            if (parsed.mustChangePassword) {
-              setShowPasswordChangeModal(true);
-            }
+        const res = await apiGetSession(activeToken);
+        if (mounted && res.success && res.user) {
+          setUser(res.user);
+          setToken(activeToken);
+          // Update cached user in storage
+          storeSession(activeToken, res.user, true);
+
+          if (res.user.mustChangePassword) {
+            setShowPasswordChangeModal(true);
           }
         }
-
-        // Fetch shared persistent users from database
-        await syncUsers();
       } catch (err) {
-        console.error('Failed to initialize auth:', err);
+        console.warn('Active session invalidated:', err.message);
+        clearSession();
+        if (mounted) {
+          setUser(null);
+          setToken(null);
+        }
       } finally {
         if (mounted) setIsLoading(false);
       }
     }
 
-    initAuth();
-    return () => { mounted = false; };
-  }, [syncUsers]);
+    initSession();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   // Login handler
   const login = async (identifier, password, rememberMe = true) => {
     setIsLoading(true);
     try {
-      // 1. Fetch latest users from cloud database
-      const users = await fetchUsersFromCloudDB();
-      setUsersList(users);
+      const res = await apiLogin(identifier, password);
+      const { user: authedUser, token: authToken } = res;
 
-      const cleanId = identifier.trim().toLowerCase();
-      const matchedUser = users.find(
-        (u) =>
-          u.email?.toLowerCase() === cleanId ||
-          u.phone?.replace(/[^0-9]/g, '') === cleanId.replace(/[^0-9]/g, '')
-      );
+      setUser(authedUser);
+      setToken(authToken);
+      storeSession(authToken, authedUser, rememberMe);
 
-      if (!matchedUser) {
-        throw new Error('No account found with this email address or mobile number.');
-      }
-
-      // Verify Password (via salted SHA-256 hash or fallback)
-      const computedHash = await hashPassword(password);
-      const isMatched =
-        matchedUser.passwordHash === computedHash ||
-        matchedUser.rawPassFallback === password ||
-        (matchedUser.email?.toLowerCase() === 'srilakshman73@gmail.com' && password === 'Perfect@123') ||
-        (matchedUser.email?.toLowerCase() === 'prakash@example.com' && password === 'password123');
-
-      if (!isMatched) {
-        throw new Error('Invalid password. Please double check and try again.');
-      }
-
-      // Create sanitized session object (never expose passwordHash)
-      const sessionUser = {
-        id: matchedUser.id,
-        name: matchedUser.name,
-        firstName: matchedUser.firstName || matchedUser.name?.split(' ')[0] || 'User',
-        lastName: matchedUser.lastName || '',
-        email: matchedUser.email,
-        phone: matchedUser.phone,
-        avatar: matchedUser.avatar,
-        role: matchedUser.role || 'buyer',
-        joinedDate: matchedUser.joinedDate || 'Recent',
-        city: matchedUser.city || 'Chennai',
-        address: matchedUser.address || '',
-        notificationPrefs: matchedUser.notificationPrefs || { email: true, whatsapp: true, sms: false },
-        profileCompleted: matchedUser.profileCompleted || 80,
-        mustChangePassword: !!matchedUser.mustChangePassword,
-        status: matchedUser.status || 'Active'
-      };
-
-      setUser(sessionUser);
-      if (rememberMe) {
-        localStorage.setItem(STORAGE_SESSION_KEY, JSON.stringify(sessionUser));
-      } else {
-        sessionStorage.setItem(STORAGE_SESSION_KEY, JSON.stringify(sessionUser));
-      }
-
-      if (sessionUser.mustChangePassword) {
+      if (authedUser.mustChangePassword) {
         setShowPasswordChangeModal(true);
       }
 
-      addToast(`Welcome back, ${sessionUser.firstName}!`, 'success');
-      return sessionUser;
+      addToast(`Welcome back, ${authedUser.firstName || authedUser.name}!`, 'success');
+      return authedUser;
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Register handler: persists user to shared database and verifies write
+  // Register handler: persists user to production database
   const register = async ({ fullName, email, phone, password }) => {
     setIsLoading(true);
     try {
-      const sessionUser = await registerUserInDB({
-        fullName,
-        email,
-        phone,
-        password
-      });
+      const res = await apiRegister({ fullName, email, phone, password });
+      const { user: registeredUser, token: authToken } = res;
 
-      // Update local reactive user state and session
-      setUser(sessionUser);
-      localStorage.setItem(STORAGE_SESSION_KEY, JSON.stringify(sessionUser));
+      setUser(registeredUser);
+      setToken(authToken);
+      storeSession(authToken, registeredUser, true);
 
-      // Refresh registered users list
-      await syncUsers();
-
-      addToast(`Account created successfully! Welcome to Perfect Homes, ${sessionUser.firstName}.`, 'success');
-      return sessionUser;
+      addToast(`Account created successfully! Welcome to Perfect Homes, ${registeredUser.firstName}.`, 'success');
+      return registeredUser;
     } finally {
       setIsLoading(false);
     }
@@ -166,38 +160,29 @@ export function AuthProvider({ children }) {
   // Logout handler
   const logout = () => {
     const name = user?.firstName || 'User';
+    clearSession();
     setUser(null);
+    setToken(null);
+    setUsersList([]);
     setShowPasswordChangeModal(false);
-    localStorage.removeItem(STORAGE_SESSION_KEY);
-    sessionStorage.removeItem(STORAGE_SESSION_KEY);
     addToast(`Goodbye ${name}, you have been logged out.`, 'info');
   };
 
   // Complete first-time mandatory password change
   const completeFirstTimePasswordChange = async (newPassword) => {
-    if (!user) throw new Error('Not authenticated');
+    if (!token) throw new Error('Not authenticated');
 
     setIsLoading(true);
     try {
-      const users = await fetchUsersFromCloudDB();
-      const userIndex = users.findIndex((u) => u.id === user.id || u.email === user.email);
+      const res = await apiChangePassword(token, { newPassword });
+      const updatedUser = res.user;
+      const newToken = res.token || token;
 
-      if (userIndex === -1) {
-        throw new Error('User record not found in database');
-      }
-
-      const newHash = await hashPassword(newPassword);
-      users[userIndex].passwordHash = newHash;
-      delete users[userIndex].rawPassFallback;
-      users[userIndex].mustChangePassword = false;
-
-      await saveUsersToCloudDB(users);
-      setUsersList(users);
-
-      const updatedSession = { ...user, mustChangePassword: false };
-      setUser(updatedSession);
-      localStorage.setItem(STORAGE_SESSION_KEY, JSON.stringify(updatedSession));
+      setUser(updatedUser);
+      setToken(newToken);
+      storeSession(newToken, updatedUser, true);
       setShowPasswordChangeModal(false);
+
       addToast('Password updated securely! First-time setup complete.', 'success');
       return true;
     } finally {
@@ -207,100 +192,77 @@ export function AuthProvider({ children }) {
 
   // Change Password
   const changePassword = async (currentPassword, newPassword) => {
-    if (!user) throw new Error('Not authenticated');
+    if (!token) throw new Error('Not authenticated');
 
-    const users = await fetchUsersFromCloudDB();
-    const matched = users.find((u) => u.id === user.id || u.email === user.email);
-    if (!matched) throw new Error('User record not found');
+    const res = await apiChangePassword(token, { currentPassword, newPassword });
+    const updatedUser = res.user;
+    const newToken = res.token || token;
 
-    const currentHashed = await hashPassword(currentPassword);
-    const isMatch =
-      matched.passwordHash === currentHashed ||
-      matched.rawPassFallback === currentPassword ||
-      (matched.email === 'srilakshman73@gmail.com' && currentPassword === 'Perfect@123');
+    setUser(updatedUser);
+    setToken(newToken);
+    storeSession(newToken, updatedUser, true);
 
-    if (!isMatch) {
-      throw new Error('Current password is incorrect.');
-    }
-
-    matched.passwordHash = await hashPassword(newPassword);
-    delete matched.rawPassFallback;
-    await saveUsersToCloudDB(users);
-    setUsersList(users);
     addToast('Password changed successfully!', 'success');
     return true;
   };
 
   // Update Profile
   const updateProfile = async (updatedData) => {
-    if (!user) throw new Error('You must be logged in to update profile.');
+    if (!token) throw new Error('You must be logged in to update profile.');
 
     setIsLoading(true);
     try {
-      const users = await fetchUsersFromCloudDB();
-      const index = users.findIndex((u) => u.id === user.id || u.email === user.email);
+      const res = await apiUpdateProfile(token, updatedData);
+      const updatedUser = res.user;
 
-      const nameParts = (updatedData.name || user.name).trim().split(' ');
-      const firstName = nameParts[0] || user.firstName;
-      const lastName = nameParts.slice(1).join(' ') || user.lastName;
+      setUser(updatedUser);
+      storeSession(token, updatedUser, true);
 
-      const mergedUser = {
-        ...user,
-        ...updatedData,
-        firstName,
-        lastName,
-        profileCompleted: Math.min(100, (user.profileCompleted || 80) + 10)
-      };
-
-      if (index !== -1) {
-        users[index] = { ...users[index], ...mergedUser };
-        await saveUsersToCloudDB(users);
-        setUsersList(users);
-      }
-
-      setUser(mergedUser);
-      localStorage.setItem(STORAGE_SESSION_KEY, JSON.stringify(mergedUser));
       addToast('Profile updated successfully!', 'success');
-      return mergedUser;
+      return updatedUser;
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Reset Password with OTP
+  // Reset Password (with OTP / Forgot Password)
   const resetPassword = async (identifier, newPassword) => {
-    const users = await fetchUsersFromCloudDB();
-    const cleanId = identifier.trim().toLowerCase();
-    const matched = users.find(
-      (u) =>
-        u.email?.toLowerCase() === cleanId ||
-        u.phone?.replace(/[^0-9]/g, '') === cleanId.replace(/[^0-9]/g, '')
-    );
-
-    if (!matched) {
-      throw new Error('No user account found with the provided details.');
-    }
-
-    matched.passwordHash = await hashPassword(newPassword);
-    delete matched.rawPassFallback;
-    await saveUsersToCloudDB(users);
-    setUsersList(users);
-    addToast('Password reset successful! You can now log in with your new password.', 'success');
+    const res = await apiResetPassword(identifier, newPassword);
+    addToast(res.message || 'Password reset successful! You can now log in with your new password.', 'success');
     return true;
   };
 
-  // Admin Data Provider: Fetches fresh sanitized registered users
+  // Admin Data Provider: Fetches fresh sanitized registered users via protected API
   const getRegisteredUsersForAdmin = useCallback(async () => {
-    if (!user || user.role !== 'admin') {
-      throw new Error('Unauthorized: Admin access required.');
+    if (!token || user?.role !== 'admin') {
+      throw new Error('Unauthorized: Administrator authorization required.');
     }
-    return await getAdminUsersList(user.role);
-  }, [user]);
+
+    setIsSyncing(true);
+    try {
+      const users = await apiGetAdminUsers(token);
+      setUsersList(users);
+      return users;
+    } finally {
+      setIsSyncing(false);
+    }
+  }, [token, user]);
+
+  const syncUsers = useCallback(async () => {
+    if (user?.role === 'admin' && token) {
+      try {
+        await getRegisteredUsersForAdmin();
+      } catch {
+        // Ignore background sync errors
+      }
+    }
+  }, [user, token, getRegisteredUsersForAdmin]);
 
   return (
     <AuthContext.Provider
       value={{
         user,
+        token,
         isAuthenticated: !!user,
         isAdmin: user?.role === 'admin',
         isLoading,

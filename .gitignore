@@ -25,3 +25,7 @@ dist-ssr
 
 .vercel
 *.py
+data/
+test_auth_e2e.js
+
+.env*
