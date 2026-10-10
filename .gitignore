@@ -27,5 +27,8 @@ dist-ssr
 *.py
 data/
 test_auth_e2e.js
+test_production_live.js
+
+.env*
 
 .env*

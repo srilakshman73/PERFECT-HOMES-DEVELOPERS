@@ -6,6 +6,7 @@ import fs from 'fs';
 import path from 'path';
 
 const BLOB_FILENAME = 'ph_users_database.json';
+const BLOB_DIRECT_URL = 'https://wd26cd5segdthdiq.public.blob.vercel-storage.com/' + BLOB_FILENAME;
 const AUTH_SECRET = process.env.AUTH_SECRET || crypto.randomBytes(32).toString('hex');
 const ADMIN_INITIAL_PASSWORD = process.env.ADMIN_INITIAL_PASSWORD || '';
 
@@ -275,23 +276,41 @@ export async function getAllUsers() {
 
   let users = null;
 
-  // Try Vercel Blob first
+  // 1. Try direct fetch from known persistent Blob store URL (instant, no list overhead)
   try {
-    const { list } = await import('@vercel/blob');
-    const { blobs } = await list({ prefix: BLOB_FILENAME });
-    const match = blobs.find((b) => b.pathname === BLOB_FILENAME);
-
-    if (match && match.url) {
-      const res = await fetch(`${match.url}?t=${now}`, { cache: 'no-store' });
-      if (res.ok) {
-        const json = await res.json();
-        if (Array.isArray(json)) {
-          users = json;
-        }
+    const res = await fetch(`${BLOB_DIRECT_URL}?t=${now}`, {
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache' }
+    });
+    if (res.ok) {
+      const json = await res.json();
+      if (Array.isArray(json) && json.length > 0) {
+        users = json;
       }
     }
   } catch (err) {
-    console.warn('Vercel Blob fetch warning:', err.message);
+    console.warn('Direct Blob fetch warning:', err.message);
+  }
+
+  // 2. Fallback to @vercel/blob list if direct URL not yet cached
+  if (!users) {
+    try {
+      const { list } = await import('@vercel/blob');
+      const { blobs } = await list({ prefix: BLOB_FILENAME });
+      const match = blobs.find((b) => b.pathname === BLOB_FILENAME);
+
+      if (match && match.url) {
+        const res = await fetch(`${match.url}?t=${now}`, { cache: 'no-store' });
+        if (res.ok) {
+          const json = await res.json();
+          if (Array.isArray(json)) {
+            users = json;
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('Vercel Blob list fetch warning:', err.message);
+    }
   }
 
   // Fallback to local file or initial seeds
