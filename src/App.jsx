@@ -83,6 +83,10 @@ function AppContent() {
     return properties.find((p) => p.slug === 'nathamedu-niranjan-nagar-upcoming-project') || properties[0];
   });
   const [initialProfileTab, setInitialProfileTab] = useState('personal');
+  const [propertyInitialTab, setPropertyInitialTab] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('tab') || null;
+  });
 
   // Modals state
   const [aiAssistantOpen, setAiAssistantOpen] = useState(false);
@@ -94,6 +98,10 @@ function AppContent() {
   // Sync initial URL slug and browser back/forward buttons
   useEffect(() => {
     const init = getInitialRouteInfo();
+    const params = new URLSearchParams(window.location.search);
+    const tabParam = params.get('tab');
+    if (tabParam) setPropertyInitialTab(tabParam);
+
     if (init.page === 'property-details' && init.slug) {
       const match = properties.find((p) => p.slug === init.slug || p.id === init.slug);
       if (match) setSelectedProperty(match);
@@ -102,8 +110,12 @@ function AppContent() {
 
     const handlePopState = () => {
       const r = getInitialRouteInfo();
+      const p = new URLSearchParams(window.location.search);
+      const t = p.get('tab');
+      if (t) setPropertyInitialTab(t);
+
       if (r.page === 'property-details' && r.slug) {
-        const match = properties.find((p) => p.slug === r.slug || p.id === r.slug);
+        const match = properties.find((prop) => prop.slug === r.slug || prop.id === r.slug);
         if (match) setSelectedProperty(match);
         setCurrentPage('property-details');
       } else {
@@ -169,11 +181,15 @@ function AppContent() {
   };
 
   // View property details
-  const handleViewProperty = (prop) => {
+  const handleViewProperty = (prop, options = null) => {
     setSelectedProperty(prop);
+    const targetTab = options?.tab || null;
+    setPropertyInitialTab(targetTab);
     setCurrentPage('property-details');
     try {
-      window.history.pushState({}, '', `/properties/${prop.slug || prop.id}`);
+      const tabQuery = targetTab ? `?tab=${targetTab}` : '';
+      const hashStr = targetTab === 'videos' ? '#video-gallery' : '';
+      window.history.pushState({}, '', `/properties/${prop.slug || prop.id}${tabQuery}${hashStr}`);
     } catch {}
   };
 
@@ -244,6 +260,7 @@ function AppContent() {
           <PropertyDetailsPage
             property={selectedProperty || properties[0]}
             navigate={navigate}
+            initialTab={propertyInitialTab}
             onOpenBrochure={handleOpenBrochure}
             onOpenScheduleVisit={handleOpenScheduleVisit}
             onViewProperty={handleViewProperty}

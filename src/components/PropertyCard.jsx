@@ -15,7 +15,9 @@ import {
   CheckCircle2,
   Scale,
   Trees,
-  Clock
+  Clock,
+  Play,
+  Video
 } from 'lucide-react';
 import { COMPANY_CONTACT_INFO } from '../data/locationsData';
 
@@ -174,6 +176,32 @@ export default function PropertyCard({
             <Heart size={15} fill={isLiked ? '#EF4444' : 'none'} />
           </button>
         </div>
+
+        {/* Bottom-Left Video Indicator Badge */}
+        {property.videos && property.videos.length > 0 && (
+          <div
+            style={{
+              position: 'absolute',
+              bottom: '10px',
+              left: '10px',
+              zIndex: 2,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '5px',
+              backgroundColor: 'rgba(6, 78, 73, 0.92)',
+              backdropFilter: 'blur(4px)',
+              color: '#FFFFFF',
+              padding: '4px 10px',
+              borderRadius: 'var(--radius-full)',
+              fontSize: '0.72rem',
+              fontWeight: 700,
+              boxShadow: '0 2px 6px rgba(0,0,0,0.3)'
+            }}
+          >
+            <Play size={11} fill="#FFFFFF" />
+            <span>{property.videos.length} Site Videos</span>
+          </div>
+        )}
       </div>
 
       {/* Property Details Content */}
@@ -282,6 +310,39 @@ export default function PropertyCard({
             )}
           </div>
         </div>
+
+        {/* Visible Watch Site Videos Button for Properties with Videos */}
+        {property.videos && property.videos.length > 0 && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onViewDetails(property, { tab: 'videos' });
+            }}
+            style={{
+              width: '100%',
+              padding: '0.55rem 0.85rem',
+              borderRadius: 'var(--radius-sm)',
+              backgroundColor: '#064E49',
+              backgroundImage: 'linear-gradient(135deg, #064E49 0%, #008F83 100%)',
+              color: '#FFFFFF',
+              fontWeight: 700,
+              fontSize: '0.82rem',
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '7px',
+              boxShadow: '0 2px 8px rgba(0, 143, 131, 0.28)',
+              transition: 'all 0.2s ease',
+              marginTop: '0.2rem'
+            }}
+            title={`Watch all ${property.videos.length} site walkthrough videos`}
+          >
+            <Play size={13} fill="#FFFFFF" />
+            <span>Watch Site Videos ({property.videos.length})</span>
+          </button>
+        )}
 
         {/* Action Buttons Row */}
         <div

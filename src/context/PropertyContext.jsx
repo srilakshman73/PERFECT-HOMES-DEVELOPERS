@@ -61,12 +61,23 @@ export function PropertyProvider({ children }) {
         const parsed = JSON.parse(saved);
         // Ensure all catalog properties (specifically ph-106 Nathamedu) are present
         const missing = PROPERTIES_DATA.filter((dp) => !parsed.some((p) => p.id === dp.id));
-        if (missing.length > 0) {
-          const merged = [...parsed, ...missing];
+        let merged = [...parsed, ...missing];
+
+        // Ensure catalog videos are synced if existing cached item lacks videos
+        let hasVideoSync = false;
+        merged = merged.map((p) => {
+          const catalogProp = PROPERTIES_DATA.find((dp) => dp.id === p.id);
+          if (catalogProp?.videos && (!p.videos || p.videos.length === 0)) {
+            hasVideoSync = true;
+            return { ...p, videos: catalogProp.videos };
+          }
+          return p;
+        });
+
+        if (missing.length > 0 || hasVideoSync) {
           localStorage.setItem(STORAGE_PROPERTIES_KEY, JSON.stringify(merged));
-          return merged;
         }
-        return parsed;
+        return merged;
       }
       return PROPERTIES_DATA;
     } catch {

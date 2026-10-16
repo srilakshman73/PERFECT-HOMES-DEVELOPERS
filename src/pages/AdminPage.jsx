@@ -34,7 +34,9 @@ import {
   Layers,
   MapPin,
   ArrowUp,
-  ArrowDown
+  ArrowDown,
+  Play,
+  Film
 } from 'lucide-react';
 
 export default function AdminPage({ navigate }) {
@@ -55,6 +57,11 @@ export default function AdminPage({ navigate }) {
   const [propertyCategoryFilter, setPropertyCategoryFilter] = useState('all');
   const [editingProperty, setEditingProperty] = useState(null);
   const [newImageUrl, setNewImageUrl] = useState('');
+  const [previewVideoUrl, setPreviewVideoUrl] = useState(null);
+  const [newVideoTitle, setNewVideoTitle] = useState('');
+  const [newVideoUrl, setNewVideoUrl] = useState('');
+  const [newVideoPoster, setNewVideoPoster] = useState('');
+  const [newVideoDescription, setNewVideoDescription] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [userSearchTerm, setUserSearchTerm] = useState('');
   const [dbUsers, setDbUsers] = useState([]);
@@ -523,7 +530,7 @@ export default function AdminPage({ navigate }) {
                           <div>
                             <div style={{ fontWeight: 700, color: 'var(--text-heading)' }}>{p.title}</div>
                             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                              ID: {p.id} • {p.images?.length || 0} photos
+                              ID: {p.id} • {p.images?.length || 0} photos{p.videos?.length ? ` • ${p.videos.length} videos` : ''}
                             </div>
                           </div>
                         </td>
@@ -1117,6 +1124,282 @@ export default function AdminPage({ navigate }) {
                   </div>
                 </div>
 
+                {/* 8. Project Videos Management */}
+                <div style={{ borderTop: '1px solid var(--border-light)', paddingTop: '1rem', marginTop: '0.5rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.45rem' }}>
+                    <label className="form-label" style={{ margin: 0, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                      <Film size={16} color="var(--primary-teal)" />
+                      <span>Project Site Videos ({editingProperty.videos?.length || 0} videos)</span>
+                    </label>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                      Reorder, edit titles, preview or toggle publish
+                    </span>
+                  </div>
+                  <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '0 0 0.85rem 0' }}>
+                    These videos are displayed in the Project Details video gallery with instant playback &amp; download buttons.
+                  </p>
+
+                  {/* List of existing videos */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '320px', overflowY: 'auto', marginBottom: '1rem' }}>
+                    {(editingProperty.videos || []).map((vid, idx) => (
+                      <div
+                        key={vid.id || idx}
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '6px',
+                          padding: '10px 12px',
+                          backgroundColor: vid.published !== false ? 'var(--bg-main)' : 'rgba(239, 68, 68, 0.05)',
+                          borderRadius: 'var(--radius-md)',
+                          border: vid.published !== false ? '1px solid var(--border-color)' : '1px dashed rgba(239, 68, 68, 0.4)'
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--deep-teal)', width: '24px' }}>
+                            #{idx + 1}
+                          </span>
+
+                          {/* Editable Video Title */}
+                          <input
+                            type="text"
+                            className="form-input"
+                            value={vid.title || ''}
+                            onChange={(e) => {
+                              const updatedVideos = [...editingProperty.videos];
+                              updatedVideos[idx] = { ...updatedVideos[idx], title: e.target.value };
+                              setEditingProperty({ ...editingProperty, videos: updatedVideos });
+                            }}
+                            placeholder="Video Title..."
+                            style={{ fontSize: '0.85rem', padding: '4px 8px', flex: 1, fontWeight: 600 }}
+                          />
+
+                          {/* Preview Button */}
+                          <button
+                            type="button"
+                            onClick={() => setPreviewVideoUrl(vid.url)}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              padding: '4px 8px',
+                              fontSize: '0.75rem',
+                              fontWeight: 700,
+                              borderRadius: '4px',
+                              backgroundColor: '#FFFFFF',
+                              border: '1.5px solid var(--primary-teal)',
+                              color: 'var(--primary-teal)',
+                              cursor: 'pointer'
+                            }}
+                            title="Preview Video Player"
+                          >
+                            <Play size={11} fill="currentColor" /> Preview
+                          </button>
+
+                          {/* Publish / Unpublish Toggle */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updatedVideos = [...editingProperty.videos];
+                              const isPub = updatedVideos[idx].published !== false;
+                              updatedVideos[idx] = { ...updatedVideos[idx], published: !isPub };
+                              setEditingProperty({ ...editingProperty, videos: updatedVideos });
+                            }}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '3px',
+                              padding: '4px 8px',
+                              fontSize: '0.74rem',
+                              fontWeight: 700,
+                              borderRadius: '4px',
+                              backgroundColor: vid.published !== false ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)',
+                              color: vid.published !== false ? '#059669' : '#DC2626',
+                              border: 'none',
+                              cursor: 'pointer'
+                            }}
+                            title="Click to toggle publish status"
+                          >
+                            {vid.published !== false ? <Eye size={11} /> : <EyeOff size={11} />}
+                            {vid.published !== false ? 'Published' : 'Hidden'}
+                          </button>
+
+                          {/* Move Up */}
+                          <button
+                            type="button"
+                            disabled={idx === 0}
+                            onClick={() => {
+                              const copy = [...editingProperty.videos];
+                              const temp = copy[idx - 1];
+                              copy[idx - 1] = copy[idx];
+                              copy[idx] = temp;
+                              setEditingProperty({ ...editingProperty, videos: copy });
+                            }}
+                            style={{
+                              padding: '3px 6px',
+                              background: 'none',
+                              border: '1px solid var(--border-color)',
+                              borderRadius: '4px',
+                              cursor: idx === 0 ? 'not-allowed' : 'pointer',
+                              opacity: idx === 0 ? 0.3 : 1
+                            }}
+                            title="Move earlier in gallery order"
+                          >
+                            <ArrowUp size={13} />
+                          </button>
+
+                          {/* Move Down */}
+                          <button
+                            type="button"
+                            disabled={idx === editingProperty.videos.length - 1}
+                            onClick={() => {
+                              const copy = [...editingProperty.videos];
+                              const temp = copy[idx + 1];
+                              copy[idx + 1] = copy[idx];
+                              copy[idx] = temp;
+                              setEditingProperty({ ...editingProperty, videos: copy });
+                            }}
+                            style={{
+                              padding: '3px 6px',
+                              background: 'none',
+                              border: '1px solid var(--border-color)',
+                              borderRadius: '4px',
+                              cursor: idx === editingProperty.videos.length - 1 ? 'not-allowed' : 'pointer',
+                              opacity: idx === editingProperty.videos.length - 1 ? 0.3 : 1
+                            }}
+                            title="Move later in gallery order"
+                          >
+                            <ArrowDown size={13} />
+                          </button>
+
+                          {/* Delete */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const copy = editingProperty.videos.filter((_, i) => i !== idx);
+                              setEditingProperty({ ...editingProperty, videos: copy });
+                            }}
+                            style={{
+                              padding: '3px 6px',
+                              background: 'none',
+                              border: '1px solid rgba(239, 68, 68, 0.3)',
+                              color: 'var(--danger)',
+                              borderRadius: '4px',
+                              cursor: 'pointer'
+                            }}
+                            title="Remove video from project"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+
+                        {/* URL & Description sub-fields */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '8px', fontSize: '0.78rem' }}>
+                          <input
+                            type="text"
+                            className="form-input"
+                            value={vid.url || ''}
+                            onChange={(e) => {
+                              const updatedVideos = [...editingProperty.videos];
+                              updatedVideos[idx] = { ...updatedVideos[idx], url: e.target.value };
+                              setEditingProperty({ ...editingProperty, videos: updatedVideos });
+                            }}
+                            placeholder="Video file path or Cloud URL (/videos/... or https://...)"
+                            style={{ fontSize: '0.78rem', padding: '3px 6px' }}
+                          />
+                          <input
+                            type="text"
+                            className="form-input"
+                            value={vid.description || ''}
+                            onChange={(e) => {
+                              const updatedVideos = [...editingProperty.videos];
+                              updatedVideos[idx] = { ...updatedVideos[idx], description: e.target.value };
+                              setEditingProperty({ ...editingProperty, videos: updatedVideos });
+                            }}
+                            placeholder="Video description note..."
+                            style={{ fontSize: '0.78rem', padding: '3px 6px' }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Add New Video Form */}
+                  <div style={{ backgroundColor: 'var(--bg-main)', padding: '10px 12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
+                    <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--deep-teal)', marginBottom: '6px' }}>
+                      + Add New Site Video
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                      <input
+                        type="text"
+                        className="form-input"
+                        placeholder="Video Title (e.g. Site Visit Video 6)"
+                        value={newVideoTitle}
+                        onChange={(e) => setNewVideoTitle(e.target.value)}
+                        style={{ fontSize: '0.82rem' }}
+                      />
+                      <input
+                        type="text"
+                        className="form-input"
+                        placeholder="Video URL or public path (/videos/...)"
+                        value={newVideoUrl}
+                        onChange={(e) => setNewVideoUrl(e.target.value)}
+                        style={{ fontSize: '0.82rem' }}
+                      />
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr auto', gap: '8px' }}>
+                      <input
+                        type="text"
+                        className="form-input"
+                        placeholder="Poster image URL (optional)"
+                        value={newVideoPoster}
+                        onChange={(e) => setNewVideoPoster(e.target.value)}
+                        style={{ fontSize: '0.82rem' }}
+                      />
+                      <input
+                        type="text"
+                        className="form-input"
+                        placeholder="Brief description of video..."
+                        value={newVideoDescription}
+                        onChange={(e) => setNewVideoDescription(e.target.value)}
+                        style={{ fontSize: '0.82rem' }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (!newVideoUrl.trim() || !newVideoTitle.trim()) {
+                            addToast('Please provide both a Title and Video URL.', 'error');
+                            return;
+                          }
+                          const newVidObj = {
+                            id: `vid-${Date.now()}`,
+                            title: newVideoTitle.trim(),
+                            shortTitle: newVideoTitle.trim(),
+                            description: newVideoDescription.trim() || 'Site walkthrough video.',
+                            url: newVideoUrl.trim(),
+                            downloadName: newVideoUrl.split('/').pop() || 'site-video.mp4',
+                            poster: newVideoPoster.trim() || (editingProperty.images?.[0] || ''),
+                            duration: 'Walkthrough',
+                            published: true
+                          };
+                          setEditingProperty({
+                            ...editingProperty,
+                            videos: [...(editingProperty.videos || []), newVidObj]
+                          });
+                          setNewVideoTitle('');
+                          setNewVideoUrl('');
+                          setNewVideoPoster('');
+                          setNewVideoDescription('');
+                          addToast('Video added to project!', 'success');
+                        }}
+                        className="btn btn-primary btn-sm"
+                        style={{ whiteSpace: 'nowrap' }}
+                      >
+                        <Plus size={14} /> Add Video
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Action Buttons */}
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid var(--border-light)' }}>
                   <button
@@ -1131,6 +1414,57 @@ export default function AdminPage({ navigate }) {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* VIDEO PREVIEW MODAL */}
+        {previewVideoUrl && (
+          <div className="modal-backdrop" onClick={() => setPreviewVideoUrl(null)} style={{ zIndex: 1100 }}>
+            <div
+              className="modal-content"
+              onClick={(e) => e.stopPropagation()}
+              style={{ maxWidth: '720px', width: '90%', padding: '1.5rem', backgroundColor: '#000000', borderRadius: 'var(--radius-lg)' }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', color: '#FFFFFF' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, fontSize: '0.95rem' }}>
+                  <Play size={16} fill="#008F83" color="#008F83" />
+                  <span>Admin Video Preview</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setPreviewVideoUrl(null)}
+                  style={{ background: 'none', border: 'none', color: '#FFFFFF', cursor: 'pointer', padding: '4px' }}
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div style={{ width: '100%', aspectRatio: '16/9', backgroundColor: '#000000', borderRadius: '8px', overflow: 'hidden' }}>
+                <video
+                  src={previewVideoUrl}
+                  controls
+                  autoPlay
+                  playsInline
+                  style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                >
+                  Your browser does not support HTML5 video preview.
+                </video>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem', fontSize: '0.78rem', color: '#AAAAAA' }}>
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '80%' }}>
+                  Source: {previewVideoUrl}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setPreviewVideoUrl(null)}
+                  className="btn btn-secondary btn-sm"
+                  style={{ color: '#FFFFFF', borderColor: '#444444' }}
+                >
+                  Close Preview
+                </button>
+              </div>
             </div>
           </div>
         )}

@@ -368,6 +368,63 @@ export const PROPERTIES_DATA = [
       "Paved street corner with flowering shrubs and homes near Nathamedu site",
       "Frontage road and electric line infrastructure at Nathamedu residential site"
     ],
+    videos: [
+      {
+        id: "vid-1",
+        title: "Site Visit Video 1: Ground Overview & Walkthrough",
+        shortTitle: "Site Visit Video 1",
+        description: "Comprehensive site overview and walking tour of Niranjan Nagar layout at Nathamedu, Thiruninravur.",
+        url: "/videos/properties/nathamedu/nathamedu-site-video-1.mp4",
+        downloadName: "nathamedu-site-video-1.mp4",
+        poster: "/images/properties/nathamedu/nathamedu-site-overview.jpg",
+        duration: "Walkthrough Tour",
+        published: true
+      },
+      {
+        id: "vid-2",
+        title: "Site Visit Video 2: Access Road & Plot Frontage",
+        shortTitle: "Site Visit Video 2",
+        description: "Clear view of the approach road, wide layout frontage, and electrical infrastructure at Niranjan Nagar.",
+        url: "/videos/properties/nathamedu/nathamedu-site-video-2.mp4",
+        downloadName: "nathamedu-site-video-2.mp4",
+        poster: "/images/properties/nathamedu/nathamedu-plot-frontage.jpg",
+        duration: "Road & Frontage",
+        published: true
+      },
+      {
+        id: "vid-3",
+        title: "Site Visit Video 3: Established Neighborhood & Homes",
+        shortTitle: "Site Visit Video 3",
+        description: "Surrounding residential neighborhood showing established independent houses, peaceful green living environment, and families residing nearby.",
+        url: "/videos/properties/nathamedu/nathamedu-site-video-3.mp4",
+        downloadName: "nathamedu-site-video-3.mp4",
+        poster: "/images/properties/nathamedu/nathamedu-neighborhood-homes.jpg",
+        duration: "Neighborhood & Homes",
+        published: true
+      },
+      {
+        id: "vid-4",
+        title: "Site Visit Video 4: Boundaries & Green Ground View",
+        shortTitle: "Site Visit Video 4",
+        description: "Layout boundary view highlighting lush green ground, sweet water belt, and serene open atmosphere of the site.",
+        url: "/videos/properties/nathamedu/nathamedu-site-video-4.mp4",
+        downloadName: "nathamedu-site-video-4.mp4",
+        poster: "/images/properties/nathamedu/nathamedu-green-plots-view.jpg",
+        duration: "Boundary View",
+        published: true
+      },
+      {
+        id: "vid-5",
+        title: "Site Visit Video 5: Street View & Road Connectivity",
+        shortTitle: "Site Visit Video 5",
+        description: "Paved street corner, direct road access, and convenient vehicular connectivity to Thiruninravur railway station and Outer Ring Road.",
+        url: "/videos/properties/nathamedu/nathamedu-site-video-5.mp4",
+        downloadName: "nathamedu-site-video-5.mp4",
+        poster: "/images/properties/nathamedu/nathamedu-street-corner.jpg",
+        duration: "Street Connectivity",
+        published: true
+      }
+    ],
     description: "Discover a promising residential property opportunity at Niranjan Nagar, Nathamedu, Thiruninravur. With a starting budget of ₹38 lakhs, this upcoming project is an opportunity for buyers planning their future home. Explore the location, enquire about availability, and contact Perfect Homes & Developers for further details.",
     highlights: [
       "Location: Niranjan Nagar, Nathamedu, Thiruninravur",

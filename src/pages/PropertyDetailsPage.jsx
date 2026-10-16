@@ -38,12 +38,16 @@ import {
   Zap,
   Building2,
   Download,
-  ArrowLeft
+  ArrowLeft,
+  Play,
+  ExternalLink,
+  Film
 } from 'lucide-react';
 
 export default function PropertyDetailsPage({
   property,
   navigate,
+  initialTab,
   onOpenBrochure,
   onOpenScheduleVisit,
   onViewProperty
@@ -54,7 +58,40 @@ export default function PropertyDetailsPage({
 
   const [activeImgIndex, setActiveImgIndex] = useState(0);
   const [fullscreenLightboxOpen, setFullscreenLightboxOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('overview'); // overview | gallery | location | amenities | floorplan | reviews
+  const [activeTab, setActiveTab] = useState(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabParam = urlParams.get('tab');
+    if (tabParam) return tabParam;
+    if (typeof window !== 'undefined' && window.location.hash === '#video-gallery') return 'videos';
+    return initialTab || 'overview';
+  });
+
+  // Track video elements for mutual exclusive playback (pause others when one plays)
+  const videoRefs = React.useRef({});
+  const handleVideoPlay = (id) => {
+    Object.entries(videoRefs.current).forEach(([k, el]) => {
+      if (k !== String(id) && el && !el.paused) {
+        el.pause();
+      }
+    });
+  };
+
+  useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab]);
+
+  useEffect(() => {
+    if (activeTab === 'videos') {
+      setTimeout(() => {
+        const el = document.getElementById('video-gallery');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
+    }
+  }, [activeTab]);
 
   // Review submission state
   const [newReview, setNewReview] = useState({ name: user?.name || '', rating: 5, comment: '' });
@@ -343,6 +380,40 @@ export default function PropertyDetailsPage({
             >
               <Maximize2 size={14} /> View Fullscreen ({activeImgIndex + 1}/{images.length})
             </div>
+
+            {/* Watch Site Videos Floating Pill on Hero */}
+            {property.videos && property.videos.length > 0 && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActiveTab('videos');
+                }}
+                style={{
+                  position: 'absolute',
+                  bottom: '16px',
+                  left: '16px',
+                  backgroundColor: '#064E49',
+                  backgroundImage: 'linear-gradient(135deg, #064E49 0%, #008F83 100%)',
+                  color: '#FFFFFF',
+                  padding: '7px 16px',
+                  borderRadius: 'var(--radius-full)',
+                  fontSize: '0.84rem',
+                  fontWeight: 700,
+                  boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
+                  border: 'none',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  zIndex: 3
+                }}
+                title="Watch on-site visit walkthrough videos"
+              >
+                <Play size={14} fill="#FFFFFF" />
+                <span>Watch {property.videos.length} Site Videos</span>
+              </button>
+            )}
           </div>
 
           {/* Thumbnail Preview Strip */}
@@ -572,10 +643,19 @@ export default function PropertyDetailsPage({
             >
               {[
                 { id: 'overview', label: 'Overview' },
-                { id: 'gallery', label: 'Gallery' },
+                ...(property.videos && property.videos.length > 0
+                  ? [
+                      {
+                        id: 'videos',
+                        label: `Site Videos (${property.videos.length})`,
+                        hasPlayIcon: true
+                      }
+                    ]
+                  : []),
+                { id: 'gallery', label: `Photo Gallery (${images.length})` },
                 { id: 'location', label: 'Location & Nearby' },
                 { id: 'amenities', label: 'Amenities' },
-                { id: 'floorplan', label: 'Floor Plan' },
+                ...(property.bhk > 0 ? [{ id: 'floorplan', label: 'Floor Plan' }] : []),
                 { id: 'reviews', label: `Reviews (${reviewsList.length})` }
               ].map((tab) => (
                 <button
@@ -588,10 +668,16 @@ export default function PropertyDetailsPage({
                     color: activeTab === tab.id ? 'var(--primary-teal)' : 'var(--text-secondary)',
                     borderBottom: activeTab === tab.id ? '3px solid var(--primary-teal)' : '3px solid transparent',
                     marginBottom: '-0.6rem',
-                    whiteSpace: 'nowrap'
+                    whiteSpace: 'nowrap',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px'
                   }}
                 >
-                  {tab.label}
+                  {tab.hasPlayIcon && (
+                    <Play size={13} fill={activeTab === tab.id ? 'var(--primary-teal)' : 'currentColor'} />
+                  )}
+                  <span>{tab.label}</span>
                 </button>
               ))}
             </div>
@@ -608,6 +694,50 @@ export default function PropertyDetailsPage({
                 <p style={{ fontSize: '1rem', color: 'var(--text-secondary)', lineHeight: 1.7, marginBottom: '1.75rem' }}>
                   {property.description}
                 </p>
+
+                {/* Dedicated Site Videos Highlight Banner */}
+                {property.videos && property.videos.length > 0 && (
+                  <div
+                    style={{
+                      background: 'linear-gradient(135deg, rgba(6, 78, 73, 0.08) 0%, rgba(0, 143, 131, 0.12) 100%)',
+                      border: '1.5px solid var(--primary-teal)',
+                      borderRadius: 'var(--radius-md)',
+                      padding: '1.25rem 1.5rem',
+                      marginBottom: '1.75rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      flexWrap: 'wrap',
+                      gap: '1rem'
+                    }}
+                  >
+                    <div style={{ flex: '1 1 280px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800, color: 'var(--deep-teal)', fontSize: '1.05rem', marginBottom: '4px' }}>
+                        <Film size={18} color="var(--primary-teal)" />
+                        <span>{property.videos.length} On-Site Walkthrough Videos Available</span>
+                      </div>
+                      <p style={{ margin: 0, fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                        Watch comprehensive real site videos covering Niranjan Nagar layout, 40-ft access road, boundary views, and surrounding residences.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('videos')}
+                      className="btn btn-primary"
+                      style={{
+                        padding: '0.55rem 1.15rem',
+                        fontSize: '0.85rem',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      <Play size={14} fill="#FFFFFF" />
+                      <span>Watch All {property.videos.length} Videos</span>
+                    </button>
+                  </div>
+                )}
 
                 <h4 style={{ fontSize: '1.15rem', color: 'var(--deep-teal)', marginBottom: '1rem' }}>Key Highlights</h4>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '0.85rem', marginBottom: '2rem' }}>
@@ -666,7 +796,224 @@ export default function PropertyDetailsPage({
               </div>
             )}
 
-            {/* TAB 2: GALLERY */}
+            {/* TAB 2: SITE VIDEOS GALLERY */}
+            {activeTab === 'videos' && (
+              <div id="video-gallery" className="card" style={{ padding: '2rem', backgroundColor: '#FFFFFF', border: '1.5px solid var(--border-color)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-light)', paddingBottom: '1.25rem' }}>
+                  <div>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'var(--primary-teal)', fontWeight: 700, fontSize: '0.8rem', textTransform: 'uppercase', marginBottom: '4px' }}>
+                      <Film size={15} /> Verified Site Walkthrough
+                    </div>
+                    <h3 style={{ fontSize: '1.45rem', color: 'var(--deep-teal)', fontWeight: 800, margin: '0 0 0.4rem 0' }}>
+                      Site Visit Videos — {property.title}
+                    </h3>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.92rem', margin: 0, maxWidth: '720px', lineHeight: 1.6 }}>
+                      Real on-site walkthrough videos of the Niranjan Nagar layout, access road, surrounding residential homes, boundary views, and road connectivity. Watch videos directly on the website or download individual original MP4 files below.
+                    </p>
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    <span className="badge badge-teal" style={{ padding: '6px 12px', fontSize: '0.8rem' }}>
+                      {property.videos?.length || 0} Videos Available
+                    </span>
+                    <span className="badge badge-secondary" style={{ padding: '6px 12px', fontSize: '0.8rem' }}>
+                      HD MP4 Format
+                    </span>
+                  </div>
+                </div>
+
+                {/* Videos Responsive Grid */}
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+                    gap: '1.75rem'
+                  }}
+                >
+                  {(property.videos || [])
+                    .filter((v) => v.published !== false)
+                    .map((v, index) => (
+                      <div
+                        key={v.id || index}
+                        style={{
+                          backgroundColor: '#FFFFFF',
+                          borderRadius: 'var(--radius-lg)',
+                          border: '1.5px solid var(--border-color)',
+                          overflow: 'hidden',
+                          boxShadow: '0 4px 16px rgba(6, 78, 73, 0.06)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          transition: 'box-shadow 0.2s ease'
+                        }}
+                      >
+                        {/* Video Player Container */}
+                        <div
+                          style={{
+                            position: 'relative',
+                            width: '100%',
+                            aspectRatio: '16 / 9',
+                            backgroundColor: '#000000',
+                            overflow: 'hidden'
+                          }}
+                        >
+                          <video
+                            ref={(el) => {
+                              if (el) videoRefs.current[v.id || index] = el;
+                            }}
+                            controls
+                            preload="metadata"
+                            playsInline
+                            poster={v.poster}
+                            onPlay={() => handleVideoPlay(v.id || index)}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'contain',
+                              display: 'block'
+                            }}
+                          >
+                            <source src={v.url} type="video/mp4" />
+                            Your browser does not support HTML5 video playback.
+                          </video>
+                        </div>
+
+                        {/* Video Details & Action Download Row */}
+                        <div
+                          style={{
+                            padding: '1.25rem',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            flex: 1,
+                            justifyContent: 'space-between',
+                            gap: '0.85rem'
+                          }}
+                        >
+                          <div>
+                            {/* Meta Badge */}
+                            <div
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                gap: '8px',
+                                marginBottom: '0.45rem'
+                              }}
+                            >
+                              <span
+                                style={{
+                                  backgroundColor: 'rgba(0, 143, 131, 0.12)',
+                                  color: 'var(--primary-teal)',
+                                  fontWeight: 700,
+                                  fontSize: '0.72rem',
+                                  padding: '3px 8px',
+                                  borderRadius: 'var(--radius-sm)',
+                                  textTransform: 'uppercase'
+                                }}
+                              >
+                                {v.shortTitle || `Video #${index + 1}`} • {v.duration || 'Walkthrough'}
+                              </span>
+                              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                                MP4
+                              </span>
+                            </div>
+
+                            {/* Title */}
+                            <h4
+                              style={{
+                                fontSize: '1.05rem',
+                                fontWeight: 800,
+                                color: 'var(--deep-teal)',
+                                margin: '0 0 0.45rem 0',
+                                lineHeight: 1.35
+                              }}
+                            >
+                              {v.title}
+                            </h4>
+
+                            {/* Description */}
+                            <p
+                              style={{
+                                fontSize: '0.86rem',
+                                color: 'var(--text-secondary)',
+                                lineHeight: 1.55,
+                                margin: 0
+                              }}
+                            >
+                              {v.description}
+                            </p>
+                          </div>
+
+                          {/* Action Row: Download Button + Open Tab */}
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              flexWrap: 'wrap',
+                              gap: '0.65rem',
+                              paddingTop: '0.85rem',
+                              borderTop: '1px solid var(--border-light)'
+                            }}
+                          >
+                            {/* Download Video Button */}
+                            <a
+                              href={v.url}
+                              download={v.downloadName || `nathamedu-site-video-${index + 1}.mp4`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '7px',
+                                padding: '0.55rem 1rem',
+                                backgroundColor: '#064E49',
+                                backgroundImage: 'linear-gradient(135deg, #064E49 0%, #008F83 100%)',
+                                color: '#FFFFFF',
+                                fontWeight: 700,
+                                fontSize: '0.82rem',
+                                borderRadius: 'var(--radius-sm)',
+                                textDecoration: 'none',
+                                boxShadow: '0 2px 6px rgba(0, 143, 131, 0.25)',
+                                flex: '1 1 auto'
+                              }}
+                              title={`Download ${v.title} (${v.downloadName || 'MP4'})`}
+                            >
+                              <Download size={15} />
+                              <span>Download Video</span>
+                            </a>
+
+                            {/* Open Stream in New Tab */}
+                            <a
+                              href={v.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                padding: '0.52rem 0.85rem',
+                                border: '1.5px solid var(--border-color)',
+                                backgroundColor: '#FFFFFF',
+                                color: 'var(--text-secondary)',
+                                fontWeight: 600,
+                                fontSize: '0.78rem',
+                                borderRadius: 'var(--radius-sm)',
+                                textDecoration: 'none'
+                              }}
+                              title="Open original video directly in a separate browser tab"
+                            >
+                              <ExternalLink size={13} />
+                              <span>Open in Tab</span>
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
+
+            {/* TAB 3: PHOTO GALLERY */}
             {activeTab === 'gallery' && (
               <div className="card" style={{ padding: '2rem', backgroundColor: '#FFFFFF', border: '1.5px solid var(--border-color)' }}>
                 <h3 style={{ fontSize: '1.3rem', color: 'var(--deep-teal)', marginBottom: '0.5rem' }}>High-Resolution Photo Gallery</h3>
