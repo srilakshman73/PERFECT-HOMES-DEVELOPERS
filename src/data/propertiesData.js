@@ -317,10 +317,97 @@ export const PROPERTIES_DATA = [
       plumbing: "Astral CPVC Pipes with Kohler Bath Fittings",
       painting: "Nippon Paint Satin Glo with 3 Coats of Putty"
     }
+  },
+  {
+    id: "ph-106",
+    title: "Thiruninravur – Nathamedu Site",
+    slug: "nathamedu-niranjan-nagar-upcoming-project",
+    tagline: "Your Future Home Begins at Nathamedu",
+    headline: "Your Future Home Begins at Nathamedu",
+    category: "Upcoming Projects",
+    propertyType: "Ready-to-Construct Residential Property",
+    projectStatus: "Upcoming Project",
+    statusBadge: "Upcoming Construction — Construction Work Starting Soon",
+    constructionStatus: "Construction work is planned to start soon.",
+    availability: "Upcoming Construction — Construction Work Starting Soon",
+    price: 3800000,
+    priceDisplay: "Starting from ₹38 Lakhs",
+    priceNote: "Starting budget of ₹38 Lakhs onwards. Final pricing, plot dimensions, and availability must be confirmed with the company.",
+    location: "Thiruninravur",
+    fullAddress: "Niranjan Nagar, Nathamedu, Thiruninravur, Tamil Nadu",
+    bhk: 0,
+    bathrooms: 0,
+    builtUpArea: 0,
+    plotArea: 0,
+    facing: "To be confirmed with company",
+    approval: "Upcoming Project",
+    approvalNo: "Details to be updated upon official release",
+    bankLoan: "Loan assistance guidance available upon project launch",
+    possession: "Construction work planned to start soon",
+    roadWidth: "To be confirmed with company",
+    waterSource: "Pure sweet potable ground water in Thiruninravur belt",
+    featured: false,
+    isUpcoming: true,
+    isPublished: true,
+    forSale: true,
+    rating: 5.0,
+    reviewsCount: 0,
+    images: [
+      "/images/properties/nathamedu/nathamedu-site-overview.jpg",
+      "/images/properties/nathamedu/nathamedu-green-plots-view.jpg",
+      "/images/properties/nathamedu/nathamedu-access-road.jpg",
+      "/images/properties/nathamedu/nathamedu-neighborhood-homes.jpg",
+      "/images/properties/nathamedu/nathamedu-street-corner.jpg",
+      "/images/properties/nathamedu/nathamedu-plot-frontage.jpg"
+    ],
+    imageAlts: [
+      "Thiruninravur Nathamedu Niranjan Nagar site overview landscape with green land and road",
+      "Lush green ready-to-construct residential plots at Niranjan Nagar Nathamedu",
+      "Approach and access road to Nathamedu Thiruninravur site",
+      "Existing residential neighborhood and surrounding homes at Nathamedu",
+      "Paved street corner with flowering shrubs and homes near Nathamedu site",
+      "Frontage road and electric line infrastructure at Nathamedu residential site"
+    ],
+    description: "Discover a promising residential property opportunity at Niranjan Nagar, Nathamedu, Thiruninravur. With a starting budget of ₹38 lakhs, this upcoming project is an opportunity for buyers planning their future home. Explore the location, enquire about availability, and contact Perfect Homes & Developers for further details.",
+    highlights: [
+      "Location: Niranjan Nagar, Nathamedu, Thiruninravur",
+      "Starting budget: ₹38 Lakhs onwards",
+      "Category: Upcoming Projects",
+      "Property type: Residential / Ready-to-Construct",
+      "Construction: Planned to start soon",
+      "Enquiry: Call or WhatsApp for project details"
+    ],
+    amenities: [
+      "Planned Gated Entrance Arch",
+      "Internal Approach Roads",
+      "Electricity Line & Street Infrastructure",
+      "Sweet Ground Water Zone",
+      "Peaceful Residential Neighborhood"
+    ],
+    nearby: [
+      { name: "Thiruninravur Railway Station", distance: "Short drive (Fast EMU local access)" },
+      { name: "Outer Ring Road (ORR) 6-Lane Corridor", distance: "Direct interchange connectivity" },
+      { name: "Schools, Colleges & Local Markets", distance: "In close vicinity" }
+    ],
+    specifications: {
+      projectType: "Ready-to-Construct Residential Property",
+      status: "Upcoming Project",
+      construction: "Construction work is planned to start soon.",
+      notes: "Plot dimensions, square footage, approvals, road width, amenities, and possession dates will be updated by the administrator as work progresses."
+    }
   }
 ];
 
 export const PROPERTY_CATEGORIES = [
+  {
+    id: "upcoming-projects",
+    title: "Upcoming Projects",
+    subtitle: "Future Ready Developments",
+    slug: "upcoming-projects",
+    categoryFilter: "Upcoming Projects",
+    icon: "Clock",
+    image: "/images/properties/nathamedu/nathamedu-site-overview.jpg"
+  },
   {
     id: "plots",
     title: "Residential Plots",

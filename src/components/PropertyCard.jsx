@@ -14,7 +14,8 @@ import {
   Eye,
   CheckCircle2,
   Scale,
-  Trees
+  Trees,
+  Clock
 } from 'lucide-react';
 import { COMPANY_CONTACT_INFO } from '../data/locationsData';
 
@@ -35,7 +36,9 @@ export default function PropertyCard({
     : ['https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80'];
 
   const whatsappMessage = encodeURIComponent(
-    `Hello Perfect Homes & Developers, I am interested in "${property.title}" in ${property.location} priced at ${property.priceDisplay}. Please share full price breakup and layout plan.`
+    property.isUpcoming || property.slug === 'nathamedu-niranjan-nagar-upcoming-project'
+      ? `Hello Perfect Homes & Developers, I am interested in the upcoming project "${property.title}" at Niranjan Nagar, Nathamedu (${property.priceDisplay}). Please share project layout, price breakup, and launch updates.`
+      : `Hello Perfect Homes & Developers, I am interested in "${property.title}" in ${property.location} priced at ${property.priceDisplay}. Please share full price breakup and layout plan.`
   );
 
   const whatsappUrl = `https://wa.me/${COMPANY_CONTACT_INFO.whatsappNumber}?text=${whatsappMessage}`;
@@ -82,27 +85,33 @@ export default function PropertyCard({
           loading="lazy"
         />
 
-        {/* Top-Left 'For Sale' Badge */}
+        {/* Top-Left Status Badge */}
         <div
           style={{
             position: 'absolute',
-            top: '12px',
-            left: '12px',
-            zIndex: 2
+            top: '10px',
+            left: '10px',
+            zIndex: 2,
+            maxWidth: 'calc(100% - 85px)'
           }}
         >
           <span
             style={{
-              backgroundColor: '#008F83',
+              backgroundColor: property.isUpcoming || property.category === 'Upcoming Projects' ? '#008F83' : '#008F83',
+              background: property.isUpcoming || property.category === 'Upcoming Projects'
+                ? 'linear-gradient(135deg, #064E49 0%, #008F83 100%)'
+                : '#008F83',
               color: '#FFFFFF',
               padding: '4px 10px',
               borderRadius: 'var(--radius-sm)',
-              fontSize: '0.75rem',
+              fontSize: '0.72rem',
               fontWeight: 700,
-              boxShadow: '0 2px 6px rgba(0,0,0,0.2)'
+              boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
+              display: 'inline-block',
+              lineHeight: 1.25
             }}
           >
-            For Sale
+            {property.statusBadge || 'For Sale'}
           </span>
         </div>
 
@@ -223,7 +232,7 @@ export default function PropertyCard({
             {property.priceDisplay}
           </div>
 
-          {/* Specs Row (BHK / Area / Approval) */}
+          {/* Specs Row (BHK / Area / Approval or Upcoming status) */}
           <div
             style={{
               display: 'flex',
@@ -236,27 +245,41 @@ export default function PropertyCard({
               borderTop: '1px solid var(--border-light)'
             }}
           >
-            {property.bhk > 0 ? (
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontWeight: 600, color: '#17313D' }}>
-                <BedDouble size={14} color="#008F83" /> {property.bhk} BHK
-              </span>
+            {property.isUpcoming || property.category === 'Upcoming Projects' ? (
+              <>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: 700, color: '#064E49' }}>
+                  <Trees size={14} color="#008F83" /> {property.propertyType || 'Residential Property'}
+                </span>
+                <span style={{ color: '#DCE9E6' }}>|</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#008F83', fontWeight: 600 }}>
+                  <Clock size={13} /> Planned Soon
+                </span>
+              </>
             ) : (
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontWeight: 600, color: '#17313D' }}>
-                <Trees size={14} color="#008F83" /> Plot
-              </span>
+              <>
+                {property.bhk > 0 ? (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontWeight: 600, color: '#17313D' }}>
+                    <BedDouble size={14} color="#008F83" /> {property.bhk} BHK
+                  </span>
+                ) : (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontWeight: 600, color: '#17313D' }}>
+                    <Trees size={14} color="#008F83" /> Plot
+                  </span>
+                )}
+
+                <span style={{ color: '#DCE9E6' }}>|</span>
+
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontWeight: 600, color: '#17313D' }}>
+                  <Maximize2 size={13} color="#008F83" /> {property.plotAreaRange || (property.builtUpArea > 0 ? `${property.builtUpArea} Sq.ft` : `${property.plotArea} Sq.ft`)}
+                </span>
+
+                <span style={{ color: '#DCE9E6' }}>|</span>
+
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', color: '#059669', fontWeight: 600 }}>
+                  <CheckCircle2 size={13} /> {property.approval}
+                </span>
+              </>
             )}
-
-            <span style={{ color: '#DCE9E6' }}>|</span>
-
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontWeight: 600, color: '#17313D' }}>
-              <Maximize2 size={13} color="#008F83" /> {property.plotAreaRange || (property.builtUpArea > 0 ? `${property.builtUpArea} Sq.ft` : `${property.plotArea} Sq.ft`)}
-            </span>
-
-            <span style={{ color: '#DCE9E6' }}>|</span>
-
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', color: '#059669', fontWeight: 600 }}>
-              <CheckCircle2 size={13} /> {property.approval}
-            </span>
           </div>
         </div>
 

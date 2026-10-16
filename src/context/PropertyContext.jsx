@@ -9,7 +9,7 @@ import { useToast } from './ToastContext';
 
 const PropertyContext = createContext(null);
 
-const STORAGE_PROPERTIES_KEY = 'ph_properties_db_v1';
+const STORAGE_PROPERTIES_KEY = 'ph_properties_db_v2';
 const STORAGE_ENQUIRIES_KEY = 'ph_enquiries_db_v1';
 const WISHLIST_PREFIX = 'ph_wishlist_';
 
@@ -57,7 +57,18 @@ export function PropertyProvider({ children }) {
   const [properties, setProperties] = useState(() => {
     try {
       const saved = localStorage.getItem(STORAGE_PROPERTIES_KEY);
-      return saved ? JSON.parse(saved) : PROPERTIES_DATA;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Ensure all catalog properties (specifically ph-106 Nathamedu) are present
+        const missing = PROPERTIES_DATA.filter((dp) => !parsed.some((p) => p.id === dp.id));
+        if (missing.length > 0) {
+          const merged = [...parsed, ...missing];
+          localStorage.setItem(STORAGE_PROPERTIES_KEY, JSON.stringify(merged));
+          return merged;
+        }
+        return parsed;
+      }
+      return PROPERTIES_DATA;
     } catch {
       return PROPERTIES_DATA;
     }
@@ -245,6 +256,23 @@ export function PropertyProvider({ children }) {
     addToast('Property removed from catalog.', 'info');
   };
 
+  const adminTogglePublish = (id) => {
+    const updated = properties.map((p) => {
+      if (p.id === id) {
+        const isNowPublished = p.isPublished === false ? true : false;
+        return { ...p, isPublished: isNowPublished };
+      }
+      return p;
+    });
+    setProperties(updated);
+    localStorage.setItem(STORAGE_PROPERTIES_KEY, JSON.stringify(updated));
+    const target = updated.find((p) => p.id === id);
+    addToast(
+      target?.isPublished !== false ? `"${target?.title}" published.` : `"${target?.title}" unpublished.`,
+      'info'
+    );
+  };
+
   // Reset search filters
   const resetFilters = () => {
     setFilters({
@@ -261,10 +289,16 @@ export function PropertyProvider({ children }) {
     });
   };
 
+  // Public visitors see published projects; Administrators see all inventory
+  const visibleProperties = user?.role === 'admin'
+    ? properties
+    : properties.filter((p) => p.isPublished !== false);
+
   return (
     <PropertyContext.Provider
       value={{
-        properties,
+        properties: visibleProperties,
+        adminProperties: properties,
         wishlist,
         wishlistCount: wishlist.length,
         toggleWishlist,
@@ -281,6 +315,7 @@ export function PropertyProvider({ children }) {
         adminAddProperty,
         adminUpdateProperty,
         adminDeleteProperty,
+        adminTogglePublish,
         filters,
         setFilters,
         resetFilters

@@ -37,7 +37,8 @@ import {
   Droplets,
   Zap,
   Building2,
-  Download
+  Download,
+  ArrowLeft
 } from 'lucide-react';
 
 export default function PropertyDetailsPage({
@@ -86,6 +87,21 @@ export default function PropertyDetailsPage({
   useEffect(() => {
     window.scrollTo(0, 0);
     setActiveImgIndex(0);
+
+    if (property) {
+      if (property.slug === 'nathamedu-niranjan-nagar-upcoming-project' || property.isUpcoming) {
+        document.title = `${property.title} | Upcoming Residential Project | Perfect Homes & Developers`;
+        const metaDesc = document.querySelector('meta[name="description"]');
+        if (metaDesc) {
+          metaDesc.setAttribute(
+            'content',
+            'Discover Thiruninravur – Nathamedu Site at Niranjan Nagar, Thiruninravur, Tamil Nadu. Ready-to-construct residential property starting from ₹38 Lakhs by Perfect Homes & Developers.'
+          );
+        }
+      } else {
+        document.title = `${property.title} | Perfect Homes & Developers`;
+      }
+    }
   }, [property]);
 
   if (!property) {
@@ -101,6 +117,7 @@ export default function PropertyDetailsPage({
 
   const isLiked = isWishlisted(property.id);
   const isComp = isCompared(property.id);
+  const isUpcomingProject = property.isUpcoming || property.category === 'Upcoming Projects';
 
   const images = property.images && property.images.length > 0
     ? property.images
@@ -172,7 +189,9 @@ export default function PropertyDetailsPage({
     .slice(0, 3);
 
   const whatsappMessage = encodeURIComponent(
-    `Hello Perfect Homes & Developers, I am viewing "${property.title}" (${property.priceDisplay}) on your website. Please share the complete price sheet and legal copy.`
+    isUpcomingProject
+      ? `Hello Perfect Homes & Developers, I am interested in the upcoming project "${property.title}" at Niranjan Nagar, Nathamedu (${property.priceDisplay}). Please share project details, layout plans, and launch updates.`
+      : `Hello Perfect Homes & Developers, I am viewing "${property.title}" (${property.priceDisplay}) on your website. Please share the complete price sheet and legal copy.`
   );
 
   return (
@@ -182,22 +201,50 @@ export default function PropertyDetailsPage({
           ========================================================== */}
       <section style={{ backgroundColor: '#FFFFFF', borderBottom: '1px solid var(--border-color)', padding: '1.25rem 0' }}>
         <div className="container">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>
-            <button onClick={() => navigate('home')} style={{ color: 'var(--text-secondary)' }}>Home</button>
-            <ChevronRight size={13} />
-            <button onClick={() => navigate('listing')} style={{ color: 'var(--text-secondary)' }}>Properties</button>
-            <ChevronRight size={13} />
-            <button onClick={() => navigate('listing', { location: property.location })} style={{ color: 'var(--text-secondary)' }}>{property.location}</button>
-            <ChevronRight size={13} />
-            <span style={{ color: 'var(--primary-teal)', fontWeight: 600 }}>{property.title}</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '0.75rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+              <button onClick={() => navigate('home')} style={{ color: 'var(--text-secondary)' }}>Home</button>
+              <ChevronRight size={13} />
+              <button onClick={() => navigate('listing')} style={{ color: 'var(--text-secondary)' }}>Properties</button>
+              <ChevronRight size={13} />
+              <button onClick={() => navigate('listing', { location: property.location })} style={{ color: 'var(--text-secondary)' }}>{property.location}</button>
+              <ChevronRight size={13} />
+              <span style={{ color: 'var(--primary-teal)', fontWeight: 600 }}>{property.title}</span>
+            </div>
+
+            {/* Prominent Back to Properties Button */}
+            <button
+              onClick={() => navigate('listing')}
+              className="btn btn-secondary btn-sm"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', padding: '0.4rem 0.85rem' }}
+            >
+              <ArrowLeft size={14} /> Back to Properties
+            </button>
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1.25rem' }}>
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.35rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.35rem', flexWrap: 'wrap' }}>
                 <span className="badge badge-teal">{property.category}</span>
-                <span className="badge badge-success">{property.availability}</span>
-                <span className="badge badge-primary">{property.approval}</span>
+                {property.statusBadge ? (
+                  <span
+                    className="badge"
+                    style={{
+                      background: 'linear-gradient(135deg, #064E49 0%, #008F83 100%)',
+                      color: '#FFFFFF',
+                      fontWeight: 700,
+                      padding: '4px 10px',
+                      fontSize: '0.78rem'
+                    }}
+                  >
+                    {property.statusBadge}
+                  </span>
+                ) : (
+                  <>
+                    <span className="badge badge-success">{property.availability}</span>
+                    <span className="badge badge-primary">{property.approval}</span>
+                  </>
+                )}
               </div>
               <h1 style={{ fontSize: 'clamp(1.75rem, 3vw, 2.3rem)', color: 'var(--text-heading)', marginBottom: '0.35rem' }}>
                 {property.title}
@@ -214,9 +261,15 @@ export default function PropertyDetailsPage({
                 <div style={{ fontSize: '2.2rem', fontWeight: 800, color: 'var(--deep-teal)', fontFamily: 'var(--font-display)' }}>
                   {property.priceDisplay}
                 </div>
-                <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
-                  EMI starts from <strong>₹{Math.round(property.price * 0.0087).toLocaleString()}/mo</strong>
-                </div>
+                {isUpcomingProject ? (
+                  <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', maxWidth: '280px' }}>
+                    Final pricing &amp; availability to be confirmed with company
+                  </div>
+                ) : (
+                  <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+                    EMI starts from <strong>₹{Math.round(property.price * 0.0087).toLocaleString()}/mo</strong>
+                  </div>
+                )}
               </div>
 
               {/* Action icons bar */}
@@ -268,7 +321,7 @@ export default function PropertyDetailsPage({
           >
             <img
               src={images[activeImgIndex]}
-              alt={property.title}
+              alt={property.imageAlts?.[activeImgIndex] || property.title}
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
             <div
@@ -309,7 +362,11 @@ export default function PropertyDetailsPage({
                   flexShrink: 0
                 }}
               >
-                <img src={img} alt={`Thumb ${idx}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img
+                  src={img}
+                  alt={property.imageAlts?.[idx] || `${property.title} thumbnail ${idx + 1}`}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
               </div>
             ))}
           </div>
@@ -331,83 +388,167 @@ export default function PropertyDetailsPage({
             border: '1.5px solid var(--border-color)'
           }}
         >
-          {/* BHK */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={specIconCircle}>
-              <BedDouble size={20} color="var(--primary-teal)" />
-            </div>
-            <div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Configuration</div>
-              <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--deep-teal)' }}>
-                {property.bhk > 0 ? `${property.bhk} BHK` : 'Plotted Land'}
+          {isUpcomingProject ? (
+            <>
+              {/* Category */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={specIconCircle}>
+                  <Building2 size={20} color="var(--primary-teal)" />
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Category</div>
+                  <div style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--deep-teal)' }}>
+                    Upcoming Projects
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
 
-          {/* Built up Area */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={specIconCircle}>
-              <Maximize2 size={20} color="var(--primary-teal)" />
-            </div>
-            <div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Built-up Area</div>
-              <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--deep-teal)' }}>
-                {property.builtUpArea > 0 ? `${property.builtUpArea} sq.ft` : 'Customizable'}
+              {/* Property Type */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={specIconCircle}>
+                  <Layers size={20} color="var(--primary-teal)" />
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Property Type</div>
+                  <div style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--deep-teal)' }}>
+                    {property.propertyType || 'Residential / Ready-to-Construct'}
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
 
-          {/* Plot Area */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={specIconCircle}>
-              <Layers size={20} color="var(--primary-teal)" />
-            </div>
-            <div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Plot Area</div>
-              <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--deep-teal)' }}>
-                {property.plotArea} sq.ft
+              {/* Construction Status */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={specIconCircle}>
+                  <Clock size={20} color="var(--primary-teal)" />
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Construction Status</div>
+                  <div style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--deep-teal)' }}>
+                    {property.constructionStatus || 'Planned to start soon'}
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
 
-          {/* Facing */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={specIconCircle}>
-              <Compass size={20} color="var(--primary-teal)" />
-            </div>
-            <div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Facing Direction</div>
-              <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--deep-teal)' }}>
-                {property.facing || 'East'} Face
+              {/* Starting Budget */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={specIconCircle}>
+                  <Sparkles size={20} color="var(--primary-teal)" />
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Starting Budget</div>
+                  <div style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--deep-teal)' }}>
+                    {property.priceDisplay}
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
 
-          {/* Road */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={specIconCircle}>
-              <Car size={20} color="var(--primary-teal)" />
-            </div>
-            <div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Access Road</div>
-              <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--deep-teal)' }}>
-                {property.roadWidth || '40ft Blacktop'}
+              {/* Location */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={specIconCircle}>
+                  <MapPin size={20} color="var(--primary-teal)" />
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Location</div>
+                  <div style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--deep-teal)' }}>
+                    {property.location}
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
 
-          {/* Water */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={specIconCircle}>
-              <Droplets size={20} color="var(--primary-teal)" />
-            </div>
-            <div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Ground Water</div>
-              <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--deep-teal)' }}>
-                Sweet @ 20-30ft
+              {/* Direct Enquiry */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={specIconCircle}>
+                  <MessageCircle size={20} color="var(--primary-teal)" />
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Enquiry</div>
+                  <div style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--deep-teal)' }}>
+                    Call / WhatsApp
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
+            </>
+          ) : (
+            <>
+              {/* BHK */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={specIconCircle}>
+                  <BedDouble size={20} color="var(--primary-teal)" />
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Configuration</div>
+                  <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--deep-teal)' }}>
+                    {property.bhk > 0 ? `${property.bhk} BHK` : 'Plotted Land'}
+                  </div>
+                </div>
+              </div>
+
+              {/* Built up Area */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={specIconCircle}>
+                  <Maximize2 size={20} color="var(--primary-teal)" />
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Built-up Area</div>
+                  <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--deep-teal)' }}>
+                    {property.builtUpArea > 0 ? `${property.builtUpArea} sq.ft` : 'Customizable'}
+                  </div>
+                </div>
+              </div>
+
+              {/* Plot Area */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={specIconCircle}>
+                  <Layers size={20} color="var(--primary-teal)" />
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Plot Area</div>
+                  <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--deep-teal)' }}>
+                    {property.plotArea} sq.ft
+                  </div>
+                </div>
+              </div>
+
+              {/* Facing */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={specIconCircle}>
+                  <Compass size={20} color="var(--primary-teal)" />
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Facing Direction</div>
+                  <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--deep-teal)' }}>
+                    {property.facing || 'East'} Face
+                  </div>
+                </div>
+              </div>
+
+              {/* Road */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={specIconCircle}>
+                  <Car size={20} color="var(--primary-teal)" />
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Access Road</div>
+                  <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--deep-teal)' }}>
+                    {property.roadWidth || '40ft Blacktop'}
+                  </div>
+                </div>
+              </div>
+
+              {/* Water */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={specIconCircle}>
+                  <Droplets size={20} color="var(--primary-teal)" />
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Ground Water</div>
+                  <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--deep-teal)' }}>
+                    Sweet @ 20-30ft
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </section>
 
@@ -458,12 +599,17 @@ export default function PropertyDetailsPage({
             {/* TAB 1: OVERVIEW */}
             {activeTab === 'overview' && (
               <div className="card" style={{ padding: '2rem', backgroundColor: '#FFFFFF', border: '1.5px solid var(--border-color)' }}>
-                <h3 style={{ fontSize: '1.3rem', color: 'var(--deep-teal)', marginBottom: '1rem' }}>Property Description</h3>
+                {property.headline && (
+                  <h3 style={{ fontSize: '1.35rem', color: 'var(--deep-teal)', fontWeight: 800, marginBottom: '0.75rem' }}>
+                    {property.headline}
+                  </h3>
+                )}
+                <h4 style={{ fontSize: '1.1rem', color: 'var(--primary-teal)', marginBottom: '0.75rem' }}>Project Description</h4>
                 <p style={{ fontSize: '1rem', color: 'var(--text-secondary)', lineHeight: 1.7, marginBottom: '1.75rem' }}>
                   {property.description}
                 </p>
 
-                <h4 style={{ fontSize: '1.15rem', color: 'var(--deep-teal)', marginBottom: '1rem' }}>Project Highlights</h4>
+                <h4 style={{ fontSize: '1.15rem', color: 'var(--deep-teal)', marginBottom: '1rem' }}>Key Highlights</h4>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '0.85rem', marginBottom: '2rem' }}>
                   {(property.highlights || []).map((hl, idx) => (
                     <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: 'var(--text-heading)' }}>
@@ -473,33 +619,49 @@ export default function PropertyDetailsPage({
                   ))}
                 </div>
 
-                <h4 style={{ fontSize: '1.15rem', color: 'var(--deep-teal)', marginBottom: '1rem' }}>Government Approval &amp; Legal Info</h4>
-                <div style={{ backgroundColor: 'var(--bg-main)', padding: '1.25rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.9rem' }}>
-                    <div><strong>Approval Authority:</strong> {property.approval}</div>
-                    <div><strong>Registration Number:</strong> {property.approvalNo}</div>
-                    <div><strong>Bank Loan Sanction:</strong> {property.bankLoan}</div>
-                    <div><strong>Legal Documentation:</strong> 100% verified 40-year parent title deed with individual Patta</div>
-                  </div>
-                </div>
-
-                {/* Construction Specifications (if house/villa) */}
-                {property.specifications && (
-                  <div style={{ marginTop: '2rem' }}>
-                    <h4 style={{ fontSize: '1.15rem', color: 'var(--deep-teal)', marginBottom: '1rem' }}>Technical Specifications</h4>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem' }}>
-                      {Object.entries(property.specifications).map(([key, val]) => (
-                        <div key={key} style={{ borderBottom: '1px solid var(--border-light)', paddingBottom: '0.5rem' }}>
-                          <div style={{ fontSize: '0.78rem', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 700 }}>
-                            {key}
-                          </div>
-                          <div style={{ fontSize: '0.88rem', color: 'var(--text-heading)', marginTop: '2px' }}>
-                            {val}
-                          </div>
-                        </div>
-                      ))}
+                {isUpcomingProject ? (
+                  <div style={{ backgroundColor: 'rgba(0, 143, 131, 0.08)', border: '1.5px solid var(--primary-teal)', padding: '1.25rem', borderRadius: 'var(--radius-md)', marginBottom: '1.5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, color: 'var(--deep-teal)', marginBottom: '6px' }}>
+                      <Clock size={18} color="var(--primary-teal)" /> Upcoming Construction Status
                     </div>
+                    <p style={{ margin: 0, fontSize: '0.92rem', color: 'var(--text-heading)', lineHeight: 1.6 }}>
+                      <strong>{property.constructionStatus || 'Construction work is planned to start soon.'}</strong>
+                    </p>
+                    <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                      Starting budget from <strong>{property.priceDisplay}</strong>. Plot dimensions, final pricing, and site availability must be confirmed directly with Perfect Homes &amp; Developers.
+                    </p>
                   </div>
+                ) : (
+                  <>
+                    <h4 style={{ fontSize: '1.15rem', color: 'var(--deep-teal)', marginBottom: '1rem' }}>Government Approval &amp; Legal Info</h4>
+                    <div style={{ backgroundColor: 'var(--bg-main)', padding: '1.25rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.9rem' }}>
+                        <div><strong>Approval Authority:</strong> {property.approval}</div>
+                        <div><strong>Registration Number:</strong> {property.approvalNo}</div>
+                        <div><strong>Bank Loan Sanction:</strong> {property.bankLoan}</div>
+                        <div><strong>Legal Documentation:</strong> 100% verified 40-year parent title deed with individual Patta</div>
+                      </div>
+                    </div>
+
+                    {/* Construction Specifications (if house/villa) */}
+                    {property.specifications && (
+                      <div style={{ marginTop: '2rem' }}>
+                        <h4 style={{ fontSize: '1.15rem', color: 'var(--deep-teal)', marginBottom: '1rem' }}>Technical Specifications</h4>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem' }}>
+                          {Object.entries(property.specifications).map(([key, val]) => (
+                            <div key={key} style={{ borderBottom: '1px solid var(--border-light)', paddingBottom: '0.5rem' }}>
+                              <div style={{ fontSize: '0.78rem', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 700 }}>
+                                {key}
+                              </div>
+                              <div style={{ fontSize: '0.88rem', color: 'var(--text-heading)', marginTop: '2px' }}>
+                                {val}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             )}
@@ -507,7 +669,10 @@ export default function PropertyDetailsPage({
             {/* TAB 2: GALLERY */}
             {activeTab === 'gallery' && (
               <div className="card" style={{ padding: '2rem', backgroundColor: '#FFFFFF', border: '1.5px solid var(--border-color)' }}>
-                <h3 style={{ fontSize: '1.3rem', color: 'var(--deep-teal)', marginBottom: '1.25rem' }}>High-Resolution Photo Gallery</h3>
+                <h3 style={{ fontSize: '1.3rem', color: 'var(--deep-teal)', marginBottom: '0.5rem' }}>High-Resolution Photo Gallery</h3>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+                  Click any image to view in high-resolution full screen.
+                </p>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1rem' }}>
                   {images.map((img, idx) => (
                     <div
@@ -517,19 +682,24 @@ export default function PropertyDetailsPage({
                         setFullscreenLightboxOpen(true);
                       }}
                       style={{
-                        height: '200px',
+                        height: '210px',
                         borderRadius: 'var(--radius-md)',
                         overflow: 'hidden',
                         cursor: 'pointer',
-                        position: 'relative'
+                        position: 'relative',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
                       }}
                     >
-                      <img src={img} alt={`Gallery ${idx}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <img
+                        src={img}
+                        alt={property.imageAlts?.[idx] || `${property.title} - View ${idx + 1}`}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
                       <div
                         style={{
                           position: 'absolute',
                           inset: 0,
-                          backgroundColor: 'rgba(6, 78, 73, 0.3)',
+                          backgroundColor: 'rgba(6, 78, 73, 0.4)',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -539,7 +709,9 @@ export default function PropertyDetailsPage({
                         onMouseEnter={(e) => (e.currentTarget.style.opacity = 1)}
                         onMouseLeave={(e) => (e.currentTarget.style.opacity = 0)}
                       >
-                        <Maximize2 size={24} color="#FFFFFF" />
+                        <div style={{ backgroundColor: '#FFFFFF', color: 'var(--deep-teal)', padding: '6px 12px', borderRadius: 'var(--radius-full)', fontSize: '0.82rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <Maximize2 size={16} /> Enlarge Photo
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -614,25 +786,33 @@ export default function PropertyDetailsPage({
             {activeTab === 'amenities' && (
               <div className="card" style={{ padding: '2rem', backgroundColor: '#FFFFFF', border: '1.5px solid var(--border-color)' }}>
                 <h3 style={{ fontSize: '1.3rem', color: 'var(--deep-teal)', marginBottom: '1.25rem' }}>Community Amenities &amp; Infrastructure</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
-                  {(property.amenities || []).map((amen, idx) => (
-                    <div
-                      key={idx}
-                      style={{
-                        padding: '1rem',
-                        backgroundColor: 'var(--bg-main)',
-                        borderRadius: 'var(--radius-md)',
-                        border: '1px solid var(--border-color)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '10px'
-                      }}
-                    >
-                      <CheckCircle2 size={18} color="var(--primary-teal)" />
-                      <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-heading)' }}>{amen}</span>
-                    </div>
-                  ))}
-                </div>
+                {isUpcomingProject && (!property.amenities || property.amenities.length === 0) ? (
+                  <div style={{ backgroundColor: 'var(--bg-main)', padding: '1.5rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.92rem', lineHeight: 1.6, margin: 0 }}>
+                      Community amenities, internal road paving, and utilities for <strong>{property.title}</strong> will be specified as site planning progresses. Perfect Homes &amp; Developers ensures high construction quality and dedicated client assistance across all developments.
+                    </p>
+                  </div>
+                ) : (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
+                    {(property.amenities || []).map((amen, idx) => (
+                      <div
+                        key={idx}
+                        style={{
+                          padding: '1rem',
+                          backgroundColor: 'var(--bg-main)',
+                          borderRadius: 'var(--radius-md)',
+                          border: '1px solid var(--border-color)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px'
+                        }}
+                      >
+                        <CheckCircle2 size={18} color="var(--primary-teal)" />
+                        <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-heading)' }}>{amen}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
@@ -640,21 +820,41 @@ export default function PropertyDetailsPage({
             {activeTab === 'floorplan' && (
               <div className="card" style={{ padding: '2rem', backgroundColor: '#FFFFFF', border: '1.5px solid var(--border-color)' }}>
                 <h3 style={{ fontSize: '1.3rem', color: 'var(--deep-teal)', marginBottom: '1rem' }}>Architectural Floor &amp; Layout Plan</h3>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
-                  100% Vastu-compliant architectural blueprint with optimized carpet area and cross ventilation.
-                </p>
-                <div style={{ textAlign: 'center', backgroundColor: 'var(--bg-main)', padding: '1rem', borderRadius: 'var(--radius-lg)' }}>
-                  <img
-                    src={property.floorPlanImg || 'https://images.unsplash.com/photo-1600585152220-90363fe7e115?auto=format&fit=crop&w=800&q=80'}
-                    alt="Floor Plan"
-                    style={{ maxWidth: '100%', maxHeight: '450px', margin: '0 auto', borderRadius: 'var(--radius-md)' }}
-                  />
-                  <div style={{ marginTop: '1rem' }}>
-                    <button onClick={() => onOpenBrochure(property)} className="btn btn-primary">
-                      <Download size={16} /> Download Full Blueprint PDF
-                    </button>
+                {isUpcomingProject ? (
+                  <div style={{ textAlign: 'center', backgroundColor: 'var(--bg-main)', padding: '2rem 1.5rem', borderRadius: 'var(--radius-lg)', border: '1px dashed var(--primary-teal)' }}>
+                    <Layers size={40} color="var(--primary-teal)" style={{ marginBottom: '0.75rem' }} />
+                    <h4 style={{ color: 'var(--deep-teal)', fontSize: '1.1rem', marginBottom: '0.5rem' }}>Layout Draft Under Preparation</h4>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', maxWidth: '500px', margin: '0 auto 1.25rem', lineHeight: 1.6 }}>
+                      Preliminary site layout and customized residential plot allocations for <strong>{property.title}</strong> are being finalized. Connect with our engineering desk to get direct updates.
+                    </p>
+                    <a
+                      href={`https://wa.me/${COMPANY_CONTACT_INFO.whatsappNumber}?text=${whatsappMessage}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-whatsapp"
+                    >
+                      <MessageCircle size={16} /> Request Layout Updates on WhatsApp
+                    </a>
                   </div>
-                </div>
+                ) : (
+                  <>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+                      100% Vastu-compliant architectural blueprint with optimized carpet area and cross ventilation.
+                    </p>
+                    <div style={{ textAlign: 'center', backgroundColor: 'var(--bg-main)', padding: '1rem', borderRadius: 'var(--radius-lg)' }}>
+                      <img
+                        src={property.floorPlanImg || 'https://images.unsplash.com/photo-1600585152220-90363fe7e115?auto=format&fit=crop&w=800&q=80'}
+                        alt="Floor Plan"
+                        style={{ maxWidth: '100%', maxHeight: '450px', margin: '0 auto', borderRadius: 'var(--radius-md)' }}
+                      />
+                      <div style={{ marginTop: '1rem' }}>
+                        <button onClick={() => onOpenBrochure(property)} className="btn btn-primary">
+                          <Download size={16} /> Download Full Blueprint PDF
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             )}
 
@@ -914,7 +1114,7 @@ export default function PropertyDetailsPage({
 
           <img
             src={images[activeImgIndex]}
-            alt="Fullscreen preview"
+            alt={property.imageAlts?.[activeImgIndex] || `${property.title} - Fullscreen View ${activeImgIndex + 1}`}
             style={{ maxWidth: '90vw', maxHeight: '85vh', objectFit: 'contain', borderRadius: '8px' }}
             onClick={(e) => e.stopPropagation()}
           />
@@ -934,7 +1134,20 @@ export default function PropertyDetailsPage({
       <style>{`
         @media (max-width: 900px) {
           .gallery-grid-layout { grid-template-columns: 1fr !important; }
-          .gallery-thumbnails-col { display: none !important; }
+          .gallery-thumbnails-col {
+            display: flex !important;
+            flex-direction: row !important;
+            height: auto !important;
+            overflow-x: auto !important;
+            gap: 0.5rem !important;
+            padding-bottom: 0.5rem !important;
+            -webkit-overflow-scrolling: touch;
+          }
+          .gallery-thumbnails-col > div {
+            width: 90px !important;
+            height: 65px !important;
+            flex-shrink: 0 !important;
+          }
           .property-main-layout { grid-template-columns: 1fr !important; }
         }
       `}</style>

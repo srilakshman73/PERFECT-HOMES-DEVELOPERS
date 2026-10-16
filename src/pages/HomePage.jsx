@@ -34,7 +34,8 @@ import {
   Trees,
   Castle,
   Headphones,
-  SlidersHorizontal
+  SlidersHorizontal,
+  Clock
 } from 'lucide-react';
 
 export default function HomePage({
@@ -44,6 +45,9 @@ export default function HomePage({
   onOpenScheduleVisit
 }) {
   const { properties, setFilters } = useProperties();
+
+  const featuredProperties = properties.filter((p) => !p.isUpcoming && p.category !== 'Upcoming Projects').slice(0, 4);
+  const upcomingProjects = properties.filter((p) => p.isUpcoming || p.category === 'Upcoming Projects');
 
   // Search hero state
   const [heroLocation, setHeroLocation] = useState('all');
@@ -238,6 +242,7 @@ export default function HomePage({
                       style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-heading)', width: '100%', cursor: 'pointer' }}
                     >
                       <option value="all">Any Type</option>
+                      <option value="Upcoming Projects">Upcoming Projects</option>
                       <option value="Residential Plots">Residential Plots</option>
                       <option value="2 BHK Homes">2 BHK Homes</option>
                       <option value="3 BHK Homes">3 BHK Homes</option>
@@ -394,7 +399,7 @@ export default function HomePage({
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(5, 1fr)',
+              gridTemplateColumns: 'repeat(6, 1fr)',
               gap: '1.25rem'
             }}
             className="categories-grid-5"
@@ -473,6 +478,21 @@ export default function HomePage({
                 <p style={{ fontSize: '0.78rem', color: '#687985', margin: '2px 0 0' }}>Your Land, Our Expertise</p>
               </div>
             </div>
+
+            {/* 6. Upcoming Projects */}
+            <div
+              className="card"
+              onClick={() => navigate('listing', { category: 'Upcoming Projects' })}
+              style={categoryCardStyle}
+            >
+              <div style={categoryIconStyle}>
+                <Clock size={24} color="#008F83" />
+              </div>
+              <div style={{ textAlign: 'left' }}>
+                <h3 style={{ fontSize: '0.98rem', fontWeight: 800, color: '#064E49', margin: 0 }}>Upcoming Projects</h3>
+                <p style={{ fontSize: '0.78rem', color: '#687985', margin: '2px 0 0' }}>Future Developments</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -539,7 +559,100 @@ export default function HomePage({
             }}
             className="featured-properties-grid-4"
           >
-            {properties.slice(0, 4).map((prop) => (
+            {featuredProperties.map((prop) => (
+              <PropertyCard
+                key={prop.id}
+                property={prop}
+                onViewDetails={onViewProperty}
+                onOpenBrochure={onOpenBrochure}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ==========================================================
+          UPCOMING PROJECTS (DEDICATED SECTION)
+          ========================================================== */}
+      <section style={{ padding: '4.5rem 0 5rem', backgroundColor: '#FFFFFF', borderBottom: '1px solid var(--border-light)' }}>
+        <div className="container">
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-end',
+              flexWrap: 'wrap',
+              gap: '1rem',
+              marginBottom: '2.5rem'
+            }}
+          >
+            <div>
+              <div
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  backgroundColor: 'var(--turquoise-light)',
+                  color: 'var(--deep-teal)',
+                  padding: '4px 12px',
+                  borderRadius: 'var(--radius-full)',
+                  fontSize: '0.78rem',
+                  fontWeight: 700,
+                  marginBottom: '0.5rem',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em'
+                }}
+              >
+                <Sparkles size={14} color="var(--primary-teal)" /> New Development
+              </div>
+              <h2 style={{ fontSize: '2.2rem', color: '#17313D', fontWeight: 800, margin: 0 }}>
+                UPCOMING PROJECTS
+              </h2>
+              <p style={{ color: '#687985', fontSize: '1rem', marginTop: '6px' }}>
+                Explore our upcoming developments and be among the first to discover your future home.
+              </p>
+            </div>
+
+            <button
+              onClick={() => navigate('listing', { category: 'Upcoming Projects' })}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '0.55rem 1.35rem',
+                borderRadius: 'var(--radius-full)',
+                border: '1.5px solid #008F83',
+                color: '#008F83',
+                backgroundColor: '#FFFFFF',
+                fontWeight: 700,
+                fontSize: '0.9rem',
+                transition: 'all 0.2s',
+                cursor: 'pointer'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#008F83';
+                e.currentTarget.style.color = '#FFFFFF';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#FFFFFF';
+                e.currentTarget.style.color = '#008F83';
+              }}
+            >
+              <span>Explore All Upcoming</span>
+              <ArrowRight size={16} />
+            </button>
+          </div>
+
+          {/* Dedicated Upcoming Project Grid */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: upcomingProjects.length <= 2 ? 'repeat(auto-fit, minmax(320px, 460px))' : 'repeat(auto-fit, minmax(320px, 1fr))',
+              gap: '2rem'
+            }}
+            className="upcoming-properties-grid"
+          >
+            {upcomingProjects.map((prop) => (
               <PropertyCard
                 key={prop.id}
                 property={prop}
@@ -695,7 +808,7 @@ export default function HomePage({
               title="Call Perfect Homes & Developers"
             >
               <PhoneCall size={18} />
-              <span>Call 78455 85919</span>
+              <span>{COMPANY_CONTACT_INFO.callButtonLabel}</span>
             </a>
           </div>
         </div>
@@ -724,6 +837,9 @@ export default function HomePage({
             grid-template-columns: 1fr !important;
           }
           .featured-properties-grid-4 {
+            grid-template-columns: 1fr !important;
+          }
+          .upcoming-properties-grid {
             grid-template-columns: 1fr !important;
           }
         }

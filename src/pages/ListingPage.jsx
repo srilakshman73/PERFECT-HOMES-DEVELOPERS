@@ -5,7 +5,7 @@
 import React, { useState, useMemo } from 'react';
 import { useProperties } from '../context/PropertyContext';
 import PropertyCard from '../components/PropertyCard';
-import { LOCATIONS_DATA } from '../data/locationsData';
+import { LOCATIONS_DATA, COMPANY_CONTACT_INFO } from '../data/locationsData';
 import { PROPERTY_CATEGORIES } from '../data/propertiesData';
 import {
   Filter,
@@ -265,6 +265,7 @@ export default function ListingPage({
                 style={{ fontSize: '0.88rem' }}
               >
                 <option value="all">All Categories</option>
+                <option value="Upcoming Projects">Upcoming Projects</option>
                 <option value="Plots">Residential Plots</option>
                 <option value="2 BHK Homes">2 BHK Homes</option>
                 <option value="3 BHK Homes">3 BHK Homes</option>
@@ -598,7 +599,7 @@ export default function ListingPage({
               </div>
 
               <a
-                href="tel:+919840123456"
+                href={COMPANY_CONTACT_INFO.telLink}
                 className="btn btn-primary"
                 style={{ fontSize: '0.9rem' }}
               >
@@ -649,6 +650,7 @@ export default function ListingPage({
                 onChange={(e) => handleFilterChange('category', e.target.value)}
               >
                 <option value="all">All Categories</option>
+                <option value="Upcoming Projects">Upcoming Projects</option>
                 <option value="Plots">Plots</option>
                 <option value="2 BHK Homes">2 BHK</option>
                 <option value="3 BHK Homes">3 BHK</option>

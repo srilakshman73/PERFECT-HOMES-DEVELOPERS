@@ -18,6 +18,7 @@ import {
   ShieldCheck,
   Sparkles
 } from 'lucide-react';
+import { COMPANY_CONTACT_INFO } from '../data/locationsData';
 
 export default function BrochureModal({ property, isOpen, onClose }) {
   const { user } = useAuth();
@@ -109,7 +110,7 @@ export default function BrochureModal({ property, isOpen, onClose }) {
     // Simulate PDF generation / download
     const element = document.createElement('a');
     const file = new Blob([
-      `PERFECT HOMES & DEVELOPERS\nOfficial Property Brochure\n\nProject: ${property.title}\nLocation: ${property.location}\nPrice: ${property.priceDisplay}\nApproval: ${property.approval}\n\nKey Highlights:\n- ${property.tagline}\n- 100% Clear Titles with 40-Year Parent Documents\n- Bank Loan Sanctioned from SBI, HDFC & Canara Bank\n\nContact: +91 98401 23456\nWebsite: www.perfecthomesdevelopers.com`
+      `PERFECT HOMES & DEVELOPERS\nOfficial Property Brochure\n\nProject: ${property.title}\nLocation: ${property.location}\nPrice: ${property.priceDisplay}\nApproval: ${property.approval}\n\nKey Highlights:\n- ${property.tagline}\n- 100% Clear Titles with 40-Year Parent Documents\n- Bank Loan Sanctioned from SBI, HDFC & Canara Bank\n\nContact: ${COMPANY_CONTACT_INFO.phone}\nWebsite: www.perfecthomesdevelopers.com`
     ], { type: 'text/plain' });
     element.href = URL.createObjectURL(file);
     element.download = `${property.slug || 'perfect-homes-property'}-brochure.txt`;

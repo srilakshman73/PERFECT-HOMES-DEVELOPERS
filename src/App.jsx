@@ -36,22 +36,52 @@ function AppContent() {
   const { isAuthenticated, user, isLoading } = useAuth();
   const { properties, setFilters } = useProperties();
 
-  // Public unauthenticated pages
-  const PUBLIC_PAGES = ['login', 'register', 'forgot-password'];
+  // Pages requiring user authentication
+  const PROTECTED_PAGES = ['profile', 'wishlist', 'enquiries', 'admin'];
+  const AUTH_FLOW_PAGES = ['login', 'register', 'forgot-password'];
 
-  // Route state: default to 'login' if unauthenticated, 'home' if authenticated
-  const [currentPage, setCurrentPage] = useState(() => {
-    // Check if an existing session is in localStorage
+  // Parse initial route from window.location.pathname
+  const getInitialRouteInfo = () => {
     try {
-      const activeSession = localStorage.getItem('ph_active_session_v1');
-      return activeSession ? 'home' : 'login';
+      const path = window.location.pathname;
+      if (path.startsWith('/properties/')) {
+        const slug = path.replace('/properties/', '').replace(/\/$/, '');
+        return { page: 'property-details', slug };
+      }
+      if (path === '/listing' || path === '/properties') return { page: 'listing' };
+      if (path === '/about') return { page: 'about' };
+      if (path === '/contact') return { page: 'contact' };
+      if (path === '/locations') return { page: 'locations' };
+      if (path === '/login') return { page: 'login' };
+      if (path === '/register') return { page: 'register' };
+      if (path === '/forgot-password') return { page: 'forgot-password' };
+      if (path === '/profile') return { page: 'profile' };
+      if (path === '/wishlist') return { page: 'wishlist' };
+      if (path === '/enquiries') return { page: 'enquiries' };
+      if (path === '/admin') return { page: 'admin' };
     } catch {
-      return 'login';
+      // fallback
     }
+    return { page: 'home' };
+  };
+
+  const [currentPage, setCurrentPage] = useState(() => {
+    const init = getInitialRouteInfo();
+    return init.page || 'home';
   });
 
   const [redirectTarget, setRedirectTarget] = useState('home');
-  const [selectedProperty, setSelectedProperty] = useState(null);
+  const [selectedProperty, setSelectedProperty] = useState(() => {
+    const init = getInitialRouteInfo();
+    if (init.page === 'property-details' && init.slug) {
+      return (
+        properties.find((p) => p.slug === init.slug || p.id === init.slug) ||
+        properties.find((p) => p.slug === 'nathamedu-niranjan-nagar-upcoming-project') ||
+        properties[0]
+      );
+    }
+    return properties.find((p) => p.slug === 'nathamedu-niranjan-nagar-upcoming-project') || properties[0];
+  });
   const [initialProfileTab, setInitialProfileTab] = useState('personal');
 
   // Modals state
@@ -61,15 +91,37 @@ function AppContent() {
   const [brochureProperty, setBrochureProperty] = useState(null);
   const [scheduleProperty, setScheduleProperty] = useState(null);
 
+  // Sync initial URL slug and browser back/forward buttons
+  useEffect(() => {
+    const init = getInitialRouteInfo();
+    if (init.page === 'property-details' && init.slug) {
+      const match = properties.find((p) => p.slug === init.slug || p.id === init.slug);
+      if (match) setSelectedProperty(match);
+      setCurrentPage('property-details');
+    }
+
+    const handlePopState = () => {
+      const r = getInitialRouteInfo();
+      if (r.page === 'property-details' && r.slug) {
+        const match = properties.find((p) => p.slug === r.slug || p.id === r.slug);
+        if (match) setSelectedProperty(match);
+        setCurrentPage('property-details');
+      } else {
+        setCurrentPage(r.page || 'home');
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [properties]);
+
   // Synchronize route if auth state changes
   useEffect(() => {
     if (!isLoading) {
-      if (!isAuthenticated && !PUBLIC_PAGES.includes(currentPage)) {
-        // Protect all pages: redirect unauthenticated visitor to login
+      if (!isAuthenticated && PROTECTED_PAGES.includes(currentPage)) {
         setRedirectTarget(currentPage);
         setCurrentPage('login');
-      } else if (isAuthenticated && PUBLIC_PAGES.includes(currentPage)) {
-        // If already logged in and visiting login/register, take them to home or intended target
+      } else if (isAuthenticated && AUTH_FLOW_PAGES.includes(currentPage)) {
         setCurrentPage(redirectTarget || 'home');
       }
     }
@@ -93,20 +145,36 @@ function AppContent() {
       }
     }
 
-    // If user is not authenticated and trying to access a protected page, force login with redirect target
-    if (!isAuthenticated && !PUBLIC_PAGES.includes(page)) {
+    // Protect member-only pages
+    if (!isAuthenticated && PROTECTED_PAGES.includes(page)) {
       setRedirectTarget(page);
       setCurrentPage('login');
+      try {
+        window.history.pushState({}, '', '/login');
+      } catch {}
       return;
     }
 
     setCurrentPage(page);
+
+    try {
+      if (page === 'home') {
+        window.history.pushState({}, '', '/');
+      } else if (page === 'property-details' && selectedProperty?.slug) {
+        window.history.pushState({}, '', `/properties/${selectedProperty.slug}`);
+      } else if (['listing', 'about', 'contact', 'locations', 'admin', 'profile', 'wishlist', 'enquiries', 'login', 'register'].includes(page)) {
+        window.history.pushState({}, '', `/${page}`);
+      }
+    } catch {}
   };
 
   // View property details
   const handleViewProperty = (prop) => {
     setSelectedProperty(prop);
-    navigate('property-details');
+    setCurrentPage('property-details');
+    try {
+      window.history.pushState({}, '', `/properties/${prop.slug || prop.id}`);
+    } catch {}
   };
 
   // Open brochure modal
@@ -119,10 +187,8 @@ function AppContent() {
     setScheduleProperty(prop);
   };
 
-  // =========================================================================
-  // 1. UNAUTHENTICATED EXPERIENCE: LOGIN FIRST / REGISTER / FORGOT PASSWORD
-  // =========================================================================
-  if (!isAuthenticated) {
+  // Dedicated auth screen if visitor explicitly requests login/register
+  if (AUTH_FLOW_PAGES.includes(currentPage) && !isAuthenticated) {
     return (
       <div className="auth-first-wrapper" style={{ minHeight: '100vh', backgroundColor: 'var(--bg-main)' }}>
         {currentPage === 'register' ? (

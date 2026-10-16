@@ -18,6 +18,7 @@ import {
   CheckCircle2,
   X,
   Eye,
+  EyeOff,
   Search,
   Users,
   DollarSign,
@@ -31,16 +32,29 @@ import {
   AlertCircle,
   RefreshCw,
   Layers,
-  MapPin
+  MapPin,
+  ArrowUp,
+  ArrowDown
 } from 'lucide-react';
 
 export default function AdminPage({ navigate }) {
   const { user, getRegisteredUsersForAdmin, syncUsers } = useAuth();
-  const { properties, enquiries, adminAddProperty, adminUpdateProperty, adminDeleteProperty, updateEnquiryStatus } = useProperties();
+  const {
+    properties,
+    adminProperties,
+    enquiries,
+    adminAddProperty,
+    adminUpdateProperty,
+    adminDeleteProperty,
+    adminTogglePublish,
+    updateEnquiryStatus
+  } = useProperties();
   const { addToast } = useToast();
 
   const [activeAdminTab, setActiveAdminTab] = useState('users'); // 'users' | 'properties' | 'enquiries'
-  const [editingPropertyId, setEditingPropertyId] = useState(null);
+  const [propertyCategoryFilter, setPropertyCategoryFilter] = useState('all');
+  const [editingProperty, setEditingProperty] = useState(null);
+  const [newImageUrl, setNewImageUrl] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [userSearchTerm, setUserSearchTerm] = useState('');
   const [dbUsers, setDbUsers] = useState([]);
@@ -444,9 +458,42 @@ export default function AdminPage({ navigate }) {
             ======================================================== */}
         {activeAdminTab === 'properties' && (
           <div className="card" style={{ backgroundColor: '#FFFFFF', border: '1.5px solid var(--border-color)', borderRadius: 'var(--radius-xl)', overflow: 'hidden' }}>
-            <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ fontSize: '1.2rem', color: 'var(--deep-teal)', margin: 0 }}>Property Inventory</h3>
-              <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>{properties.length} active listings</span>
+            <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
+              <div>
+                <h3 style={{ fontSize: '1.2rem', color: 'var(--deep-teal)', margin: 0 }}>Property Inventory</h3>
+                <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                  {(adminProperties || properties).length} total listings in database
+                </span>
+              </div>
+
+              {/* Category Filter Pills */}
+              <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                {[
+                  { id: 'all', label: 'All Listings' },
+                  { id: 'Upcoming Projects', label: 'Upcoming Projects' },
+                  { id: 'Plots', label: 'Plots' },
+                  { id: '2 BHK Homes', label: '2 BHK' },
+                  { id: '3 BHK Homes', label: '3 BHK' },
+                  { id: 'Villas', label: 'Villas' }
+                ].map((c) => (
+                  <button
+                    key={c.id}
+                    onClick={() => setPropertyCategoryFilter(c.id)}
+                    style={{
+                      padding: '0.35rem 0.75rem',
+                      borderRadius: 'var(--radius-full)',
+                      fontSize: '0.78rem',
+                      fontWeight: 600,
+                      backgroundColor: propertyCategoryFilter === c.id ? 'var(--deep-teal)' : 'var(--bg-main)',
+                      color: propertyCategoryFilter === c.id ? '#FFFFFF' : 'var(--text-secondary)',
+                      border: '1px solid var(--border-color)',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {c.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div style={{ overflowX: 'auto' }}>
@@ -456,38 +503,92 @@ export default function AdminPage({ navigate }) {
                     <th style={{ padding: '0.85rem 1.25rem' }}>Property</th>
                     <th style={{ padding: '0.85rem 1rem' }}>Category</th>
                     <th style={{ padding: '0.85rem 1rem' }}>Location</th>
+                    <th style={{ padding: '0.85rem 1rem' }}>Status / Construction</th>
                     <th style={{ padding: '0.85rem 1rem' }}>Price</th>
-                    <th style={{ padding: '0.85rem 1rem' }}>Approval</th>
+                    <th style={{ padding: '0.85rem 1rem' }}>Public Status</th>
                     <th style={{ padding: '0.85rem 1.25rem', textAlign: 'right' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {properties.map((p) => (
-                    <tr key={p.id} style={{ borderBottom: '1px solid var(--border-light)' }}>
-                      <td style={{ padding: '0.85rem 1.25rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <img src={p.images[0]} alt={p.title} style={{ width: '45px', height: '45px', borderRadius: '6px', objectFit: 'cover' }} />
-                        <div>
-                          <div style={{ fontWeight: 700, color: 'var(--text-heading)' }}>{p.title}</div>
-                          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>ID: {p.id}</div>
-                        </div>
-                      </td>
-                      <td style={{ padding: '0.85rem 1rem' }}>
-                        <span className="badge badge-teal">{p.category}</span>
-                      </td>
-                      <td style={{ padding: '0.85rem 1rem', color: 'var(--text-heading)' }}>{p.location}</td>
-                      <td style={{ padding: '0.85rem 1rem', fontWeight: 700, color: 'var(--primary-teal)' }}>{p.priceDisplay}</td>
-                      <td style={{ padding: '0.85rem 1rem', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>{p.approval}</td>
-                      <td style={{ padding: '0.85rem 1.25rem', textAlign: 'right' }}>
-                        <button
-                          onClick={() => adminDeleteProperty(p.id)}
-                          style={{ color: 'var(--danger)', padding: '6px', borderRadius: '4px' }}
-                          title="Delete Property"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                  {(adminProperties || properties)
+                    .filter((p) => propertyCategoryFilter === 'all' || p.category === propertyCategoryFilter)
+                    .map((p) => (
+                      <tr key={p.id} style={{ borderBottom: '1px solid var(--border-light)' }}>
+                        <td style={{ padding: '0.85rem 1.25rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <img
+                            src={p.images?.[0] || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=400&q=80'}
+                            alt={p.title}
+                            style={{ width: '48px', height: '48px', borderRadius: '6px', objectFit: 'cover' }}
+                          />
+                          <div>
+                            <div style={{ fontWeight: 700, color: 'var(--text-heading)' }}>{p.title}</div>
+                            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                              ID: {p.id} • {p.images?.length || 0} photos
+                            </div>
+                          </div>
+                        </td>
+                        <td style={{ padding: '0.85rem 1rem' }}>
+                          <span className={`badge ${p.category === 'Upcoming Projects' ? 'badge-primary' : 'badge-teal'}`}>
+                            {p.category}
+                          </span>
+                        </td>
+                        <td style={{ padding: '0.85rem 1rem', color: 'var(--text-heading)' }}>{p.location}</td>
+                        <td style={{ padding: '0.85rem 1rem' }}>
+                          <div style={{ fontWeight: 600, fontSize: '0.82rem', color: 'var(--deep-teal)' }}>
+                            {p.statusBadge || p.availability || 'Available'}
+                          </div>
+                          {p.constructionStatus && (
+                            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                              {p.constructionStatus}
+                            </div>
+                          )}
+                        </td>
+                        <td style={{ padding: '0.85rem 1rem', fontWeight: 700, color: 'var(--primary-teal)' }}>
+                          {p.priceDisplay}
+                        </td>
+                        <td style={{ padding: '0.85rem 1rem' }}>
+                          <button
+                            onClick={() => adminTogglePublish(p.id)}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              padding: '3px 8px',
+                              borderRadius: 'var(--radius-full)',
+                              fontSize: '0.75rem',
+                              fontWeight: 700,
+                              backgroundColor: p.isPublished !== false ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)',
+                              color: p.isPublished !== false ? '#059669' : '#DC2626',
+                              border: 'none',
+                              cursor: 'pointer'
+                            }}
+                            title="Click to toggle public visibility"
+                          >
+                            {p.isPublished !== false ? <Eye size={12} /> : <EyeOff size={12} />}
+                            {p.isPublished !== false ? 'Published' : 'Hidden'}
+                          </button>
+                        </td>
+                        <td style={{ padding: '0.85rem 1.25rem', textAlign: 'right' }}>
+                          <div style={{ display: 'inline-flex', gap: '6px' }}>
+                            <button
+                              onClick={() => setEditingProperty({ ...p })}
+                              className="btn btn-secondary btn-sm"
+                              style={{ padding: '4px 8px', fontSize: '0.78rem' }}
+                              title="Edit Property Details & Photos"
+                            >
+                              <Edit size={13} /> Edit
+                            </button>
+                            <button
+                              onClick={() => adminDeleteProperty(p.id)}
+                              style={{ color: 'var(--danger)', padding: '6px', borderRadius: '4px', background: 'none', border: 'none', cursor: 'pointer' }}
+                              title="Delete Property"
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
                 </tbody>
               </table>
             </div>
@@ -652,6 +753,383 @@ export default function AdminPage({ navigate }) {
                 <button type="submit" className="btn btn-primary" style={{ marginTop: '0.5rem' }}>
                   Save and Publish Property
                 </button>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* EDIT PROPERTY MODAL */}
+        {editingProperty && (
+          <div className="modal-backdrop" onClick={() => setEditingProperty(null)}>
+            <div
+              className="modal-content"
+              onClick={(e) => e.stopPropagation()}
+              style={{ maxWidth: '780px', width: '95%', maxHeight: '90vh', overflowY: 'auto', padding: '2rem' }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', borderBottom: '1px solid var(--border-light)', paddingBottom: '0.75rem' }}>
+                <div>
+                  <h3 style={{ color: 'var(--deep-teal)', margin: 0, fontSize: '1.3rem' }}>Edit Property Details</h3>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                    ID: {editingProperty.id} • Slug: {editingProperty.slug || 'n/a'}
+                  </div>
+                </div>
+                <button
+                  onClick={() => setEditingProperty(null)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '6px' }}
+                >
+                  <X size={22} />
+                </button>
+              </div>
+
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  adminUpdateProperty(editingProperty.id, editingProperty);
+                  setEditingProperty(null);
+                }}
+                style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem' }}
+              >
+                {/* 1. Basic Info */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label className="form-label">Project Title *</label>
+                    <input
+                      type="text"
+                      required
+                      className="form-input"
+                      value={editingProperty.title || ''}
+                      onChange={(e) => setEditingProperty({ ...editingProperty, title: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label className="form-label">Category</label>
+                    <select
+                      className="form-select"
+                      value={editingProperty.category || 'Upcoming Projects'}
+                      onChange={(e) => setEditingProperty({ ...editingProperty, category: e.target.value })}
+                    >
+                      <option value="Upcoming Projects">Upcoming Projects</option>
+                      <option value="Plots">Plots</option>
+                      <option value="2 BHK Homes">2 BHK Homes</option>
+                      <option value="3 BHK Homes">3 BHK Homes</option>
+                      <option value="Villas">Villas</option>
+                      <option value="Land + Construction">Land + Construction</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* 2. Headline & Description */}
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label">Marketing Headline</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    placeholder="e.g. Your Future Home Begins at Nathamedu"
+                    value={editingProperty.headline || ''}
+                    onChange={(e) => setEditingProperty({ ...editingProperty, headline: e.target.value })}
+                  />
+                </div>
+
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label">Project Description</label>
+                  <textarea
+                    rows={4}
+                    className="form-textarea"
+                    value={editingProperty.description || ''}
+                    onChange={(e) => setEditingProperty({ ...editingProperty, description: e.target.value })}
+                  />
+                </div>
+
+                {/* 3. Location & Address */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1rem' }}>
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label className="form-label">Location / Area</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      value={editingProperty.location || ''}
+                      onChange={(e) => setEditingProperty({ ...editingProperty, location: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label className="form-label">Full Address / Landmark</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      value={editingProperty.fullAddress || ''}
+                      onChange={(e) => setEditingProperty({ ...editingProperty, fullAddress: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                {/* 4. Price & Display Price */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label className="form-label">Base Price (INR Number)</label>
+                    <input
+                      type="number"
+                      className="form-input"
+                      value={editingProperty.price || 0}
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        setEditingProperty({
+                          ...editingProperty,
+                          price: val
+                        });
+                      }}
+                    />
+                  </div>
+
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label className="form-label">Price Display String</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="e.g. Starting from ₹38 Lakhs"
+                      value={editingProperty.priceDisplay || ''}
+                      onChange={(e) => setEditingProperty({ ...editingProperty, priceDisplay: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                {/* 5. Project Status & Construction Status */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label className="form-label">Project Status Lifecycle</label>
+                    <select
+                      className="form-select"
+                      value={
+                        editingProperty.projectStatus ||
+                        (editingProperty.isUpcoming ? 'Upcoming' : 'Completed')
+                      }
+                      onChange={(e) => {
+                        const statusVal = e.target.value;
+                        if (statusVal === 'Upcoming') {
+                          setEditingProperty({
+                            ...editingProperty,
+                            projectStatus: 'Upcoming',
+                            isUpcoming: true,
+                            category: 'Upcoming Projects',
+                            statusBadge: 'Upcoming Construction — Construction Work Starting Soon',
+                            constructionStatus: editingProperty.constructionStatus || 'Construction work is planned to start soon.'
+                          });
+                        } else if (statusVal === 'Under Construction') {
+                          setEditingProperty({
+                            ...editingProperty,
+                            projectStatus: 'Under Construction',
+                            isUpcoming: false,
+                            statusBadge: 'Under Construction — Work in Progress',
+                            constructionStatus: 'Construction work in active progress'
+                          });
+                        } else {
+                          setEditingProperty({
+                            ...editingProperty,
+                            projectStatus: 'Completed',
+                            isUpcoming: false,
+                            statusBadge: 'Ready to Occupy',
+                            constructionStatus: 'Completed & Ready to Handover'
+                          });
+                        }
+                      }}
+                    >
+                      <option value="Upcoming">Upcoming Project</option>
+                      <option value="Under Construction">Under Construction</option>
+                      <option value="Completed">Completed / Ready to Move</option>
+                    </select>
+                  </div>
+
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label className="form-label">Construction Status Note</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="e.g. Construction work is planned to start soon."
+                      value={editingProperty.constructionStatus || ''}
+                      onChange={(e) => setEditingProperty({ ...editingProperty, constructionStatus: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                {/* 6. Availability & Public Visibility Toggle */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label className="form-label">Availability Badge</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="e.g. Upcoming Project / Ready to Construct"
+                      value={editingProperty.availability || ''}
+                      onChange={(e) => setEditingProperty({ ...editingProperty, availability: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="form-group" style={{ marginBottom: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                    <label className="form-label">Public Website Visibility</label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', marginTop: '4px' }}>
+                      <input
+                        type="checkbox"
+                        checked={editingProperty.isPublished !== false}
+                        onChange={(e) => setEditingProperty({ ...editingProperty, isPublished: e.target.checked })}
+                        style={{ width: '18px', height: '18px', accentColor: 'var(--primary-teal)' }}
+                      />
+                      <span style={{ fontSize: '0.9rem', fontWeight: 600, color: editingProperty.isPublished !== false ? 'var(--success)' : 'var(--danger)' }}>
+                        {editingProperty.isPublished !== false ? 'Published (Visible to Visitors)' : 'Unpublished (Hidden from Public)'}
+                      </span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* 7. Photographs Gallery Management */}
+                <div style={{ borderTop: '1px solid var(--border-light)', paddingTop: '1rem', marginTop: '0.5rem' }}>
+                  <label className="form-label" style={{ marginBottom: '0.5rem', display: 'block' }}>
+                    Project Photographs ({editingProperty.images?.length || 0} images)
+                  </label>
+                  <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '0 0 0.75rem 0' }}>
+                    The 1st photo is used as the primary card preview. You can reorder, delete, or add new photos.
+                  </p>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '220px', overflowY: 'auto', marginBottom: '1rem' }}>
+                    {(editingProperty.images || []).map((img, idx) => (
+                      <div
+                        key={idx}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                          padding: '6px 10px',
+                          backgroundColor: 'var(--bg-main)',
+                          borderRadius: 'var(--radius-md)',
+                          border: '1px solid var(--border-color)'
+                        }}
+                      >
+                        <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--deep-teal)', width: '24px' }}>
+                          #{idx + 1}
+                        </span>
+                        <img
+                          src={img}
+                          alt={`Project ${idx}`}
+                          style={{ width: '45px', height: '35px', objectFit: 'cover', borderRadius: '4px' }}
+                        />
+                        <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {img}
+                        </span>
+
+                        {/* Move Up */}
+                        <button
+                          type="button"
+                          disabled={idx === 0}
+                          onClick={() => {
+                            const copy = [...editingProperty.images];
+                            const temp = copy[idx - 1];
+                            copy[idx - 1] = copy[idx];
+                            copy[idx] = temp;
+                            setEditingProperty({ ...editingProperty, images: copy });
+                          }}
+                          style={{
+                            padding: '3px 6px',
+                            background: 'none',
+                            border: '1px solid var(--border-color)',
+                            borderRadius: '4px',
+                            cursor: idx === 0 ? 'not-allowed' : 'pointer',
+                            opacity: idx === 0 ? 0.3 : 1
+                          }}
+                          title="Move earlier (higher priority)"
+                        >
+                          <ArrowUp size={13} />
+                        </button>
+
+                        {/* Move Down */}
+                        <button
+                          type="button"
+                          disabled={idx === editingProperty.images.length - 1}
+                          onClick={() => {
+                            const copy = [...editingProperty.images];
+                            const temp = copy[idx + 1];
+                            copy[idx + 1] = copy[idx];
+                            copy[idx] = temp;
+                            setEditingProperty({ ...editingProperty, images: copy });
+                          }}
+                          style={{
+                            padding: '3px 6px',
+                            background: 'none',
+                            border: '1px solid var(--border-color)',
+                            borderRadius: '4px',
+                            cursor: idx === editingProperty.images.length - 1 ? 'not-allowed' : 'pointer',
+                            opacity: idx === editingProperty.images.length - 1 ? 0.3 : 1
+                          }}
+                          title="Move later"
+                        >
+                          <ArrowDown size={13} />
+                        </button>
+
+                        {/* Remove */}
+                        <button
+                          type="button"
+                          disabled={editingProperty.images.length <= 1}
+                          onClick={() => {
+                            const copy = editingProperty.images.filter((_, i) => i !== idx);
+                            setEditingProperty({ ...editingProperty, images: copy });
+                          }}
+                          style={{
+                            padding: '3px 6px',
+                            background: 'none',
+                            border: '1px solid rgba(239, 68, 68, 0.3)',
+                            color: 'var(--danger)',
+                            borderRadius: '4px',
+                            cursor: editingProperty.images.length <= 1 ? 'not-allowed' : 'pointer',
+                            opacity: editingProperty.images.length <= 1 ? 0.3 : 1
+                          }}
+                          title="Remove photo"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Add New Image Row */}
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="Enter new image path or URL..."
+                      value={newImageUrl}
+                      onChange={(e) => setNewImageUrl(e.target.value)}
+                      style={{ fontSize: '0.85rem' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!newImageUrl.trim()) return;
+                        setEditingProperty({
+                          ...editingProperty,
+                          images: [...(editingProperty.images || []), newImageUrl.trim()]
+                        });
+                        setNewImageUrl('');
+                      }}
+                      className="btn btn-secondary btn-sm"
+                      style={{ whiteSpace: 'nowrap' }}
+                    >
+                      <Plus size={14} /> Add Photo
+                    </button>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid var(--border-light)' }}>
+                  <button
+                    type="button"
+                    onClick={() => setEditingProperty(null)}
+                    className="btn btn-secondary"
+                  >
+                    Cancel
+                  </button>
+                  <button type="submit" className="btn btn-primary">
+                    <Save size={16} /> Save Property Updates
+                  </button>
+                </div>
               </form>
             </div>
           </div>
