@@ -17,6 +17,7 @@ import BrochureModal from './components/BrochureModal';
 import ScheduleVisitModal from './components/ScheduleVisitModal';
 import FirstTimePasswordModal from './components/FirstTimePasswordModal';
 import Logo from './components/Logo';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Pages
 import HomePage from './pages/HomePage';
@@ -456,12 +457,14 @@ function AppContent() {
 
 export default function App() {
   return (
-    <ToastProvider>
-      <AuthProvider>
-        <PropertyProvider>
-          <AppContent />
-        </PropertyProvider>
-      </AuthProvider>
-    </ToastProvider>
+    <ErrorBoundary>
+      <ToastProvider>
+        <AuthProvider>
+          <PropertyProvider>
+            <AppContent />
+          </PropertyProvider>
+        </AuthProvider>
+      </ToastProvider>
+    </ErrorBoundary>
   );
 }

@@ -432,6 +432,7 @@ export default function PropertyDetailsPage({
               <div
                 key={idx}
                 onClick={() => setActiveImgIndex(idx)}
+                className="gallery-thumb-item"
                 style={{
                   height: '100px',
                   borderRadius: 'var(--radius-md)',

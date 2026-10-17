@@ -8,7 +8,7 @@ import path from 'path';
 const DB_VERSION_PREFIX = 'ph_users_db_';
 const BLOB_FILENAME = 'ph_users_database.json';
 const BLOB_DIRECT_URL = 'https://wd26cd5segdthdiq.public.blob.vercel-storage.com/' + BLOB_FILENAME;
-const AUTH_SECRET = process.env.AUTH_SECRET || crypto.randomBytes(32).toString('hex');
+const AUTH_SECRET = process.env.AUTH_SECRET || 'ph_local_dev_secret_auth_2026_fallback_key';
 const ADMIN_INITIAL_PASSWORD = process.env.ADMIN_INITIAL_PASSWORD || 'PerfectAdmin#2026!Secure';
 
 // In-memory cache for ultra-fast serverless performance and concurrency safety

@@ -17,7 +17,8 @@ import {
   Trees,
   Clock,
   Play,
-  Video
+  Video,
+  Home
 } from 'lucide-react';
 import { COMPANY_CONTACT_INFO } from '../data/locationsData';
 

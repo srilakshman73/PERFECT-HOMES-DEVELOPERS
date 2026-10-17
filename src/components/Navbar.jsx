@@ -108,21 +108,22 @@ export default function Navbar({
           borderBottom: '1px solid rgba(49, 214, 197, 0.15)'
         }}
       >
-        <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.4rem' }}>
+        <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'nowrap', gap: '0.5rem' }}>
           {/* Office Address */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <MapPin size={13} color="#31D6C5" />
-            <span style={{ opacity: 0.95 }}>{COMPANY_CONTACT_INFO.shortAddress}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
+            <MapPin size={13} color="#31D6C5" style={{ flexShrink: 0 }} />
+            <span className="hide-mobile" style={{ opacity: 0.95, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{COMPANY_CONTACT_INFO.shortAddress}</span>
+            <span className="show-mobile" style={{ opacity: 0.95, whiteSpace: 'nowrap', fontSize: '0.74rem' }}>Thiruninravur, Chennai</span>
           </div>
 
           {/* Right Contacts & Social Icons */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0 }}>
             {/* Phone */}
             <a
               href={`tel:${COMPANY_CONTACT_INFO.phone}`}
-              style={{ color: '#FFFFFF', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
+              style={{ color: '#FFFFFF', display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.78rem', whiteSpace: 'nowrap' }}
             >
-              <PhoneCall size={12} color="#31D6C5" />
+              <PhoneCall size={12} color="#31D6C5" style={{ flexShrink: 0 }} />
               <span>{COMPANY_CONTACT_INFO.phoneDisplay}</span>
             </a>
 
@@ -220,8 +221,10 @@ export default function Navbar({
                   alignItems: 'center',
                   gap: '4px'
                 }}
+                title="Admin Dashboard"
               >
-                <ShieldAlert size={12} color="#31D6C5" /> Admin
+                <ShieldAlert size={12} color="#31D6C5" />
+                <span className="hide-mobile">Admin</span>
               </button>
             )}
           </div>
@@ -496,6 +499,7 @@ export default function Navbar({
               <div ref={profileRef} style={{ position: 'relative' }}>
                 <button
                   onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+                  className="navbar-profile-btn"
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -506,6 +510,7 @@ export default function Navbar({
                     borderRadius: 'var(--radius-md)',
                     transition: 'all var(--transition-fast)'
                   }}
+                  title={user.name}
                 >
                   <img
                     src={user.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80'}
@@ -515,16 +520,17 @@ export default function Navbar({
                       height: '30px',
                       borderRadius: '50%',
                       objectFit: 'cover',
-                      border: '1.5px solid var(--primary-teal)'
+                      border: '1.5px solid var(--primary-teal)',
+                      flexShrink: 0
                     }}
                   />
-                  <div style={{ textAlign: 'left', lineHeight: 1.1 }}>
+                  <div className="hide-mobile" style={{ textAlign: 'left', lineHeight: 1.1 }}>
                     <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Welcome,</div>
                     <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-heading)' }}>
                       Hi, {user.firstName || 'User'}
                     </div>
                   </div>
-                  <ChevronDown size={14} color="var(--text-secondary)" />
+                  <ChevronDown className="hide-mobile" size={14} color="var(--text-secondary)" />
                 </button>
 
                 {/* Profile Dropdown */}

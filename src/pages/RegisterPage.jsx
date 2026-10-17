@@ -181,48 +181,50 @@ export default function RegisterPage({ navigate }) {
                 <span>Join Over 1,500+ Happy Homeowners</span>
               </div>
 
-              <h2 style={{ color: '#FFFFFF', fontSize: '2.1rem', lineHeight: 1.25, marginBottom: '1rem' }}>
+              <h2 style={{ color: '#FFFFFF', fontSize: 'clamp(1.4rem, 3.5vw, 2.1rem)', lineHeight: 1.25, marginBottom: '0.75rem' }}>
                 Start Your Journey to Land &amp; Home Ownership
               </h2>
 
-              <p style={{ color: 'rgba(255, 255, 255, 0.9)', fontSize: '0.96rem', lineHeight: 1.6, marginBottom: '2rem' }}>
-                Create your verified buyer account to access exclusive CMDA plot launches, download floor plans, and track your property enquiries.
-              </p>
+              <div className="hide-mobile">
+                <p style={{ color: 'rgba(255, 255, 255, 0.9)', fontSize: '0.96rem', lineHeight: 1.6, marginBottom: '2rem' }}>
+                  Create your verified buyer account to access exclusive CMDA plot launches, download floor plans, and track your property enquiries.
+                </p>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                {[
-                  { title: 'Priority Access to Pre-Launch Plots', desc: 'Get notified 48 hours before general public releases.' },
-                  { title: 'Direct WhatsApp Support with Builder', desc: 'Zero middlemen. Instant responses to price & loan questions.' },
-                  { title: 'Free AC Cab Site Visits on Demand', desc: 'Schedule complimentary doorstep pickup anytime.' }
-                ].map((item, idx) => (
-                  <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-                    <div
-                      style={{
-                        width: '26px',
-                        height: '26px',
-                        borderRadius: '50%',
-                        backgroundColor: 'rgba(49, 214, 197, 0.25)',
-                        color: '#31D6C5',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                        marginTop: '2px'
-                      }}
-                    >
-                      <CheckCircle2 size={16} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  {[
+                    { title: 'Priority Access to Pre-Launch Plots', desc: 'Get notified 48 hours before general public releases.' },
+                    { title: 'Direct WhatsApp Support with Builder', desc: 'Zero middlemen. Instant responses to price & loan questions.' },
+                    { title: 'Free AC Cab Site Visits on Demand', desc: 'Schedule complimentary doorstep pickup anytime.' }
+                  ].map((item, idx) => (
+                    <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                      <div
+                        style={{
+                          width: '26px',
+                          height: '26px',
+                          borderRadius: '50%',
+                          backgroundColor: 'rgba(49, 214, 197, 0.25)',
+                          color: '#31D6C5',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                          marginTop: '2px'
+                        }}
+                      >
+                        <CheckCircle2 size={16} />
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: '0.92rem', color: '#FFFFFF' }}>{item.title}</div>
+                        <div style={{ fontSize: '0.78rem', color: 'rgba(255, 255, 255, 0.75)' }}>{item.desc}</div>
+                      </div>
                     </div>
-                    <div>
-                      <div style={{ fontWeight: 700, fontSize: '0.92rem', color: '#FFFFFF' }}>{item.title}</div>
-                      <div style={{ fontSize: '0.78rem', color: 'rgba(255, 255, 255, 0.75)' }}>{item.desc}</div>
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
           </div>
 
-          <div style={{ position: 'relative', zIndex: 2, marginTop: '2.5rem', paddingTop: '1.5rem', borderTop: '1px solid rgba(255, 255, 255, 0.15)', fontSize: '0.78rem', color: 'rgba(255, 255, 255, 0.75)' }}>
+          <div className="hide-mobile" style={{ position: 'relative', zIndex: 2, marginTop: '2.5rem', paddingTop: '1.5rem', borderTop: '1px solid rgba(255, 255, 255, 0.15)', fontSize: '0.78rem', color: 'rgba(255, 255, 255, 0.75)' }}>
             100% CMDA &amp; DTCP Approved Developments • RERA Registered
           </div>
         </div>
@@ -440,15 +442,24 @@ export default function RegisterPage({ navigate }) {
         @media (max-width: 850px) {
           .auth-container-card {
             grid-template-columns: 1fr !important;
+            margin: 0 auto;
           }
           .auth-left-brand {
-            padding: 2.25rem 1.5rem !important;
+            padding: 1.75rem 1.25rem !important;
           }
           .auth-form-card {
-            padding: 2.25rem 1.5rem !important;
+            padding: 1.75rem 1.25rem !important;
           }
           .auth-form-row-2col {
             grid-template-columns: 1fr !important;
+          }
+        }
+        @media (max-width: 480px) {
+          .auth-left-brand {
+            padding: 1.25rem 1rem !important;
+          }
+          .auth-form-card {
+            padding: 1.5rem 1rem !important;
           }
         }
       `}</style>

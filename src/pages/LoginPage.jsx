@@ -149,53 +149,55 @@ export default function LoginPage({
                 <span>Verified Real Estate Platform</span>
               </div>
 
-              <h2 style={{ color: '#FFFFFF', fontSize: '2.1rem', lineHeight: 1.25, marginBottom: '1rem' }}>
+              <h2 style={{ color: '#FFFFFF', fontSize: 'clamp(1.4rem, 3.5vw, 2.1rem)', lineHeight: 1.25, marginBottom: '0.75rem' }}>
                 Find Your Perfect Home with Us
               </h2>
 
-              <p style={{ color: 'rgba(255, 255, 255, 0.9)', fontSize: '0.96rem', lineHeight: 1.6, marginBottom: '2rem' }}>
-                Perfect Homes &amp; Developers helps you discover residential plots, independent houses, villas, and land with construction options across Chennai and surrounding areas. Sign in to explore properties and find a home that matches your needs.
-              </p>
+              <div className="hide-mobile">
+                <p style={{ color: 'rgba(255, 255, 255, 0.9)', fontSize: '0.96rem', lineHeight: 1.6, marginBottom: '2rem' }}>
+                  Perfect Homes &amp; Developers helps you discover residential plots, independent houses, villas, and land with construction options across Chennai and surrounding areas. Sign in to explore properties and find a home that matches your needs.
+                </p>
 
-              {/* 3 Key Trust Benefits */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                {[
-                  { title: 'Explore properties across preferred locations', desc: 'Browse CMDA & DTCP verified plots and luxury villas across Avadi, Thiruninravur, and Veppampattu.' },
-                  { title: 'Save and compare your favourite properties', desc: 'Track prices, evaluate specs side-by-side, and save properties to your private wishlist.' },
-                  { title: 'Manage property enquiries in one place', desc: 'Direct direct-builder communication, instant brochure downloads, and site visit scheduling.' }
-                ].map((benefit, idx) => (
-                  <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-                    <div
-                      style={{
-                        width: '26px',
-                        height: '26px',
-                        borderRadius: '50%',
-                        backgroundColor: 'rgba(49, 214, 197, 0.25)',
-                        color: '#31D6C5',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                        marginTop: '2px'
-                      }}
-                    >
-                      <CheckCircle2 size={16} />
-                    </div>
-                    <div>
-                      <div style={{ fontWeight: 700, fontSize: '0.92rem', color: '#FFFFFF' }}>
-                        {benefit.title}
+                {/* 3 Key Trust Benefits */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  {[
+                    { title: 'Explore properties across preferred locations', desc: 'Browse CMDA & DTCP verified plots and luxury villas across Avadi, Thiruninravur, and Veppampattu.' },
+                    { title: 'Save and compare your favourite properties', desc: 'Track prices, evaluate specs side-by-side, and save properties to your private wishlist.' },
+                    { title: 'Manage property enquiries in one place', desc: 'Direct direct-builder communication, instant brochure downloads, and site visit scheduling.' }
+                  ].map((benefit, idx) => (
+                    <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                      <div
+                        style={{
+                          width: '26px',
+                          height: '26px',
+                          borderRadius: '50%',
+                          backgroundColor: 'rgba(49, 214, 197, 0.25)',
+                          color: '#31D6C5',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                          marginTop: '2px'
+                        }}
+                      >
+                        <CheckCircle2 size={16} />
                       </div>
-                      <div style={{ fontSize: '0.78rem', color: 'rgba(255, 255, 255, 0.75)' }}>
-                        {benefit.desc}
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: '0.92rem', color: '#FFFFFF' }}>
+                          {benefit.title}
+                        </div>
+                        <div style={{ fontSize: '0.78rem', color: 'rgba(255, 255, 255, 0.75)' }}>
+                          {benefit.desc}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
           </div>
 
-          <div style={{ position: 'relative', zIndex: 2, marginTop: '2.5rem', paddingTop: '1.5rem', borderTop: '1px solid rgba(255, 255, 255, 0.15)', fontSize: '0.78rem', color: 'rgba(255, 255, 255, 0.75)' }}>
+          <div className="hide-mobile" style={{ position: 'relative', zIndex: 2, marginTop: '2.5rem', paddingTop: '1.5rem', borderTop: '1px solid rgba(255, 255, 255, 0.15)', fontSize: '0.78rem', color: 'rgba(255, 255, 255, 0.75)' }}>
             Official RERA Agent: TN/RERA/Agent/0842/2021 • Thiruninravur, Chennai
           </div>
         </div>
@@ -364,12 +366,21 @@ export default function LoginPage({
         @media (max-width: 850px) {
           .auth-container-card {
             grid-template-columns: 1fr !important;
+            margin: 0 auto;
           }
           .auth-left-brand {
-            padding: 2.25rem 1.5rem !important;
+            padding: 1.75rem 1.25rem !important;
           }
           .auth-form-card {
-            padding: 2.25rem 1.5rem !important;
+            padding: 1.75rem 1.25rem !important;
+          }
+        }
+        @media (max-width: 480px) {
+          .auth-left-brand {
+            padding: 1.25rem 1rem !important;
+          }
+          .auth-form-card {
+            padding: 1.5rem 1rem !important;
           }
         }
       `}</style>

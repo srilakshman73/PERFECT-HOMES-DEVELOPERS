@@ -88,15 +88,27 @@ export function AuthProvider({ children }) {
       }
 
       try {
-        const res = await apiGetSession(activeToken);
-        if (mounted && res.success && res.user) {
-          setUser(res.user);
-          setToken(activeToken);
-          // Update cached user in storage
-          storeSession(activeToken, res.user, true);
+        // Enforce 6-second timeout on initial session check to prevent infinite loading screens
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Session verification timed out')), 6000)
+        );
+        const res = await Promise.race([apiGetSession(activeToken), timeoutPromise]);
 
-          if (res.user.mustChangePassword) {
-            setShowPasswordChangeModal(true);
+        if (mounted) {
+          if (res && res.success && res.user) {
+            setUser(res.user);
+            setToken(activeToken);
+            // Update cached user in storage
+            storeSession(activeToken, res.user, true);
+
+            if (res.user.mustChangePassword) {
+              setShowPasswordChangeModal(true);
+            }
+          } else {
+            console.warn('Session verification rejected by server:', res?.error || 'Invalid session');
+            clearSession();
+            setUser(null);
+            setToken(null);
           }
         }
       } catch (err) {
