@@ -8,7 +8,8 @@ import { MapPin, Navigation, ExternalLink, Phone, Mail, Clock, Building2 } from 
 import { PART5_OFFICE_MAP, PART4_MEDIA } from '../data/projectMediaHelpers.js';
 
 export default function OfficeMapSection() {
-  const officeMapUrl = PART5_OFFICE_MAP.googleMapsUrl || "https://maps.app.goo.gl/Qit2fHzxKrSnyGvd8";
+  const officeMapUrl = PART5_OFFICE_MAP.googleMapsUrl || "https://www.google.com/maps/search/?api=1&query=13.124850%2C80.043786";
+  const officeDirectionsUrl = PART5_OFFICE_MAP.googleMapsDirectionsUrl || "https://www.google.com/maps/dir/?api=1&destination=13.124850%2C80.043786";
 
   return (
     <section
@@ -81,7 +82,12 @@ export default function OfficeMapSection() {
           >
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '1.5rem' }}>
-                <div
+                <a
+                  href={officeMapUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Open office location in Google Maps"
+                  aria-label="View Office on Google Maps"
                   style={{
                     width: '48px',
                     height: '48px',
@@ -91,11 +97,22 @@ export default function OfficeMapSection() {
                     alignItems: 'center',
                     justifyContent: 'center',
                     color: '#008F83',
-                    flexShrink: 0
+                    flexShrink: 0,
+                    textDecoration: 'none',
+                    transition: 'transform 0.2s, background-color 0.2s',
+                    cursor: 'pointer'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(0, 143, 131, 0.22)';
+                    e.currentTarget.style.transform = 'scale(1.05)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(0, 143, 131, 0.12)';
+                    e.currentTarget.style.transform = 'scale(1)';
                   }}
                 >
                   <MapPin size={26} />
-                </div>
+                </a>
                 <div>
                   <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--deep-teal)', margin: 0 }}>
                     {PART4_MEDIA.companyName}
@@ -242,7 +259,7 @@ export default function OfficeMapSection() {
               </a>
 
               <a
-                href={officeMapUrl}
+                href={officeDirectionsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn btn-secondary"
@@ -291,7 +308,7 @@ export default function OfficeMapSection() {
             <div style={{ flex: 1, minHeight: '320px', width: '100%', position: 'relative' }}>
               <iframe
                 title="Perfect Homes & Developers Office Map"
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3885.6427329587445!2d80.02410887588147!3d13.118182987210137!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a528659d9c79233%3A0x639db54817a3f87d!2sKrishna%20Nagar%2C%20Thiruninravur%2C%20Tamil%20Nadu%20602024!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
+                src="https://maps.google.com/maps?q=13.124850,80.043786&hl=en&z=16&output=embed"
                 width="100%"
                 height="100%"
                 style={{ border: 0, minHeight: '340px' }}

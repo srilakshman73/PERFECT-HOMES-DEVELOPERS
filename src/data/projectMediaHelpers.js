@@ -73,7 +73,12 @@ export const PART4_MEDIA = {
 // Part 5: Office Map Link (Strictly Office Only)
 export const PART5_OFFICE_MAP = {
   partNumber: 5,
-  googleMapsUrl: "https://maps.app.goo.gl/Qit2fHzxKrSnyGvd8",
+  coordinates: {
+    lat: 13.124850,
+    lng: 80.043786
+  },
+  googleMapsUrl: "https://www.google.com/maps/search/?api=1&query=13.124850%2C80.043786",
+  googleMapsDirectionsUrl: "https://www.google.com/maps/dir/?api=1&destination=13.124850%2C80.043786",
   officeAddress: "No: 3, Krishna Nagar, CTH Road, Thiruninravur – 602024, Tamil Nadu, India",
   pinLocationName: "Perfect Homes & Developers — Registered Office"
 };

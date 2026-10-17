@@ -41,7 +41,8 @@ import {
   ArrowLeft,
   Play,
   ExternalLink,
-  Film
+  Film,
+  Navigation
 } from 'lucide-react';
 
 export default function PropertyDetailsPage({
@@ -291,10 +292,17 @@ export default function PropertyDetailsPage({
               <h1 style={{ fontSize: 'clamp(1.4rem, 4vw, 2.3rem)', color: 'var(--text-heading)', marginBottom: '0.45rem', minWidth: 0, wordBreak: 'break-word', lineHeight: 1.25 }}>
                 {property.title}
               </h1>
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', fontSize: '0.9rem', color: 'var(--text-secondary)', flexWrap: 'wrap', minWidth: 0, wordBreak: 'break-word' }}>
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(property.fullAddress)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                title={`View ${property.title} on Google Maps`}
+                aria-label={`View ${property.title} on Google Maps`}
+                style={{ display: 'inline-flex', alignItems: 'flex-start', gap: '6px', fontSize: '0.9rem', color: 'var(--text-secondary)', textDecoration: 'none', flexWrap: 'wrap', minWidth: 0, wordBreak: 'break-word', cursor: 'pointer' }}
+              >
                 <MapPin size={16} color="var(--primary-teal)" style={{ flexShrink: 0, marginTop: '3px' }} />
                 <span style={{ minWidth: 0 }}>{property.fullAddress}</span>
-              </div>
+              </a>
             </div>
 
             {/* Price & Action Buttons */}
@@ -1264,20 +1272,50 @@ export default function PropertyDetailsPage({
                     padding: '1.5rem'
                   }}
                 >
-                  <MapPin size={40} color="#31D6C5" style={{ marginBottom: '0.5rem' }} />
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(property.fullAddress)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={`View ${property.title} on Google Maps`}
+                    aria-label={`View ${property.title} on Google Maps`}
+                    style={{ color: '#31D6C5', textDecoration: 'none', cursor: 'pointer' }}
+                  >
+                    <MapPin size={40} color="#31D6C5" style={{ marginBottom: '0.5rem' }} />
+                  </a>
                   <h4 style={{ color: '#FFFFFF', fontSize: '1.2rem', marginBottom: '4px' }}>{property.location} Prime Zone</h4>
                   <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.85)', maxWidth: '400px' }}>
                     {property.fullAddress}
                   </p>
-                  <a
-                    href={`https://maps.google.com/?q=${encodeURIComponent(property.fullAddress)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn btn-turquoise btn-sm"
-                    style={{ marginTop: '0.75rem' }}
-                  >
-                    Open in Google Maps
-                  </a>
+                  <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.85rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(property.fullAddress)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-turquoise btn-sm"
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                    >
+                      <MapPin size={15} />
+                      <span>View on Google Maps</span>
+                    </a>
+                    <a
+                      href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(property.fullAddress)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-sm"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                        color: '#FFFFFF',
+                        border: '1.5px solid rgba(255, 255, 255, 0.4)',
+                        textDecoration: 'none'
+                      }}
+                    >
+                      <Navigation size={15} />
+                      <span>Get Directions</span>
+                    </a>
+                  </div>
                 </div>
               </div>
             )}

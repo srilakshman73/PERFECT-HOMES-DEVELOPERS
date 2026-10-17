@@ -18,7 +18,9 @@ import {
   Calendar,
   Building,
   ShieldCheck,
-  Car
+  Car,
+  Navigation,
+  ExternalLink
 } from 'lucide-react';
 import OfficeMapSection from '../components/OfficeMapSection';
 
@@ -101,12 +103,29 @@ export default function ContactPage({ onOpenScheduleVisit }) {
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', fontSize: '0.92rem' }}>
                 <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-                  <MapPin size={20} color="var(--primary-teal)" style={{ flexShrink: 0, marginTop: '2px' }} />
+                  <a
+                    href={COMPANY_CONTACT_INFO.googleMapsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Click to view office on Google Maps"
+                    aria-label="View Office on Google Maps"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'var(--primary-teal)',
+                      marginTop: '2px',
+                      textDecoration: 'none',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <MapPin size={20} color="var(--primary-teal)" style={{ flexShrink: 0 }} />
+                  </a>
                   <div>
                     <strong>Address:</strong>
                     <div style={{ marginTop: '2px' }}>
                       <a
-                        href={COMPANY_CONTACT_INFO.googleMapsUrl || "https://maps.app.goo.gl/Qit2fHzxKrSnyGvd8"}
+                        href={COMPANY_CONTACT_INFO.googleMapsUrl}
                         target="_blank"
                         rel="noopener noreferrer"
                         style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}
@@ -165,21 +184,51 @@ export default function ContactPage({ onOpenScheduleVisit }) {
                 </div>
               </div>
 
+              {/* Map & Office Navigation Buttons */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.65rem', marginTop: '1.25rem', paddingTop: '1.25rem', borderTop: '1px solid var(--border-light)' }}>
+                <a
+                  href={COMPANY_CONTACT_INFO.googleMapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-outline btn-sm"
+                  id="contact-view-maps-btn"
+                  aria-label="View Office on Google Maps"
+                  style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '0.82rem', padding: '0.55rem 0.75rem', textDecoration: 'none', whiteSpace: 'nowrap' }}
+                >
+                  <MapPin size={15} style={{ flexShrink: 0 }} />
+                  <span>View on Maps</span>
+                </a>
+                <a
+                  href={COMPANY_CONTACT_INFO.googleMapsDirectionsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-outline btn-sm"
+                  id="contact-get-directions-btn"
+                  aria-label="Get Directions to Office"
+                  style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '0.82rem', padding: '0.55rem 0.75rem', textDecoration: 'none', whiteSpace: 'nowrap' }}
+                >
+                  <Navigation size={15} style={{ flexShrink: 0 }} />
+                  <span>Get Directions</span>
+                </a>
+              </div>
+
               {/* Action Buttons */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid var(--border-light)' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.65rem', marginTop: '0.75rem' }}>
                 <a
                   href={whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn btn-whatsapp btn-sm"
+                  style={{ fontSize: '0.84rem' }}
                 >
-                  <MessageCircle size={16} /> WhatsApp
+                  <MessageCircle size={15} /> WhatsApp
                 </a>
                 <button
                   onClick={() => onOpenScheduleVisit(null)}
                   className="btn btn-turquoise btn-sm"
+                  style={{ fontSize: '0.84rem' }}
                 >
-                  <Car size={16} /> Free Cab Visit
+                  <Car size={15} /> Free Cab Visit
                 </button>
               </div>
             </div>

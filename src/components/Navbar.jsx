@@ -111,11 +111,18 @@ export default function Navbar({
       >
         <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'nowrap', gap: '0.5rem' }}>
           {/* Office Address */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
+          <a
+            href={COMPANY_CONTACT_INFO.googleMapsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            title="View office location on Google Maps"
+            aria-label="View office location on Google Maps"
+            style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0, color: '#FFFFFF', textDecoration: 'none' }}
+          >
             <MapPin size={13} color="#31D6C5" style={{ flexShrink: 0 }} />
             <span className="hide-mobile" style={{ opacity: 0.95, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{COMPANY_CONTACT_INFO.shortAddress}</span>
             <span className="show-mobile" style={{ opacity: 0.95, whiteSpace: 'nowrap', fontSize: '0.74rem' }}>Thiruninravur, Chennai</span>
-          </div>
+          </a>
 
           {/* Right Contacts & Social Icons */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0 }}>
