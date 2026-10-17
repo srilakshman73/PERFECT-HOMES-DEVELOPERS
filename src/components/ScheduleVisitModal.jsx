@@ -16,8 +16,10 @@ import {
   User,
   Phone,
   Mail,
-  ShieldCheck
+  ShieldCheck,
+  MessageCircle
 } from 'lucide-react';
+import { COMPANY_CONTACT_INFO } from '../data/locationsData';
 
 export default function ScheduleVisitModal({ property, isOpen, onClose }) {
   const { user } = useAuth();
@@ -144,16 +146,28 @@ export default function ScheduleVisitModal({ property, isOpen, onClose }) {
               <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
                 Thank you, <strong>{formData.name}</strong>. Our site coordinator will call you to confirm your complimentary cab pickup for <strong>{formData.visitDate}</strong>.
               </p>
-              <button
-                onClick={() => {
-                  setIsSuccess(false);
-                  onClose();
-                }}
-                className="btn btn-primary"
-                style={{ width: '100%' }}
-              >
-                Done
-              </button>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+                <a
+                  href={`https://wa.me/${COMPANY_CONTACT_INFO.whatsappNumber}?text=${encodeURIComponent(`Hello Perfect Homes & Developers, I have booked a site visit for "${property?.title || 'your property'}" on ${formData.visitDate}. Please connect with me.`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-whatsapp"
+                  style={{ width: '100%', textDecoration: 'none' }}
+                >
+                  <MessageCircle size={16} />
+                  <span>Chat with Coordinator on WhatsApp</span>
+                </a>
+                <button
+                  onClick={() => {
+                    setIsSuccess(false);
+                    onClose();
+                  }}
+                  className="btn btn-secondary"
+                  style={{ width: '100%' }}
+                >
+                  Done
+                </button>
+              </div>
             </div>
           ) : (
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>

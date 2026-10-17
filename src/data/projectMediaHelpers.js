@@ -188,7 +188,7 @@ export const PART8_MEDIA = {
       description: "Exterior elevation, contemporary architectural pergola, boundary wall, and portico entrance walkthrough.",
       url: "/media/part8/videos/whatsapp_video_2026-10-16_at_11_25_08_am_75.mp4",
       downloadName: "model-villa-elevation-walkthrough-1.mp4",
-      poster: "/media/part8/images/whatsapp_image_2026-10-16_at_11_25_02_am_70.jpeg",
+      poster: "/media/part8/images/whatsapp_image_2026-10-16_at_11_25_36_am_2__70.jpeg",
       duration: "0:11",
       published: true
     },

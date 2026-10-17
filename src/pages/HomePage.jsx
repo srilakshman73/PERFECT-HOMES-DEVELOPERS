@@ -38,7 +38,8 @@ import {
   Castle,
   Headphones,
   SlidersHorizontal,
-  Clock
+  Clock,
+  MessageCircle
 } from 'lucide-react';
 
 export default function HomePage({
@@ -850,6 +851,16 @@ export default function HomePage({
               <span>Schedule Free Site Visit</span>
               <ArrowRight size={18} />
             </button>
+            <a
+              href={`https://wa.me/${COMPANY_CONTACT_INFO.whatsappNumber}?text=${encodeURIComponent('Hello Perfect Homes & Developers, I would like to enquire about your properties and book a site visit.')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-whatsapp btn-lg"
+              title="Chat on WhatsApp"
+            >
+              <MessageCircle size={18} />
+              <span>WhatsApp: {COMPANY_CONTACT_INFO.whatsappDisplay}</span>
+            </a>
             <a
               href={COMPANY_CONTACT_INFO.telLink || `tel:${COMPANY_CONTACT_INFO.phone}`}
               className="btn btn-outline-white btn-lg"

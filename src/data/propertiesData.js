@@ -104,7 +104,7 @@ export const PROPERTIES_DATA = [
     images: [
       "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1400&q=80",
       "https://images.unsplash.com/photo-1628744448840-55bdb2497bd4?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1524813686514-a57563d77d61?auto=format&fit=crop&w=1200&q=80"
+      "/media/part7/images/whatsapp_image_2026-10-16_at_11_19_39_am_1.jpeg"
     ],
     floorPlanImg: "https://images.unsplash.com/photo-1582407947304-fd86f028f716?auto=format&fit=crop&w=800&q=80",
     description: "DTCP approved ready-to-build gated layout in Thiruninravur just 3 minutes from Outer Ring Road (ORR). Elevated topography with 40ft blacktop tar roads, avenue trees, solar street lighting, and individual water lines.",
@@ -290,8 +290,14 @@ export const PROPERTIES_DATA = [
     rating: 4.9,
     reviewsCount: 24,
     images: [
-      "https://images.unsplash.com/photo-1541888946425-d0fbb18086f6?auto=format&fit=crop&w=1400&q=80",
-      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80"
+      "/media/part3/images/whatsapp_image_2026-10-16_at_11_11_10_am_1.jpeg",
+      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
+      "/media/part8/images/whatsapp_image_2026-10-16_at_11_24_53_am_1__1.jpeg"
+    ],
+    imageAlts: [
+      "Turnkey Land and Construction Site Work in Tiruvallur",
+      "Architectural Luxury Villa Construction Front Elevation",
+      "Modern Model Villa Architectural Elevation"
     ],
     floorPlanImg: "https://images.unsplash.com/photo-1600585152220-90363fe7e115?auto=format&fit=crop&w=800&q=80",
     description: "Choose your preferred plot and get custom architectural construction done with 10-year structural warranty, milestone app tracking, and complete liaisoning.",
@@ -884,7 +890,7 @@ export const PROPERTY_CATEGORIES = [
     slug: "land-construction",
     categoryFilter: "Land + Construction",
     icon: "Hammer",
-    image: "https://images.unsplash.com/photo-1541888946425-d0fbb18086f6?auto=format&fit=crop&w=800&q=80"
+    image: "/media/part3/images/whatsapp_image_2026-10-16_at_11_11_10_am_1.jpeg"
   },
   {
     id: "model-houses",
@@ -893,7 +899,7 @@ export const PROPERTY_CATEGORIES = [
     slug: "model-houses",
     categoryFilter: "Model Houses",
     icon: "Sparkles",
-    image: PART8_MEDIA[0]?.path || "/media/part8/whatsapp_image_2026-10-16_at_11_25_02_am_70.jpeg"
+    image: PART8_MEDIA.images?.[0] || "/media/part8/images/whatsapp_image_2026-10-16_at_11_24_53_am_1__1.jpeg"
   }
 ];
 

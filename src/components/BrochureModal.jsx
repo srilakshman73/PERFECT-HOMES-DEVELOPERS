@@ -16,7 +16,8 @@ import {
   Mail,
   ArrowRight,
   ShieldCheck,
-  Sparkles
+  Sparkles,
+  MessageCircle
 } from 'lucide-react';
 import { COMPANY_CONTACT_INFO } from '../data/locationsData';
 
@@ -110,7 +111,7 @@ export default function BrochureModal({ property, isOpen, onClose }) {
     // Simulate PDF generation / download
     const element = document.createElement('a');
     const file = new Blob([
-      `PERFECT HOMES & DEVELOPERS\nOfficial Property Brochure\n\nProject: ${property.title}\nLocation: ${property.location}\nPrice: ${property.priceDisplay}\nApproval: ${property.approval}\n\nKey Highlights:\n- ${property.tagline}\n- 100% Clear Titles with 40-Year Parent Documents\n- Bank Loan Sanctioned from SBI, HDFC & Canara Bank\n\nContact: ${COMPANY_CONTACT_INFO.phone}\nWebsite: www.perfecthomesdevelopers.com`
+      `PERFECT HOMES & DEVELOPERS\nOfficial Property Brochure\n\nProject: ${property.title}\nLocation: ${property.location}\nPrice: ${property.priceDisplay}\nApproval: ${property.approval}\n\nKey Highlights:\n- ${property.tagline}\n- 100% Clear Titles with 40-Year Parent Documents\n- Bank Loan Sanctioned from SBI, HDFC & Canara Bank\n\nDirect Call: ${COMPANY_CONTACT_INFO.phoneDisplay}\nWhatsApp: ${COMPANY_CONTACT_INFO.whatsappDisplay} (https://wa.me/${COMPANY_CONTACT_INFO.whatsappNumber})\nWebsite: https://perfect-homes-developers.vercel.app`
     ], { type: 'text/plain' });
     element.href = URL.createObjectURL(file);
     element.download = `${property.slug || 'perfect-homes-property'}-brochure.txt`;
@@ -400,6 +401,17 @@ export default function BrochureModal({ property, isOpen, onClose }) {
                   <Download size={18} />
                   <span>Download PDF Brochure Now</span>
                 </button>
+
+                <a
+                  href={`https://wa.me/${COMPANY_CONTACT_INFO.whatsappNumber}?text=${encodeURIComponent(`Hello Perfect Homes & Developers, I just requested the brochure for "${property?.title || 'your property'}" and would like more details.`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-whatsapp btn-lg"
+                  style={{ width: '100%', textDecoration: 'none' }}
+                >
+                  <MessageCircle size={18} />
+                  <span>Chat on WhatsApp ({COMPANY_CONTACT_INFO.whatsappDisplay})</span>
+                </a>
 
                 <button
                   onClick={onClose}

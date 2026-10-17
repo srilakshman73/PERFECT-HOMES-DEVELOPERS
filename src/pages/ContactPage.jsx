@@ -123,6 +123,18 @@ export default function ContactPage({ onOpenScheduleVisit }) {
                 </div>
 
                 <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                  <MessageCircle size={18} color="#25D366" style={{ flexShrink: 0 }} />
+                  <div>
+                    <strong>WhatsApp Support:</strong>
+                    <div style={{ marginTop: '2px' }}>
+                      <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#075E54', fontWeight: 700, fontSize: '1.05rem' }}>
+                        {COMPANY_CONTACT_INFO.whatsappDisplay}
+                      </a>
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                   <Mail size={18} color="var(--primary-teal)" style={{ flexShrink: 0 }} />
                   <div>
                     <strong>Email Inquiries:</strong>

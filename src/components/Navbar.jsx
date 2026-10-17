@@ -26,7 +26,8 @@ import {
   Home,
   PhoneCall,
   Mail,
-  ShieldAlert
+  ShieldAlert,
+  MessageCircle
 } from 'lucide-react';
 import { LOCATIONS_DATA, COMPANY_CONTACT_INFO } from '../data/locationsData';
 import { PROPERTY_CATEGORIES } from '../data/propertiesData';
@@ -125,6 +126,21 @@ export default function Navbar({
             >
               <PhoneCall size={12} color="#31D6C5" style={{ flexShrink: 0 }} />
               <span>{COMPANY_CONTACT_INFO.phoneDisplay}</span>
+            </a>
+
+            <span className="hide-mobile" style={{ opacity: 0.4 }}>|</span>
+
+            {/* WhatsApp */}
+            <a
+              href={`https://wa.me/${COMPANY_CONTACT_INFO.whatsappNumber}?text=${encodeURIComponent('Hello Perfect Homes & Developers, I would like to inquire about your properties.')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: '#FFFFFF', display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.78rem', whiteSpace: 'nowrap' }}
+              title="Chat on WhatsApp"
+            >
+              <MessageCircle size={12} color="#25D366" style={{ flexShrink: 0 }} />
+              <span className="hide-mobile">WhatsApp: {COMPANY_CONTACT_INFO.whatsappDisplay}</span>
+              <span className="show-mobile" style={{ color: '#25D366', fontWeight: 700 }}>WhatsApp</span>
             </a>
 
             <span className="hide-mobile" style={{ opacity: 0.4 }}>|</span>
@@ -698,6 +714,21 @@ export default function Navbar({
             <button onClick={() => { setMobileMenuOpen(false); onOpenAI(); }} style={mobileBtnStyle}><Bot size={18} color="var(--primary-teal)" /> AI Assistant</button>
             <button onClick={() => handleNav('about')} style={mobileBtnStyle}><User size={18} color="var(--primary-teal)" /> About Us</button>
             <button onClick={() => handleNav('contact')} style={mobileBtnStyle}><PhoneCall size={18} color="var(--primary-teal)" /> Contact</button>
+            <a
+              href={`https://wa.me/${COMPANY_CONTACT_INFO.whatsappNumber}?text=${encodeURIComponent('Hello Perfect Homes & Developers, I would like to enquire about your properties.')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                ...mobileBtnStyle,
+                backgroundColor: '#EAF8F1',
+                color: '#075E54',
+                border: '1px solid rgba(37, 211, 102, 0.35)',
+                textDecoration: 'none'
+              }}
+            >
+              <MessageCircle size={18} color="#25D366" />
+              <span>WhatsApp Chat ({COMPANY_CONTACT_INFO.whatsappDisplay})</span>
+            </a>
 
             {isAuthenticated && user && (
               <>

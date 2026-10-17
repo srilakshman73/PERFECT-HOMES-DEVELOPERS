@@ -2,7 +2,7 @@
    PERFECT HOMES & DEVELOPERS - PROPERTY CARD (EXACT REFERENCE RECREATION)
    ========================================================================== */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useProperties } from '../context/PropertyContext';
 import {
   Heart,
@@ -22,6 +22,8 @@ import {
 } from 'lucide-react';
 import { COMPANY_CONTACT_INFO } from '../data/locationsData';
 
+const FALLBACK_IMAGE = '/media/part8/images/whatsapp_image_2026-10-16_at_11_24_53_am_1__1.jpeg';
+
 export default function PropertyCard({
   property,
   onViewDetails,
@@ -36,7 +38,13 @@ export default function PropertyCard({
 
   const images = property.images && property.images.length > 0
     ? property.images
-    : ['https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80'];
+    : [FALLBACK_IMAGE];
+
+  const [imgSrc, setImgSrc] = useState(images[currentImgIndex] || FALLBACK_IMAGE);
+
+  useEffect(() => {
+    setImgSrc(images[currentImgIndex] || FALLBACK_IMAGE);
+  }, [images, currentImgIndex]);
 
   const whatsappMessage = encodeURIComponent(
     property.isUpcoming || property.slug === 'nathamedu-niranjan-nagar-upcoming-project'
@@ -77,12 +85,18 @@ export default function PropertyCard({
         onClick={() => onViewDetails(property)}
       >
         <img
-          src={images[currentImgIndex]}
+          src={imgSrc}
           alt={property.title}
+          onError={() => {
+            if (imgSrc !== FALLBACK_IMAGE) {
+              setImgSrc(FALLBACK_IMAGE);
+            }
+          }}
           style={{
             width: '100%',
             height: '100%',
             objectFit: 'cover',
+            display: 'block',
             transition: 'transform 0.4s ease'
           }}
           loading="lazy"

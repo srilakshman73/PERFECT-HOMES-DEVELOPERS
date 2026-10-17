@@ -369,6 +369,10 @@ export default function PropertyDetailsPage({
             <img
               src={images[activeImgIndex]}
               alt={property.imageAlts?.[activeImgIndex] || property.title}
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = '/media/part8/images/whatsapp_image_2026-10-16_at_11_24_53_am_1__1.jpeg';
+              }}
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
             <div
@@ -447,6 +451,10 @@ export default function PropertyDetailsPage({
                 <img
                   src={img}
                   alt={property.imageAlts?.[idx] || `${property.title} thumbnail ${idx + 1}`}
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = '/media/part8/images/whatsapp_image_2026-10-16_at_11_24_53_am_1__1.jpeg';
+                  }}
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 />
               </div>
@@ -1181,6 +1189,10 @@ export default function PropertyDetailsPage({
                       <img
                         src={img}
                         alt={property.imageAlts?.[idx] || `${property.title} - View ${idx + 1}`}
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = '/media/part8/images/whatsapp_image_2026-10-16_at_11_24_53_am_1__1.jpeg';
+                        }}
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                       />
                       <div
@@ -1674,6 +1686,10 @@ export default function PropertyDetailsPage({
           <img
             src={images[activeImgIndex]}
             alt={property.imageAlts?.[activeImgIndex] || `${property.title} - Fullscreen View ${activeImgIndex + 1}`}
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = '/media/part8/images/whatsapp_image_2026-10-16_at_11_24_53_am_1__1.jpeg';
+            }}
             style={{ maxWidth: '90vw', maxHeight: '85vh', objectFit: 'contain', borderRadius: '8px' }}
             onClick={(e) => e.stopPropagation()}
           />

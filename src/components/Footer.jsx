@@ -166,6 +166,18 @@ export default function Footer({ navigate, onOpenAI }) {
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <MessageCircle size={14} color="#25D366" style={{ flexShrink: 0 }} />
+                  <a
+                    href={whatsappUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: '#FFFFFF' }}
+                  >
+                    WhatsApp: {COMPANY_CONTACT_INFO.whatsappDisplay}
+                  </a>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Mail size={14} color="#31D6C5" style={{ flexShrink: 0 }} />
                   <a href={`mailto:${COMPANY_CONTACT_INFO.email}`} style={{ color: '#FFFFFF' }}>
                     {COMPANY_CONTACT_INFO.email}
