@@ -6,7 +6,7 @@
    ========================================================================== */
 
 import React, { useState } from 'react';
-import { Sparkles, Home, Play, Download, Eye, X, ChevronLeft, ChevronRight, CheckCircle2, ShieldCheck, ArrowRight, Layers, HelpCircle } from 'lucide-react';
+import { Sparkles, Home, Play, Download, Eye, X, ChevronLeft, ChevronRight, CheckCircle2, ShieldCheck, ArrowRight } from 'lucide-react';
 import { PART8_MEDIA } from '../data/projectMediaHelpers.js';
 import { useProperties } from '../context/PropertyContext';
 
@@ -14,10 +14,9 @@ export default function ModelHousesSection({ navigate, onViewProperty, onOpenSch
   const { properties } = useProperties();
 
   // Model House properties
-  const modelHouseProperties = properties.filter((p) => p.category === 'Model Houses' && p.id !== 'ph-112');
-  const masterArchiveProperty = properties.find((p) => p.id === 'ph-112');
+  const modelHouseProperties = properties.filter((p) => p.category === 'Model Houses');
 
-  const [activeTab, setActiveTab] = useState('all'); // 'all', 'aster', 'bloom', 'celeste', 'unassigned'
+  const [activeTab, setActiveTab] = useState('all'); // 'all', 'aster', 'bloom', 'celeste'
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(null);
   const [currentGalleryPhotos, setCurrentGalleryPhotos] = useState([]);
 
@@ -25,17 +24,15 @@ export default function ModelHousesSection({ navigate, onViewProperty, onOpenSch
   const videos = PART8_MEDIA.videos || [];
 
   // Categorized subsets
-  const asterPhotos = allPhotos.slice(0, 16);
-  const bloomPhotos = allPhotos.slice(16, 32);
-  const celestePhotos = allPhotos.slice(32, 48);
-  const unassignedPhotos = allPhotos.slice(48);
+  const asterPhotos = allPhotos.slice(0, 25);
+  const bloomPhotos = allPhotos.slice(25, 50);
+  const celestePhotos = allPhotos.slice(50);
 
   const getActivePhotos = () => {
     switch (activeTab) {
       case 'aster': return asterPhotos;
       case 'bloom': return bloomPhotos;
       case 'celeste': return celestePhotos;
-      case 'unassigned': return unassignedPhotos;
       default: return allPhotos;
     }
   };
@@ -132,10 +129,6 @@ export default function ModelHousesSection({ navigate, onViewProperty, onOpenSch
             <span style={{ color: 'var(--border-color)' }}>|</span>
             <span style={{ color: '#B27B08', fontWeight: 700 }}>
               3 Designer Villa Models
-            </span>
-            <span style={{ color: 'var(--border-color)' }}>|</span>
-            <span style={{ color: 'var(--text-secondary)' }}>
-              1 Admin Review Gallery
             </span>
           </div>
         </div>
@@ -427,8 +420,7 @@ export default function ModelHousesSection({ navigate, onViewProperty, onOpenSch
                 { id: 'all', label: `All Photos (${allPhotos.length})` },
                 { id: 'aster', label: `Villa Aster (${asterPhotos.length})` },
                 { id: 'bloom', label: `Villa Bloom (${bloomPhotos.length})` },
-                { id: 'celeste', label: `Villa Celeste (${celestePhotos.length})` },
-                { id: 'unassigned', label: `Review Gallery (${unassignedPhotos.length})` }
+                { id: 'celeste', label: `Villa Celeste (${celestePhotos.length})` }
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -450,44 +442,6 @@ export default function ModelHousesSection({ navigate, onViewProperty, onOpenSch
               ))}
             </div>
           </div>
-
-          {/* Unassigned Gallery Info Banner (When activeTab === 'unassigned') */}
-          {activeTab === 'unassigned' && (
-            <div
-              style={{
-                backgroundColor: '#FFFBEB',
-                border: '1.5px solid #FDE68A',
-                borderRadius: 'var(--radius-md)',
-                padding: '1rem 1.25rem',
-                marginBottom: '1.5rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                flexWrap: 'wrap',
-                gap: '0.75rem'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <HelpCircle size={20} color="#D97706" />
-                <div>
-                  <strong style={{ color: '#92400E', fontSize: '0.92rem' }}>
-                    Part 8 Unassigned Media Gallery ({unassignedPhotos.length} Photographs)
-                  </strong>
-                  <div style={{ fontSize: '0.82rem', color: '#B45309' }}>
-                    These photographs are safely cataloged for administrator review rather than guessed. Admins can allocate them to specific projects via the Admin Dashboard.
-                  </div>
-                </div>
-              </div>
-
-              <button
-                onClick={() => navigate('admin', { tab: 'media' })}
-                className="btn btn-secondary"
-                style={{ fontSize: '0.82rem', padding: '0.35rem 0.85rem' }}
-              >
-                Go to Admin Media Manager
-              </button>
-            </div>
-          )}
 
           {/* Photos Grid */}
           <div

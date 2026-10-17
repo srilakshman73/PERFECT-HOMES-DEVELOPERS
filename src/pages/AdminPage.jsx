@@ -962,7 +962,7 @@ export default function AdminPage({ navigate }) {
                   <option value="ph-109">ph-109: Villa Aster</option>
                   <option value="ph-110">ph-110: Villa Bloom</option>
                   <option value="ph-111">ph-111: Villa Celeste</option>
-                  <option value="ph-112">ph-112: Part 8 Review Archive</option>
+                  <option value="ph-113">ph-113: Ready-to-Move Thiruninravur</option>
                   <option value="office">Corporate Office</option>
                   <option value="construction">Construction Site</option>
                   <option value="promotional">Promotional Materials</option>
@@ -1157,7 +1157,7 @@ export default function AdminPage({ navigate }) {
                             <option value="ph-109">Villa Aster (ph-109)</option>
                             <option value="ph-110">Villa Bloom (ph-110)</option>
                             <option value="ph-111">Villa Celeste (ph-111)</option>
-                            <option value="ph-112">Part 8 Review Archive (ph-112)</option>
+                            <option value="ph-113">Ready-to-Move Thiruninravur (ph-113)</option>
                             <option value="office">Corporate Office (Part 4)</option>
                             <option value="construction">Construction Site (Part 3)</option>
                             <option value="promotional">Promotional Poster (Part 2)</option>

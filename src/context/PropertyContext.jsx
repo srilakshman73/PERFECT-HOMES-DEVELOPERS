@@ -9,7 +9,7 @@ import { useToast } from './ToastContext';
 
 const PropertyContext = createContext(null);
 
-const STORAGE_PROPERTIES_KEY = 'ph_properties_db_v4';
+const STORAGE_PROPERTIES_KEY = 'ph_properties_db_v5';
 const STORAGE_ENQUIRIES_KEY = 'ph_enquiries_db_v1';
 const WISHLIST_PREFIX = 'ph_wishlist_';
 
@@ -56,10 +56,17 @@ export function PropertyProvider({ children }) {
 
   const [properties, setProperties] = useState(() => {
     try {
+      // Clean up legacy localStorage keys
+      ['ph_properties_db_v1', 'ph_properties_db_v2', 'ph_properties_db_v3', 'ph_properties_db_v4'].forEach((k) => {
+        try { localStorage.removeItem(k); } catch {}
+      });
+
       const saved = localStorage.getItem(STORAGE_PROPERTIES_KEY);
       if (saved) {
-        const parsed = JSON.parse(saved);
-        // Ensure all catalog properties (specifically ph-113 Thiruninravur ready-to-move house) are present
+        let parsed = JSON.parse(saved);
+        // Exclude unassigned review gallery ph-112 permanently
+        parsed = parsed.filter((p) => p.id !== 'ph-112');
+        // Ensure all catalog properties are present
         const missing = PROPERTIES_DATA.filter((dp) => !parsed.some((p) => p.id === dp.id));
         let merged = [...parsed, ...missing];
 
@@ -74,9 +81,7 @@ export function PropertyProvider({ children }) {
           return p;
         });
 
-        if (missing.length > 0 || hasVideoSync) {
-          localStorage.setItem(STORAGE_PROPERTIES_KEY, JSON.stringify(merged));
-        }
+        localStorage.setItem(STORAGE_PROPERTIES_KEY, JSON.stringify(merged));
         return merged;
       }
       return PROPERTIES_DATA;

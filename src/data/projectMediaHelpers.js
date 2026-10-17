@@ -212,31 +212,23 @@ export const PART8_MEDIA = {
       slug: "model-villa-aster-2bhk",
       description: "Finished model house showcase highlighting architectural elevation, open living hall, master bedroom, and modular kitchen design.",
       coverImage: IMPORTED_MEDIA.find((m) => m.partNumber === 8 && m.mediaType === 'image')?.storagePath || '',
-      images: IMPORTED_MEDIA.filter((m) => m.partNumber === 8 && m.mediaType === 'image').slice(0, 20).map((m) => m.storagePath)
+      images: IMPORTED_MEDIA.filter((m) => m.partNumber === 8 && m.mediaType === 'image').slice(0, 25).map((m) => m.storagePath)
     },
     {
       id: "ph-model-house-2",
       title: "Model Villa Bloom — 3 BHK Luxury Duplex Villa",
       slug: "model-villa-bloom-3bhk",
       description: "Two-story luxury duplex model villa featuring staircase railings, private balcony, portico car parking, and false ceiling LED lighting.",
-      coverImage: IMPORTED_MEDIA.filter((m) => m.partNumber === 8 && m.mediaType === 'image')[20]?.storagePath || '',
-      images: IMPORTED_MEDIA.filter((m) => m.partNumber === 8 && m.mediaType === 'image').slice(20, 40).map((m) => m.storagePath)
+      coverImage: IMPORTED_MEDIA.filter((m) => m.partNumber === 8 && m.mediaType === 'image')[25]?.storagePath || '',
+      images: IMPORTED_MEDIA.filter((m) => m.partNumber === 8 && m.mediaType === 'image').slice(25, 50).map((m) => m.storagePath)
     },
     {
       id: "ph-model-house-3",
       title: "Model Villa Celeste — Premium Contemporary Elevation",
       slug: "model-villa-celeste-contemporary",
       description: "Contemporary styled elevation showcase with wide windows, exterior texture painting, durable vitrified tiles, and terrace structure.",
-      coverImage: IMPORTED_MEDIA.filter((m) => m.partNumber === 8 && m.mediaType === 'image')[40]?.storagePath || '',
-      images: IMPORTED_MEDIA.filter((m) => m.partNumber === 8 && m.mediaType === 'image').slice(40, 60).map((m) => m.storagePath)
-    },
-    {
-      id: "ph-model-house-unassigned",
-      title: "Part 8 Unassigned Model House Media Gallery",
-      slug: "part-8-unassigned-model-gallery",
-      description: "Collection of remaining verified model house photographs awaiting specific client project allocation. Fully reviewable by administrators.",
-      coverImage: IMPORTED_MEDIA.filter((m) => m.partNumber === 8 && m.mediaType === 'image')[60]?.storagePath || '',
-      images: IMPORTED_MEDIA.filter((m) => m.partNumber === 8 && m.mediaType === 'image').slice(60).map((m) => m.storagePath)
+      coverImage: IMPORTED_MEDIA.filter((m) => m.partNumber === 8 && m.mediaType === 'image')[50]?.storagePath || '',
+      images: IMPORTED_MEDIA.filter((m) => m.partNumber === 8 && m.mediaType === 'image').slice(50).map((m) => m.storagePath)
     }
   ]
 };
