@@ -93,7 +93,11 @@ export default function RegisterPage({ navigate }) {
         phone: formData.phone,
         password: formData.password
       });
-      navigate('home');
+      addToast('Registration successful! Please sign in using your newly registered credentials.', 'success');
+      navigate('login', {
+        registrationSuccess: true,
+        email: formData.email
+      });
     } catch (err) {
       setServerError(err.message || 'Registration failed. Please verify your details.');
     } finally {

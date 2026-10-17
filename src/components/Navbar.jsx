@@ -231,7 +231,7 @@ export default function Navbar({
       {/* ========================================================
           2. MAIN WHITE NAVIGATION BAR
           ======================================================== */}
-      <div className="container" style={{ padding: '0.65rem 1.5rem' }}>
+      <div className="container" style={{ paddingTop: '0.65rem', paddingBottom: '0.65rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
           {/* Logo */}
           <div style={{ flexShrink: 0 }}>

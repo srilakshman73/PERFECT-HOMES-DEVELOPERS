@@ -32,3 +32,5 @@ test_production_live.js
 .env*
 
 .env*
+
+scratch/

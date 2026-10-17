@@ -355,6 +355,13 @@ img {
   white-space: nowrap;
 }
 
+.badge-wrap {
+  white-space: normal !important;
+  word-break: break-word !important;
+  line-height: 1.35;
+  text-align: left;
+}
+
 .badge-teal {
   background: var(--turquoise-light);
   color: var(--deep-teal);

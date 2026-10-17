@@ -20,8 +20,8 @@ export default async function handler(req, res) {
     // Enforce server-side administrator authorization guard
     await requireAdmin(req);
 
-    // Retrieve fresh users from persistent database
-    const users = await getAllUsers();
+    // Retrieve fresh users from persistent database (always force fresh for administrator)
+    const users = await getAllUsers({ forceRefresh: true });
 
     // Sanitize user records (STRICT SECURITY: Never expose password or password hashes)
     const sanitizedList = users.map((u) => sanitizeUser(u));

@@ -284,10 +284,11 @@ export default function Footer({ navigate, onOpenAI }) {
 
       {/* Floating WhatsApp Button on Bottom Right */}
       <div
+        className="floating-whatsapp-container"
         style={{
           position: 'fixed',
-          bottom: '24px',
-          right: '24px',
+          bottom: 'calc(24px + env(safe-area-inset-bottom, 0px))',
+          right: 'calc(24px + env(safe-area-inset-right, 0px))',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'flex-end',
@@ -299,6 +300,7 @@ export default function Footer({ navigate, onOpenAI }) {
           href={whatsappUrl}
           target="_blank"
           rel="noopener noreferrer"
+          className="floating-whatsapp-link"
           style={{
             backgroundColor: '#25D366',
             color: '#FFFFFF',
@@ -316,8 +318,8 @@ export default function Footer({ navigate, onOpenAI }) {
           onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-2px)')}
           onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
         >
-          <MessageCircle size={20} />
-          <span>Chat on WhatsApp</span>
+          <MessageCircle size={22} style={{ flexShrink: 0 }} />
+          <span className="floating-whatsapp-text">Chat on WhatsApp</span>
         </a>
       </div>
 
@@ -330,6 +332,20 @@ export default function Footer({ navigate, onOpenAI }) {
         @media (max-width: 650px) {
           .footer-columns-grid {
             grid-template-columns: 1fr !important;
+          }
+          .floating-whatsapp-container {
+            bottom: calc(16px + env(safe-area-inset-bottom, 0px)) !important;
+            right: calc(16px + env(safe-area-inset-right, 0px)) !important;
+          }
+          .floating-whatsapp-link {
+            width: 50px !important;
+            height: 50px !important;
+            padding: 0 !important;
+            border-radius: 50% !important;
+            justify-content: center !important;
+          }
+          .floating-whatsapp-text {
+            display: none !important;
           }
         }
       `}</style>

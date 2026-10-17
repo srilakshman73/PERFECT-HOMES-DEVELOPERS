@@ -17,17 +17,32 @@ import {
   Sparkles
 } from 'lucide-react';
 
-export default function LoginPage({ navigate, redirectAfterLogin = 'home' }) {
+export default function LoginPage({
+  navigate,
+  redirectAfterLogin = 'home',
+  registrationSuccess = false,
+  registeredEmail = ''
+}) {
   const { login, isLoading } = useAuth();
   const { addToast } = useToast();
 
-  const [identifier, setIdentifier] = useState('');
+  const [identifier, setIdentifier] = useState(registeredEmail || '');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [errors, setErrors] = useState({});
   const [authError, setAuthError] = useState('');
+  const [successMsg, setSuccessMsg] = useState(registrationSuccess);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  React.useEffect(() => {
+    if (registeredEmail) {
+      setIdentifier(registeredEmail);
+    }
+    if (registrationSuccess) {
+      setSuccessMsg(true);
+    }
+  }, [registeredEmail, registrationSuccess]);
 
   const validate = () => {
     const errs = {};
@@ -197,6 +212,30 @@ export default function LoginPage({ navigate, redirectAfterLogin = 'home' }) {
               Sign in to continue to your account.
             </p>
           </div>
+
+          {/* Registration Success Banner */}
+          {successMsg && (
+            <div
+              style={{
+                backgroundColor: 'var(--success-light)',
+                border: '1px solid rgba(16, 185, 129, 0.35)',
+                color: '#065F46',
+                padding: '0.85rem 1rem',
+                borderRadius: 'var(--radius-md)',
+                fontSize: '0.88rem',
+                marginBottom: '1.25rem',
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '8px',
+                lineHeight: 1.45
+              }}
+            >
+              <CheckCircle2 size={18} color="var(--success)" style={{ flexShrink: 0, marginTop: '2px' }} />
+              <div>
+                <strong>Registration successful!</strong> Your account is registered in our database. Please sign in with your credentials below.
+              </div>
+            </div>
+          )}
 
           {/* Auth Error Banner */}
           {authError && (

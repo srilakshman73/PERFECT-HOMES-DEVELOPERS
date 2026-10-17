@@ -16,6 +16,7 @@ import ComparisonModal from './components/ComparisonModal';
 import BrochureModal from './components/BrochureModal';
 import ScheduleVisitModal from './components/ScheduleVisitModal';
 import FirstTimePasswordModal from './components/FirstTimePasswordModal';
+import Logo from './components/Logo';
 
 // Pages
 import HomePage from './pages/HomePage';
@@ -36,44 +37,56 @@ function AppContent() {
   const { isAuthenticated, user, isLoading } = useAuth();
   const { properties, setFilters } = useProperties();
 
-  // Pages requiring user authentication
-  const PROTECTED_PAGES = ['profile', 'wishlist', 'enquiries', 'admin'];
+  // Public authentication routes
   const AUTH_FLOW_PAGES = ['login', 'register', 'forgot-password'];
 
   // Parse initial route from window.location.pathname
   const getInitialRouteInfo = () => {
     try {
       const path = window.location.pathname;
+      if (path === '/register') return { page: 'register', isAuthFlow: true };
+      if (path === '/forgot-password') return { page: 'forgot-password', isAuthFlow: true };
+      if (path === '/login') return { page: 'login', isAuthFlow: true };
       if (path.startsWith('/properties/')) {
         const slug = path.replace('/properties/', '').replace(/\/$/, '');
-        return { page: 'property-details', slug };
+        return { page: 'property-details', slug, isAuthFlow: false };
       }
-      if (path === '/listing' || path === '/properties') return { page: 'listing' };
-      if (path === '/about') return { page: 'about' };
-      if (path === '/contact') return { page: 'contact' };
-      if (path === '/locations') return { page: 'locations' };
-      if (path === '/login') return { page: 'login' };
-      if (path === '/register') return { page: 'register' };
-      if (path === '/forgot-password') return { page: 'forgot-password' };
-      if (path === '/profile') return { page: 'profile' };
-      if (path === '/wishlist') return { page: 'wishlist' };
-      if (path === '/enquiries') return { page: 'enquiries' };
-      if (path === '/admin') return { page: 'admin' };
+      if (path === '/listing' || path === '/properties') return { page: 'listing', isAuthFlow: false };
+      if (path === '/about') return { page: 'about', isAuthFlow: false };
+      if (path === '/contact') return { page: 'contact', isAuthFlow: false };
+      if (path === '/locations') return { page: 'locations', isAuthFlow: false };
+      if (path === '/profile') return { page: 'profile', isAuthFlow: false };
+      if (path === '/wishlist') return { page: 'wishlist', isAuthFlow: false };
+      if (path === '/enquiries') return { page: 'enquiries', isAuthFlow: false };
+      if (path === '/admin') return { page: 'admin', isAuthFlow: false };
     } catch {
       // fallback
     }
-    return { page: 'home' };
+    return { page: 'home', isAuthFlow: false };
   };
 
+  const [authParams, setAuthParams] = useState(null);
+
+  // Default entry flow: unauthenticated users ALWAYS see login first
   const [currentPage, setCurrentPage] = useState(() => {
     const init = getInitialRouteInfo();
-    return init.page || 'home';
+    if (init.page === 'register' || init.page === 'forgot-password') {
+      return init.page;
+    }
+    return 'login';
   });
 
-  const [redirectTarget, setRedirectTarget] = useState('home');
-  const [selectedProperty, setSelectedProperty] = useState(() => {
+  const [redirectTarget, setRedirectTarget] = useState(() => {
     const init = getInitialRouteInfo();
     if (init.page === 'property-details' && init.slug) {
+      return { page: 'property-details', slug: init.slug };
+    }
+    return init.isAuthFlow ? 'home' : (init.page || 'home');
+  });
+
+  const [selectedProperty, setSelectedProperty] = useState(() => {
+    const init = getInitialRouteInfo();
+    if (init.slug) {
       return (
         properties.find((p) => p.slug === init.slug || p.id === init.slug) ||
         properties.find((p) => p.slug === 'nathamedu-niranjan-nagar-upcoming-project') ||
@@ -95,7 +108,7 @@ function AppContent() {
   const [brochureProperty, setBrochureProperty] = useState(null);
   const [scheduleProperty, setScheduleProperty] = useState(null);
 
-  // Sync initial URL slug and browser back/forward buttons
+  // Sync browser back/forward buttons and initial property slug
   useEffect(() => {
     const init = getInitialRouteInfo();
     const params = new URLSearchParams(window.location.search);
@@ -105,7 +118,6 @@ function AppContent() {
     if (init.page === 'property-details' && init.slug) {
       const match = properties.find((p) => p.slug === init.slug || p.id === init.slug);
       if (match) setSelectedProperty(match);
-      setCurrentPage('property-details');
     }
 
     const handlePopState = () => {
@@ -114,32 +126,67 @@ function AppContent() {
       const t = p.get('tab');
       if (t) setPropertyInitialTab(t);
 
-      if (r.page === 'property-details' && r.slug) {
-        const match = properties.find((prop) => prop.slug === r.slug || prop.id === r.slug);
-        if (match) setSelectedProperty(match);
-        setCurrentPage('property-details');
+      if (!isAuthenticated) {
+        if (r.page === 'register' || r.page === 'forgot-password') {
+          setCurrentPage(r.page);
+        } else {
+          if (r.page === 'property-details' && r.slug) {
+            setRedirectTarget({ page: 'property-details', slug: r.slug });
+          } else {
+            setRedirectTarget(r.page || 'home');
+          }
+          setCurrentPage('login');
+        }
       } else {
-        setCurrentPage(r.page || 'home');
+        if (r.page === 'property-details' && r.slug) {
+          const match = properties.find((prop) => prop.slug === r.slug || prop.id === r.slug);
+          if (match) setSelectedProperty(match);
+          setCurrentPage('property-details');
+        } else {
+          setCurrentPage(r.page || 'home');
+        }
       }
     };
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [properties]);
+  }, [properties, isAuthenticated]);
 
-  // Synchronize route if auth state changes
+  // Synchronize route when authentication status updates
   useEffect(() => {
     if (!isLoading) {
-      if (!isAuthenticated && PROTECTED_PAGES.includes(currentPage)) {
-        setRedirectTarget(currentPage);
-        setCurrentPage('login');
-      } else if (isAuthenticated && AUTH_FLOW_PAGES.includes(currentPage)) {
-        setCurrentPage(redirectTarget || 'home');
+      if (!isAuthenticated) {
+        if (!AUTH_FLOW_PAGES.includes(currentPage)) {
+          setRedirectTarget(currentPage);
+          setCurrentPage('login');
+          try {
+            window.history.replaceState({}, '', '/login');
+          } catch {}
+        }
+      } else {
+        // Authenticated visitor: redirect away from auth flow into complete website or intended page
+        if (AUTH_FLOW_PAGES.includes(currentPage)) {
+          const target = redirectTarget || 'home';
+          if (target && typeof target === 'object' && target.page === 'property-details') {
+            const match = properties.find((p) => p.slug === target.slug || p.id === target.slug);
+            if (match) setSelectedProperty(match);
+            setCurrentPage('property-details');
+            try {
+              window.history.replaceState({}, '', `/properties/${target.slug}`);
+            } catch {}
+          } else {
+            const pageDest = (typeof target === 'string' && target) || 'home';
+            setCurrentPage(pageDest);
+            try {
+              window.history.replaceState({}, '', pageDest === 'home' ? '/' : `/${pageDest}`);
+            } catch {}
+          }
+        }
       }
     }
-  }, [isAuthenticated, isLoading, currentPage]);
+  }, [isAuthenticated, isLoading, currentPage, redirectTarget, properties]);
 
-  // Router handler
+  // Router navigation handler
   const navigate = (page, params = null) => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
@@ -155,10 +202,13 @@ function AppContent() {
       if (params.tab) {
         setInitialProfileTab(params.tab);
       }
+      if (params.registrationSuccess || params.email) {
+        setAuthParams(params);
+      }
     }
 
-    // Protect member-only pages
-    if (!isAuthenticated && PROTECTED_PAGES.includes(page)) {
+    // Protect all website pages if visitor is not signed in
+    if (!isAuthenticated && !AUTH_FLOW_PAGES.includes(page)) {
       setRedirectTarget(page);
       setCurrentPage('login');
       try {
@@ -174,17 +224,27 @@ function AppContent() {
         window.history.pushState({}, '', '/');
       } else if (page === 'property-details' && selectedProperty?.slug) {
         window.history.pushState({}, '', `/properties/${selectedProperty.slug}`);
-      } else if (['listing', 'about', 'contact', 'locations', 'admin', 'profile', 'wishlist', 'enquiries', 'login', 'register'].includes(page)) {
+      } else if (['listing', 'about', 'contact', 'locations', 'admin', 'profile', 'wishlist', 'enquiries', 'login', 'register', 'forgot-password'].includes(page)) {
         window.history.pushState({}, '', `/${page}`);
       }
     } catch {}
   };
 
-  // View property details
+  // View property details (with authentication guard)
   const handleViewProperty = (prop, options = null) => {
     setSelectedProperty(prop);
     const targetTab = options?.tab || null;
     setPropertyInitialTab(targetTab);
+
+    if (!isAuthenticated) {
+      setRedirectTarget({ page: 'property-details', slug: prop.slug || prop.id });
+      setCurrentPage('login');
+      try {
+        window.history.pushState({}, '', '/login');
+      } catch {}
+      return;
+    }
+
     setCurrentPage('property-details');
     try {
       const tabQuery = targetTab ? `?tab=${targetTab}` : '';
@@ -203,8 +263,29 @@ function AppContent() {
     setScheduleProperty(prop);
   };
 
-  // Dedicated auth screen if visitor explicitly requests login/register
-  if (AUTH_FLOW_PAGES.includes(currentPage) && !isAuthenticated) {
+  // =========================================================================
+  // 1. LOADING SCREEN DURING TOKEN VERIFICATION
+  // =========================================================================
+  if (isLoading) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--bg-main)', flexDirection: 'column', gap: '1.25rem', padding: '1.5rem' }}>
+        <Logo variant="teal" size="lg" />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--primary-teal)', fontWeight: 600, fontSize: '0.95rem' }}>
+          <div style={{ width: '22px', height: '22px', border: '3px solid rgba(0, 143, 131, 0.2)', borderTopColor: 'var(--primary-teal)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+          <span>Verifying secure access...</span>
+        </div>
+        <style>{`
+          @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        `}</style>
+      </div>
+    );
+  }
+
+  // =========================================================================
+  // 2. UNAUTHENTICATED EXPERIENCE: STRICT LOGIN-FIRST ACCESS
+  //    No property listings, homepage, or private features leaked before sign in.
+  // =========================================================================
+  if (!isAuthenticated) {
     return (
       <div className="auth-first-wrapper" style={{ minHeight: '100vh', backgroundColor: 'var(--bg-main)' }}>
         {currentPage === 'register' ? (
@@ -215,6 +296,8 @@ function AppContent() {
           <LoginPage
             navigate={navigate}
             redirectAfterLogin={redirectTarget || 'home'}
+            registrationSuccess={authParams?.registrationSuccess}
+            registeredEmail={authParams?.email}
           />
         )}
         <FirstTimePasswordModal />

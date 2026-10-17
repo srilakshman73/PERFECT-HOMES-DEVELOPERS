@@ -239,14 +239,14 @@ export default function PropertyDetailsPage({
       <section style={{ backgroundColor: '#FFFFFF', borderBottom: '1px solid var(--border-color)', padding: '1.25rem 0' }}>
         <div className="container">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '0.75rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+            <div className="property-breadcrumbs" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '6px', fontSize: '0.82rem', color: 'var(--text-muted)', minWidth: 0 }}>
               <button onClick={() => navigate('home')} style={{ color: 'var(--text-secondary)' }}>Home</button>
-              <ChevronRight size={13} />
+              <ChevronRight size={13} style={{ flexShrink: 0 }} />
               <button onClick={() => navigate('listing')} style={{ color: 'var(--text-secondary)' }}>Properties</button>
-              <ChevronRight size={13} />
+              <ChevronRight size={13} style={{ flexShrink: 0 }} />
               <button onClick={() => navigate('listing', { location: property.location })} style={{ color: 'var(--text-secondary)' }}>{property.location}</button>
-              <ChevronRight size={13} />
-              <span style={{ color: 'var(--primary-teal)', fontWeight: 600 }}>{property.title}</span>
+              <ChevronRight size={13} style={{ flexShrink: 0 }} />
+              <span className="breadcrumb-current-title" style={{ color: 'var(--primary-teal)', fontWeight: 600 }}>{property.title}</span>
             </div>
 
             {/* Prominent Back to Properties Button */}
@@ -260,18 +260,23 @@ export default function PropertyDetailsPage({
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1.25rem' }}>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.35rem', flexWrap: 'wrap' }}>
+            <div style={{ minWidth: 0, flex: '1 1 320px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
                 <span className="badge badge-teal">{property.category}</span>
                 {property.statusBadge ? (
                   <span
-                    className="badge"
+                    className="badge badge-wrap"
                     style={{
                       background: 'linear-gradient(135deg, #064E49 0%, #008F83 100%)',
                       color: '#FFFFFF',
                       fontWeight: 700,
                       padding: '4px 10px',
-                      fontSize: '0.78rem'
+                      fontSize: '0.78rem',
+                      whiteSpace: 'normal',
+                      wordBreak: 'break-word',
+                      lineHeight: 1.35,
+                      maxWidth: '100%',
+                      textAlign: 'left'
                     }}
                   >
                     {property.statusBadge}
@@ -283,34 +288,34 @@ export default function PropertyDetailsPage({
                   </>
                 )}
               </div>
-              <h1 style={{ fontSize: 'clamp(1.75rem, 3vw, 2.3rem)', color: 'var(--text-heading)', marginBottom: '0.35rem' }}>
+              <h1 style={{ fontSize: 'clamp(1.4rem, 4vw, 2.3rem)', color: 'var(--text-heading)', marginBottom: '0.45rem', minWidth: 0, wordBreak: 'break-word', lineHeight: 1.25 }}>
                 {property.title}
               </h1>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                <MapPin size={16} color="var(--primary-teal)" />
-                <span>{property.fullAddress}</span>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', fontSize: '0.9rem', color: 'var(--text-secondary)', flexWrap: 'wrap', minWidth: 0, wordBreak: 'break-word' }}>
+                <MapPin size={16} color="var(--primary-teal)" style={{ flexShrink: 0, marginTop: '3px' }} />
+                <span style={{ minWidth: 0 }}>{property.fullAddress}</span>
               </div>
             </div>
 
             {/* Price & Action Buttons */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.6rem' }}>
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: '2.2rem', fontWeight: 800, color: 'var(--deep-teal)', fontFamily: 'var(--font-display)' }}>
+            <div className="property-header-price-actions" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.65rem' }}>
+              <div className="property-header-price-box" style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: 'clamp(1.5rem, 5.2vw, 2.2rem)', fontWeight: 800, color: 'var(--deep-teal)', fontFamily: 'var(--font-display)', lineHeight: 1.15 }}>
                   {property.priceDisplay}
                 </div>
                 {isUpcomingProject ? (
-                  <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', maxWidth: '280px' }}>
+                  <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', maxWidth: '300px', lineHeight: 1.4, marginTop: '2px' }}>
                     Final pricing &amp; availability to be confirmed with company
                   </div>
                 ) : (
-                  <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+                  <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
                     EMI starts from <strong>₹{Math.round(property.price * 0.0087).toLocaleString()}/mo</strong>
                   </div>
                 )}
               </div>
 
               {/* Action icons bar */}
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <div className="property-header-actions-bar" style={{ display: 'flex', gap: '0.5rem' }}>
                 <button
                   onClick={() => toggleWishlist(property.id)}
                   className="btn btn-secondary btn-sm"
@@ -346,6 +351,7 @@ export default function PropertyDetailsPage({
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 140px', gap: '1rem' }} className="gallery-grid-layout">
           {/* Main Hero Preview */}
           <div
+            className="gallery-main-hero"
             style={{
               position: 'relative',
               height: '460px',
@@ -684,7 +690,7 @@ export default function PropertyDetailsPage({
 
             {/* TAB 1: OVERVIEW */}
             {activeTab === 'overview' && (
-              <div className="card" style={{ padding: '2rem', backgroundColor: '#FFFFFF', border: '1.5px solid var(--border-color)' }}>
+              <div className="card property-details-card" style={{ padding: '2rem', backgroundColor: '#FFFFFF', border: '1.5px solid var(--border-color)' }}>
                 {property.headline && (
                   <h3 style={{ fontSize: '1.35rem', color: 'var(--deep-teal)', fontWeight: 800, marginBottom: '0.75rem' }}>
                     {property.headline}
@@ -798,7 +804,7 @@ export default function PropertyDetailsPage({
 
             {/* TAB 2: SITE VIDEOS GALLERY */}
             {activeTab === 'videos' && (
-              <div id="video-gallery" className="card" style={{ padding: '2rem', backgroundColor: '#FFFFFF', border: '1.5px solid var(--border-color)' }}>
+              <div id="video-gallery" className="card property-details-card" style={{ padding: '2rem', backgroundColor: '#FFFFFF', border: '1.5px solid var(--border-color)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-light)', paddingBottom: '1.25rem' }}>
                   <div>
                     <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'var(--primary-teal)', fontWeight: 700, fontSize: '0.8rem', textTransform: 'uppercase', marginBottom: '4px' }}>
@@ -823,9 +829,10 @@ export default function PropertyDetailsPage({
 
                 {/* Videos Responsive Grid */}
                 <div
+                  className="property-videos-grid"
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
                     gap: '1.75rem'
                   }}
                 >
@@ -1207,13 +1214,13 @@ export default function PropertyDetailsPage({
 
             {/* TAB 6: REVIEWS */}
             {activeTab === 'reviews' && (
-              <div className="card" style={{ padding: '2rem', backgroundColor: '#FFFFFF', border: '1.5px solid var(--border-color)' }}>
+              <div className="card property-details-card" style={{ padding: '2rem', backgroundColor: '#FFFFFF', border: '1.5px solid var(--border-color)' }}>
                 <h3 style={{ fontSize: '1.3rem', color: 'var(--deep-teal)', marginBottom: '1.25rem' }}>Verified Buyer Reviews &amp; Feedback</h3>
 
                 {/* Review Form */}
                 <form onSubmit={handleAddReview} style={{ backgroundColor: 'var(--bg-main)', padding: '1.5rem', borderRadius: 'var(--radius-md)', marginBottom: '2rem' }}>
                   <h4 style={{ color: 'var(--deep-teal)', marginBottom: '1rem' }}>Leave a Review for this Property</h4>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 160px', gap: '1rem', marginBottom: '1rem' }}>
+                  <div className="review-form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 160px', gap: '1rem', marginBottom: '1rem' }}>
                     <input
                       type="text"
                       className="form-input"
@@ -1491,11 +1498,53 @@ export default function PropertyDetailsPage({
             -webkit-overflow-scrolling: touch;
           }
           .gallery-thumbnails-col > div {
-            width: 90px !important;
-            height: 65px !important;
+            width: 85px !important;
+            height: 60px !important;
             flex-shrink: 0 !important;
           }
           .property-main-layout { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 768px) {
+          .property-header-price-actions {
+            align-items: flex-start !important;
+            width: 100% !important;
+            margin-top: 0.4rem !important;
+          }
+          .property-header-price-box {
+            text-align: left !important;
+            width: 100% !important;
+          }
+          .property-header-actions-bar {
+            width: 100% !important;
+            display: grid !important;
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: 0.4rem !important;
+          }
+          .property-header-actions-bar .btn {
+            width: 100% !important;
+            padding: 0.45rem 0.35rem !important;
+            font-size: 0.78rem !important;
+            justify-content: center !important;
+          }
+          .gallery-main-hero {
+            height: clamp(220px, 50vw, 320px) !important;
+          }
+          .property-details-card {
+            padding: 1.25rem 1rem !important;
+          }
+        }
+        @media (max-width: 600px) {
+          .breadcrumb-current-title {
+            max-width: 180px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: inline-block;
+            vertical-align: bottom;
+          }
+          .review-form-row {
+            grid-template-columns: 1fr !important;
+          }
         }
       `}</style>
     </div>

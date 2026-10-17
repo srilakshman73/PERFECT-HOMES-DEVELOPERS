@@ -144,14 +144,7 @@ export function AuthProvider({ children }) {
     setIsLoading(true);
     try {
       const res = await apiRegister({ fullName, email, phone, password });
-      const { user: registeredUser, token: authToken } = res;
-
-      setUser(registeredUser);
-      setToken(authToken);
-      storeSession(authToken, registeredUser, true);
-
-      addToast(`Account created successfully! Welcome to Perfect Homes, ${registeredUser.firstName}.`, 'success');
-      return registeredUser;
+      return res;
     } finally {
       setIsLoading(false);
     }

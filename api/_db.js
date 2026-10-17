@@ -5,6 +5,7 @@ import bcrypt from 'bcryptjs';
 import fs from 'fs';
 import path from 'path';
 
+const DB_VERSION_PREFIX = 'ph_users_db_';
 const BLOB_FILENAME = 'ph_users_database.json';
 const BLOB_DIRECT_URL = 'https://wd26cd5segdthdiq.public.blob.vercel-storage.com/' + BLOB_FILENAME;
 const AUTH_SECRET = process.env.AUTH_SECRET || crypto.randomBytes(32).toString('hex');
@@ -253,70 +254,83 @@ function ensureAdminAccount(users) {
       address: 'No: 3 Krishna Nagar, CTH Road, Thiruninravur – 602024',
       notificationPrefs: { email: true, whatsapp: true, sms: true },
       profileCompleted: 100,
-      mustChangePassword: true,
+      mustChangePassword: false,
       status: 'Active',
       registeredAt: new Date().toISOString()
     };
     users.unshift(admin);
   } else {
-    // Ensure role is admin
+    // Ensure role is admin and contact number is current official company number
     admin.role = 'admin';
+    if (!admin.phone || admin.phone.includes('78455')) {
+      admin.phone = '+91 73050 23919';
+    }
     if (!admin.passwordHash) {
       admin.passwordHash = hashPassword(ADMIN_INITIAL_PASSWORD);
-      admin.mustChangePassword = true;
+      admin.mustChangePassword = false;
     }
   }
 }
 
 /**
  * Loads all users from persistent storage.
+ * @param {Object} options
+ * @param {boolean} options.forceRefresh - Force fresh bypass of in-memory cache
  */
-export async function getAllUsers() {
+export async function getAllUsers({ forceRefresh = false } = {}) {
   const now = Date.now();
-  if (memoryUsersCache && (now - lastCacheSync < CACHE_TTL_MS)) {
+  if (!forceRefresh && memoryUsersCache && (now - lastCacheSync < CACHE_TTL_MS)) {
     return memoryUsersCache;
   }
 
   let users = null;
 
-  // 1. Try direct fetch from known persistent Blob store URL (instant, no list overhead)
+  // 1. Try listing versioned blobs (guaranteed cache-busting on Edge CDN because each snapshot has a unique URL)
   try {
-    const res = await fetch(`${BLOB_DIRECT_URL}?t=${now}`, {
-      cache: 'no-store',
-      headers: { 'Cache-Control': 'no-cache' }
-    });
-    if (res.ok) {
-      const json = await res.json();
-      if (Array.isArray(json) && json.length > 0) {
-        users = json;
-      }
-    }
-  } catch (err) {
-    console.warn('Direct Blob fetch warning:', err.message);
-  }
+    const { list } = await import('@vercel/blob');
+    const { blobs } = await list({ prefix: DB_VERSION_PREFIX });
 
-  // 2. Fallback to @vercel/blob list if direct URL not yet cached
-  if (!users) {
-    try {
-      const { list } = await import('@vercel/blob');
-      const { blobs } = await list({ prefix: BLOB_FILENAME });
-      const match = blobs.find((b) => b.pathname === BLOB_FILENAME);
+    if (Array.isArray(blobs) && blobs.length > 0) {
+      // Sort by uploadedAt descending
+      const sortedBlobs = blobs.sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime());
+      const latestBlob = sortedBlobs[0];
 
-      if (match && match.url) {
-        const res = await fetch(`${match.url}?t=${now}`, { cache: 'no-store' });
+      if (latestBlob?.url) {
+        const res = await fetch(latestBlob.url, {
+          cache: 'no-store',
+          headers: { 'Cache-Control': 'no-cache' }
+        });
         if (res.ok) {
           const json = await res.json();
-          if (Array.isArray(json)) {
+          if (Array.isArray(json) && json.length > 0) {
             users = json;
           }
         }
       }
+    }
+  } catch (err) {
+    console.warn('Versioned Blob list fetch warning:', err.message);
+  }
+
+  // 2. Fallback to direct fetch from master BLOB_DIRECT_URL with download=1
+  if (!users) {
+    try {
+      const res = await fetch(`${BLOB_DIRECT_URL}?download=1&t=${now}`, {
+        cache: 'no-store',
+        headers: { 'Cache-Control': 'no-cache' }
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (Array.isArray(json) && json.length > 0) {
+          users = json;
+        }
+      }
     } catch (err) {
-      console.warn('Vercel Blob list fetch warning:', err.message);
+      console.warn('Direct Blob fetch warning:', err.message);
     }
   }
 
-  // Fallback / merge with local fallback for offline resilience
+  // 3. Fallback / merge with local fallback for offline resilience
   const localUsers = readLocalFallback();
   if (Array.isArray(localUsers) && localUsers.length > 0) {
     if (!users) {
@@ -348,6 +362,7 @@ export async function getAllUsers() {
 
 /**
  * Saves all users atomically to persistent storage and caches.
+ * Uses immutable snapshot files + master overwrite to eliminate stale Edge CDN responses.
  */
 export async function saveAllUsers(users) {
   // Execute sequentially to prevent race conditions
@@ -359,14 +374,37 @@ export async function saveAllUsers(users) {
     // 1. Write to local fallback
     writeLocalFallback(users);
 
-    // 2. Write to Vercel Blob
+    // 2. Write to Vercel Blob with versioned filename + master backup
     try {
-      const { put } = await import('@vercel/blob');
-      await put(BLOB_FILENAME, JSON.stringify(users, null, 2), {
+      const { put, list, del } = await import('@vercel/blob');
+      const now = Date.now();
+      const versionedFilename = `${DB_VERSION_PREFIX}${now}_${Math.random().toString(36).slice(2, 6)}.json`;
+      const jsonContent = JSON.stringify(users, null, 2);
+
+      // Save versioned snapshot (guarantees brand-new URL that CDN has never cached)
+      await put(versionedFilename, jsonContent, {
+        access: 'public',
+        addRandomSuffix: false
+      });
+
+      // Also update master ph_users_database.json for root reference
+      await put(BLOB_FILENAME, jsonContent, {
         access: 'public',
         addRandomSuffix: false,
         allowOverwrite: true
       });
+
+      // Prune old snapshots asynchronously (keep latest 5 for backup safety)
+      list({ prefix: DB_VERSION_PREFIX }).then(async ({ blobs }) => {
+        if (blobs && blobs.length > 6) {
+          const sorted = blobs.sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime());
+          const toDelete = sorted.slice(5).map((b) => b.url);
+          if (toDelete.length > 0) {
+            await del(toDelete).catch(() => {});
+          }
+        }
+      }).catch(() => {});
+
       return true;
     } catch (err) {
       console.error('Vercel Blob write error:', err.message);
@@ -383,15 +421,15 @@ export async function saveAllUsers(users) {
  * Register a new buyer.
  * Enforces unique normalized email and 10-digit Indian mobile number.
  */
-export async function registerUser({ fullName, email, phone, password }) {
-  if (!fullName || !email || !phone || !password) {
+export async function registerUser({ fullName, name, email, phone, password }) {
+  const cleanName = (fullName || name || '').trim();
+  if (!cleanName || !email || !phone || !password) {
     throw new Error('Full name, email address, mobile number, and password are all required.');
   }
 
   const cleanEmail = normalizeEmail(email);
   const cleanPhone = normalizeIndianPhone(phone);
   const formattedPhone = formatIndianPhone(phone);
-  const cleanName = fullName.trim();
 
   // Validate email
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
@@ -472,18 +510,30 @@ export async function authenticateUser({ identifier, password }) {
     throw new Error('Email address or mobile number and password are required.');
   }
 
-  const users = await getAllUsers();
+  let users = await getAllUsers();
   const cleanId = identifier.trim();
   const cleanEmail = normalizeEmail(cleanId);
   const cleanPhone = normalizeIndianPhone(cleanId);
 
-  const matchedUser = users.find((u) => {
+  let matchedUser = users.find((u) => {
     const uEmail = normalizeEmail(u.email);
     const uPhone = normalizeIndianPhone(u.phone);
     if (uEmail === cleanEmail) return true;
     if (cleanPhone.length === 10 && uPhone === cleanPhone) return true;
     return false;
   });
+
+  // If not found in initial/cached read, force fresh database fetch to eliminate any stale serverless cache
+  if (!matchedUser) {
+    users = await getAllUsers({ forceRefresh: true });
+    matchedUser = users.find((u) => {
+      const uEmail = normalizeEmail(u.email);
+      const uPhone = normalizeIndianPhone(u.phone);
+      if (uEmail === cleanEmail) return true;
+      if (cleanPhone.length === 10 && uPhone === cleanPhone) return true;
+      return false;
+    });
+  }
 
   if (!matchedUser) {
     const notFoundErr = new Error('No account found with this email address or mobile number.');
