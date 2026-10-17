@@ -8,8 +8,7 @@ import { MapPin, Navigation, ExternalLink, Phone, Mail, Clock, Building2 } from 
 import { PART5_OFFICE_MAP, PART4_MEDIA } from '../data/projectMediaHelpers.js';
 
 export default function OfficeMapSection() {
-  const officeMapUrl = PART5_OFFICE_MAP.googleMapsUrl;
-  const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=13.1182,80.0263&destination_place_id=ChIJ...`;
+  const officeMapUrl = PART5_OFFICE_MAP.googleMapsUrl || "https://maps.app.goo.gl/Qit2fHzxKrSnyGvd8";
 
   return (
     <section
@@ -205,26 +204,41 @@ export default function OfficeMapSection() {
             </div>
 
             {/* Clickable Action Buttons */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', paddingTop: '1rem', borderTop: '1px solid var(--border-light)' }}>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 190px), 1fr))',
+                gap: '0.75rem',
+                paddingTop: '1rem',
+                borderTop: '1px solid var(--border-light)',
+                width: '100%',
+                boxSizing: 'border-box'
+              }}
+            >
               <a
                 href={officeMapUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn btn-primary"
+                id="view-on-google-maps-btn"
+                aria-label="View Office on Google Maps"
                 style={{
-                  flex: '1 1 auto',
                   display: 'inline-flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '8px',
-                  padding: '0.75rem 1.25rem',
+                  padding: '0.75rem 1rem',
                   fontSize: '0.92rem',
-                  fontWeight: 700
+                  fontWeight: 700,
+                  textDecoration: 'none',
+                  width: '100%',
+                  boxSizing: 'border-box',
+                  whiteSpace: 'nowrap'
                 }}
               >
-                <MapPin size={18} />
+                <MapPin size={18} style={{ flexShrink: 0 }} />
                 <span>View on Google Maps</span>
-                <ExternalLink size={14} />
+                <ExternalLink size={14} style={{ flexShrink: 0 }} />
               </a>
 
               <a
@@ -232,19 +246,25 @@ export default function OfficeMapSection() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn btn-secondary"
+                id="get-directions-btn"
+                aria-label="Get Directions to Office"
                 style={{
-                  flex: '1 1 auto',
                   display: 'inline-flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '8px',
-                  padding: '0.75rem 1.25rem',
+                  padding: '0.75rem 1rem',
                   fontSize: '0.92rem',
-                  fontWeight: 700
+                  fontWeight: 700,
+                  textDecoration: 'none',
+                  width: '100%',
+                  boxSizing: 'border-box',
+                  whiteSpace: 'nowrap'
                 }}
               >
-                <Navigation size={18} />
+                <Navigation size={18} style={{ flexShrink: 0 }} />
                 <span>Get Directions</span>
+                <ExternalLink size={14} style={{ flexShrink: 0 }} />
               </a>
             </div>
 

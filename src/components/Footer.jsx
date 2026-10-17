@@ -186,7 +186,15 @@ export default function Footer({ navigate, onOpenAI }) {
 
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', lineHeight: 1.4 }}>
                   <MapPin size={14} color="#31D6C5" style={{ flexShrink: 0, marginTop: '2px' }} />
-                  <span>{COMPANY_CONTACT_INFO.officeAddress}</span>
+                  <a
+                    href={COMPANY_CONTACT_INFO.googleMapsUrl || "https://maps.app.goo.gl/Qit2fHzxKrSnyGvd8"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: 'rgba(255, 255, 255, 0.9)', textDecoration: 'none' }}
+                    title="View office location on Google Maps"
+                  >
+                    {COMPANY_CONTACT_INFO.officeAddress}
+                  </a>
                 </div>
               </div>
             </div>

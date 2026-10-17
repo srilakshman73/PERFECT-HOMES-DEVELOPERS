@@ -104,8 +104,16 @@ export default function ContactPage({ onOpenScheduleVisit }) {
                   <MapPin size={20} color="var(--primary-teal)" style={{ flexShrink: 0, marginTop: '2px' }} />
                   <div>
                     <strong>Address:</strong>
-                    <div style={{ color: 'var(--text-secondary)', marginTop: '2px' }}>
-                      {COMPANY_CONTACT_INFO.officeAddress}
+                    <div style={{ marginTop: '2px' }}>
+                      <a
+                        href={COMPANY_CONTACT_INFO.googleMapsUrl || "https://maps.app.goo.gl/Qit2fHzxKrSnyGvd8"}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}
+                        title="Click to view office on Google Maps"
+                      >
+                        {COMPANY_CONTACT_INFO.officeAddress}
+                      </a>
                     </div>
                   </div>
                 </div>

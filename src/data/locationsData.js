@@ -15,6 +15,7 @@ export const COMPANY_CONTACT_INFO = {
   whatsappDisplay: "+91 73050 23919",
   whatsappUrl: "https://wa.me/917305023919",
   email: "perfecthomesd@gmail.com",
+  googleMapsUrl: "https://maps.app.goo.gl/Qit2fHzxKrSnyGvd8",
   officeAddress: "No: 3 Krishna Nagar, CTH Road, Thiruninravur – 602024, Tamil Nadu, India.",
   shortAddress: "No: 3 Krishna Nagar, CTH Road, Thiruninravur – 602024",
   workingHours: "Monday – Sunday: 9:00 AM – 8:00 PM (Site Visits 7 Days a Week)",
