@@ -669,8 +669,12 @@ export default function HomePage({
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: upcomingProjects.length <= 2 ? 'repeat(auto-fit, minmax(320px, 460px))' : 'repeat(auto-fit, minmax(320px, 1fr))',
-              gap: '2rem'
+              gridTemplateColumns: upcomingProjects.length <= 2 ? 'repeat(auto-fit, minmax(min(100%, 320px), 460px))' : 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))',
+              gap: '2rem',
+              width: '100%',
+              maxWidth: '100%',
+              minWidth: 0,
+              boxSizing: 'border-box'
             }}
             className="upcoming-properties-grid"
           >
@@ -712,7 +716,7 @@ export default function HomePage({
           4. POPULAR LOCATIONS
           ========================================================== */}
       <section style={{ padding: '4.5rem 0', backgroundColor: '#FFFFFF' }}>
-        <div className="container">
+        <div className="container" style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
           <div className="section-header">
             <span className="section-tag">Prime Locations</span>
             <h2 className="section-title">Strategic Investment Hubs in Chennai West</h2>
@@ -721,7 +725,7 @@ export default function HomePage({
             </p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.5rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: '1.5rem', width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box' }}>
             {LOCATIONS_DATA.slice(0, 4).map((loc) => (
               <div
                 key={loc.id}

@@ -460,14 +460,17 @@ export default function PropertyDetailsPage({
           ========================================================== */}
       <section className="container" style={{ marginTop: '1.75rem' }}>
         <div
-          className="card"
+          className="card property-specs-card"
           style={{
-            padding: '1.5rem',
+            padding: 'clamp(1rem, 3vw, 1.5rem)',
             backgroundColor: '#FFFFFF',
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 140px), 1fr))',
             gap: '1.25rem',
-            border: '1.5px solid var(--border-color)'
+            border: '1.5px solid var(--border-color)',
+            width: '100%',
+            maxWidth: '100%',
+            boxSizing: 'border-box'
           }}
         >
           {isUpcomingProject ? (
@@ -637,12 +640,13 @@ export default function PropertyDetailsPage({
       {/* ==========================================================
           4. MAIN TWO-COLUMN BODY: TABS + SIDEBAR ENQUIRY FORM
           ========================================================== */}
-      <section className="container" style={{ marginTop: '2.5rem' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: '2rem' }} className="property-main-layout">
+      <section className="container" style={{ marginTop: '2.5rem', width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
+        <div className="property-main-layout">
           {/* LEFT: TABS & CONTENT PANELS */}
-          <div>
+          <div className="property-content-col">
             {/* Quick Action Buttons Bar */}
             <div
+              className="property-quick-actions-bar"
               style={{
                 display: 'flex',
                 flexWrap: 'wrap',
@@ -652,24 +656,30 @@ export default function PropertyDetailsPage({
                 backgroundColor: '#F5FAF9',
                 borderRadius: 'var(--radius-md)',
                 border: '1.5px solid var(--border-light)',
-                alignItems: 'center'
+                alignItems: 'center',
+                width: '100%',
+                maxWidth: '100%',
+                boxSizing: 'border-box'
               }}
             >
               {property.videos && property.videos.length > 0 && (
                 <button
                   type="button"
                   onClick={() => setActiveTab('videos')}
-                  className="btn btn-primary"
+                  className="btn btn-primary property-quick-btn"
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
+                    justifyContent: 'center',
                     gap: '6px',
-                    padding: '0.55rem 1rem',
+                    padding: '0.55rem 0.9rem',
                     fontSize: '0.85rem',
-                    fontWeight: 700
+                    fontWeight: 700,
+                    whiteSpace: 'normal',
+                    textAlign: 'center'
                   }}
                 >
-                  <Play size={15} fill="#FFFFFF" /> Watch Video
+                  <Play size={15} fill="#FFFFFF" style={{ flexShrink: 0 }} /> <span>Watch Video</span>
                 </button>
               )}
 
@@ -679,79 +689,96 @@ export default function PropertyDetailsPage({
                   const f = document.getElementById('enquiry-form-card');
                   if (f) f.scrollIntoView({ behavior: 'smooth' });
                 }}
-                className="btn btn-turquoise"
+                className="btn btn-turquoise property-quick-btn"
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
+                  justifyContent: 'center',
                   gap: '6px',
-                  padding: '0.55rem 1rem',
+                  padding: '0.55rem 0.9rem',
                   fontSize: '0.85rem',
-                  fontWeight: 700
+                  fontWeight: 700,
+                  whiteSpace: 'normal',
+                  textAlign: 'center'
                 }}
               >
-                <Send size={15} /> Enquire Now
+                <Send size={15} style={{ flexShrink: 0 }} /> <span>Enquire Now</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => onOpenScheduleVisit(property)}
-                className="btn btn-secondary"
+                className="btn btn-secondary property-quick-btn"
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
+                  justifyContent: 'center',
                   gap: '6px',
-                  padding: '0.55rem 1rem',
+                  padding: '0.55rem 0.9rem',
                   fontSize: '0.85rem',
-                  fontWeight: 700
+                  fontWeight: 700,
+                  whiteSpace: 'normal',
+                  textAlign: 'center'
                 }}
               >
-                <Calendar size={15} /> Schedule a Site Visit
+                <Calendar size={15} style={{ flexShrink: 0 }} /> <span>Schedule a Site Visit</span>
               </button>
 
               <a
                 href={COMPANY_CONTACT_INFO.telLink}
-                className="btn btn-secondary"
+                className="btn btn-secondary property-quick-btn"
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
+                  justifyContent: 'center',
                   gap: '6px',
-                  padding: '0.55rem 1rem',
+                  padding: '0.55rem 0.9rem',
                   fontSize: '0.85rem',
                   fontWeight: 700,
-                  textDecoration: 'none'
+                  textDecoration: 'none',
+                  whiteSpace: 'normal',
+                  textAlign: 'center'
                 }}
               >
-                <PhoneCall size={15} /> Call Us
+                <PhoneCall size={15} style={{ flexShrink: 0 }} /> <span>Call Us</span>
               </a>
 
               <a
                 href={`https://wa.me/${COMPANY_CONTACT_INFO.whatsappNumber}?text=${whatsappMessage}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="btn btn-whatsapp"
+                className="btn btn-whatsapp property-quick-btn"
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
+                  justifyContent: 'center',
                   gap: '6px',
-                  padding: '0.55rem 1rem',
+                  padding: '0.55rem 0.9rem',
                   fontSize: '0.85rem',
                   fontWeight: 700,
-                  textDecoration: 'none'
+                  textDecoration: 'none',
+                  whiteSpace: 'normal',
+                  textAlign: 'center'
                 }}
               >
-                <MessageCircle size={15} /> Chat on WhatsApp
+                <MessageCircle size={15} style={{ flexShrink: 0 }} /> <span>Chat on WhatsApp</span>
               </a>
             </div>
 
             {/* Tab Navigation Buttons */}
             <div
+              className="property-tabs-nav"
               style={{
                 display: 'flex',
                 gap: '0.5rem',
                 borderBottom: '2px solid var(--border-color)',
                 paddingBottom: '0.5rem',
                 overflowX: 'auto',
-                marginBottom: '1.5rem'
+                WebkitOverflowScrolling: 'touch',
+                marginBottom: '1.5rem',
+                width: '100%',
+                maxWidth: '100%',
+                boxSizing: 'border-box'
               }}
             >
               {[
@@ -853,7 +880,7 @@ export default function PropertyDetailsPage({
                 )}
 
                 <h4 style={{ fontSize: '1.15rem', color: 'var(--deep-teal)', marginBottom: '1rem' }}>Key Highlights</h4>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '0.85rem', marginBottom: '2rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: '0.85rem', marginBottom: '2rem' }}>
                   {(property.highlights || []).map((hl, idx) => (
                     <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: 'var(--text-heading)' }}>
                       <CheckCircle2 size={16} color="var(--primary-teal)" />
@@ -890,7 +917,7 @@ export default function PropertyDetailsPage({
                     {property.specifications && (
                       <div style={{ marginTop: '2rem' }}>
                         <h4 style={{ fontSize: '1.15rem', color: 'var(--deep-teal)', marginBottom: '1rem' }}>Technical Specifications</h4>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: '1rem' }}>
                           {Object.entries(property.specifications).map(([key, val]) => (
                             <div key={key} style={{ borderBottom: '1px solid var(--border-light)', paddingBottom: '0.5rem' }}>
                               <div style={{ fontSize: '0.78rem', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 700 }}>
@@ -1134,7 +1161,7 @@ export default function PropertyDetailsPage({
                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
                   Click any image to view in high-resolution full screen.
                 </p>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 240px), 1fr))', gap: '1rem' }}>
                   {images.map((img, idx) => (
                     <div
                       key={idx}
@@ -1188,7 +1215,7 @@ export default function PropertyDetailsPage({
                   Strategic location in {property.location} with immediate access to suburban rail, upcoming metro, arterial bypass, and prime schools.
                 </p>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: '1rem', marginBottom: '2rem' }}>
                   {(property.nearby || []).map((nb, idx) => (
                     <div
                       key={idx}
@@ -1254,7 +1281,7 @@ export default function PropertyDetailsPage({
                     </p>
                   </div>
                 ) : (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '1rem' }}>
                     {(property.amenities || []).map((amen, idx) => (
                       <div
                         key={idx}
@@ -1387,20 +1414,24 @@ export default function PropertyDetailsPage({
           </div>
 
           {/* RIGHT: STICKY ENQUIRY & CONTACT CARD */}
-          <div>
+          <div className="property-sidebar-col" style={{ minWidth: 0, width: '100%', maxWidth: '100%' }}>
             <div
               id="enquiry-form-card"
-              className="card"
+              className="card enquiry-form-card"
               style={{
-                padding: '1.75rem',
+                padding: 'clamp(1.2rem, 3.5vw, 1.75rem)',
                 backgroundColor: '#FFFFFF',
                 border: '1.5px solid var(--border-color)',
                 borderRadius: 'var(--radius-xl)',
                 position: 'sticky',
-                top: '90px'
+                top: '90px',
+                width: '100%',
+                maxWidth: '100%',
+                minWidth: 0,
+                boxSizing: 'border-box'
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem', minWidth: 0 }}>
                 <div
                   style={{
                     width: '42px',
@@ -1410,22 +1441,25 @@ export default function PropertyDetailsPage({
                     color: 'var(--primary-teal)',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center'
+                    justifyContent: 'center',
+                    flexShrink: 0
                   }}
                 >
                   <MessageCircle size={20} />
                 </div>
-                <div>
-                  <h3 style={{ fontSize: '1.15rem', color: 'var(--deep-teal)', margin: 0 }}>Direct Builder Enquiry</h3>
-                  <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', margin: 0 }}>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <h3 style={{ fontSize: 'clamp(1.05rem, 3vw, 1.15rem)', color: 'var(--deep-teal)', margin: 0, wordBreak: 'break-word', lineHeight: 1.3 }}>
+                    Direct Builder Enquiry
+                  </h3>
+                  <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', margin: '2px 0 0', wordBreak: 'break-word' }}>
                     Instant callback within 15 minutes
                   </p>
                 </div>
               </div>
 
               {/* Form */}
-              <form onSubmit={handleInlineEnquiry} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-                <div>
+              <form onSubmit={handleInlineEnquiry} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box' }}>
+                <div style={{ width: '100%', maxWidth: '100%', minWidth: 0 }}>
                   <input
                     type="text"
                     required
@@ -1433,9 +1467,10 @@ export default function PropertyDetailsPage({
                     placeholder="Your Full Name *"
                     value={enquiryForm.name}
                     onChange={(e) => setEnquiryForm({ ...enquiryForm, name: e.target.value })}
+                    style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}
                   />
                 </div>
-                <div>
+                <div style={{ width: '100%', maxWidth: '100%', minWidth: 0 }}>
                   <input
                     type="tel"
                     required
@@ -1443,53 +1478,91 @@ export default function PropertyDetailsPage({
                     placeholder="Mobile Number *"
                     value={enquiryForm.phone}
                     onChange={(e) => setEnquiryForm({ ...enquiryForm, phone: e.target.value })}
+                    style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}
                   />
                 </div>
-                <div>
+                <div style={{ width: '100%', maxWidth: '100%', minWidth: 0 }}>
                   <input
                     type="email"
                     className="form-input"
                     placeholder="Email Address"
                     value={enquiryForm.email}
                     onChange={(e) => setEnquiryForm({ ...enquiryForm, email: e.target.value })}
+                    style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}
                   />
                 </div>
-                <div>
+                <div style={{ width: '100%', maxWidth: '100%', minWidth: 0 }}>
                   <textarea
                     rows={3}
                     className="form-textarea"
                     placeholder="Your message or preferred visit date..."
                     value={enquiryForm.message}
                     onChange={(e) => setEnquiryForm({ ...enquiryForm, message: e.target.value })}
+                    style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={isSubmittingEnquiry}
-                  className="btn btn-primary"
-                  style={{ width: '100%', padding: '0.85rem' }}
+                  className="btn btn-primary enquiry-submit-btn"
+                  style={{
+                    width: '100%',
+                    maxWidth: '100%',
+                    padding: '0.85rem 1rem',
+                    boxSizing: 'border-box',
+                    whiteSpace: 'normal',
+                    wordBreak: 'break-word',
+                    textAlign: 'center'
+                  }}
                 >
                   {isSubmittingEnquiry ? 'Submitting...' : 'Send Property Enquiry'}
                 </button>
               </form>
 
               {/* Action Buttons */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', marginTop: '1.25rem', paddingTop: '1.25rem', borderTop: '1px solid var(--border-light)' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.65rem',
+                  marginTop: '1.25rem',
+                  paddingTop: '1.25rem',
+                  borderTop: '1px solid var(--border-light)',
+                  width: '100%',
+                  maxWidth: '100%',
+                  minWidth: 0,
+                  boxSizing: 'border-box'
+                }}
+              >
                 <button
                   onClick={() => onOpenScheduleVisit(property)}
                   className="btn btn-turquoise"
-                  style={{ width: '100%' }}
+                  style={{
+                    width: '100%',
+                    maxWidth: '100%',
+                    boxSizing: 'border-box',
+                    whiteSpace: 'normal',
+                    wordBreak: 'break-word',
+                    textAlign: 'center'
+                  }}
                 >
-                  <Calendar size={16} /> Schedule Free Cab Site Visit
+                  <Calendar size={16} style={{ flexShrink: 0 }} /> <span>Schedule Free Cab Site Visit</span>
                 </button>
 
                 <button
                   onClick={() => onOpenBrochure(property)}
                   className="btn btn-secondary"
-                  style={{ width: '100%' }}
+                  style={{
+                    width: '100%',
+                    maxWidth: '100%',
+                    boxSizing: 'border-box',
+                    whiteSpace: 'normal',
+                    wordBreak: 'break-word',
+                    textAlign: 'center'
+                  }}
                 >
-                  <FileText size={16} /> Get Verified Brochure
+                  <FileText size={16} style={{ flexShrink: 0 }} /> <span>Get Verified Brochure</span>
                 </button>
 
                 <a
@@ -1497,18 +1570,32 @@ export default function PropertyDetailsPage({
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn btn-whatsapp"
-                  style={{ width: '100%' }}
+                  style={{
+                    width: '100%',
+                    maxWidth: '100%',
+                    boxSizing: 'border-box',
+                    whiteSpace: 'normal',
+                    wordBreak: 'break-word',
+                    textAlign: 'center'
+                  }}
                 >
-                  <MessageCircle size={16} /> Chat on WhatsApp
+                  <MessageCircle size={16} style={{ flexShrink: 0 }} /> <span>Chat on WhatsApp</span>
                 </a>
 
                 <a
                   href={COMPANY_CONTACT_INFO.telLink}
                   className="btn btn-secondary"
-                  style={{ width: '100%' }}
+                  style={{
+                    width: '100%',
+                    maxWidth: '100%',
+                    boxSizing: 'border-box',
+                    whiteSpace: 'normal',
+                    wordBreak: 'break-word',
+                    textAlign: 'center'
+                  }}
                   title="Call Sales Advisor"
                 >
-                  <PhoneCall size={16} /> Call {COMPANY_CONTACT_INFO.phoneDisplay}
+                  <PhoneCall size={16} style={{ flexShrink: 0 }} /> <span>Call {COMPANY_CONTACT_INFO.phoneDisplay}</span>
                 </a>
               </div>
             </div>
@@ -1520,13 +1607,23 @@ export default function PropertyDetailsPage({
           5. SIMILAR / RELATED PROPERTIES
           ========================================================== */}
       {similarProperties.length > 0 && (
-        <section className="container" style={{ marginTop: '5rem' }}>
+        <section className="container" style={{ marginTop: '5rem', width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
           <div className="section-header">
             <span className="section-tag">More In {property.location}</span>
             <h2 className="section-title">Similar Verified Properties You May Like</h2>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.75rem' }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
+              gap: '1.75rem',
+              width: '100%',
+              maxWidth: '100%',
+              minWidth: 0,
+              boxSizing: 'border-box'
+            }}
+          >
             {similarProperties.map((p) => (
               <PropertyCard
                 key={p.id}
@@ -1594,7 +1691,51 @@ export default function PropertyDetailsPage({
       )}
 
       <style>{`
+        .property-main-layout {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) 360px;
+          gap: 2rem;
+          width: 100%;
+          max-width: 100%;
+          min-width: 0;
+          box-sizing: border-box;
+        }
+        .property-content-col,
+        .property-sidebar-col {
+          min-width: 0;
+          width: 100%;
+          max-width: 100%;
+          box-sizing: border-box;
+        }
+        .enquiry-form-card {
+          width: 100%;
+          max-width: 100%;
+          min-width: 0;
+          box-sizing: border-box;
+        }
+        .property-quick-actions-bar {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.65rem;
+          width: 100%;
+          max-width: 100%;
+          box-sizing: border-box;
+        }
+        .property-quick-btn {
+          flex: 1 1 auto;
+          min-width: 120px;
+        }
+        @media (max-width: 1050px) {
+          .property-main-layout {
+            grid-template-columns: minmax(0, 1fr) 320px;
+            gap: 1.5rem;
+          }
+        }
         @media (max-width: 900px) {
+          .property-main-layout {
+            grid-template-columns: minmax(0, 1fr) !important;
+            gap: 2rem !important;
+          }
           .gallery-grid-layout { grid-template-columns: 1fr !important; }
           .gallery-thumbnails-col {
             display: flex !important;
@@ -1610,7 +1751,9 @@ export default function PropertyDetailsPage({
             height: 60px !important;
             flex-shrink: 0 !important;
           }
-          .property-main-layout { grid-template-columns: 1fr !important; }
+          #enquiry-form-card {
+            position: static !important;
+          }
         }
         @media (max-width: 768px) {
           .property-header-price-actions {
@@ -1637,7 +1780,9 @@ export default function PropertyDetailsPage({
           .gallery-main-hero {
             height: clamp(220px, 50vw, 320px) !important;
           }
-          .property-details-card {
+          .property-details-card,
+          .property-specs-card,
+          .enquiry-form-card {
             padding: 1.25rem 1rem !important;
           }
         }
@@ -1652,6 +1797,16 @@ export default function PropertyDetailsPage({
           }
           .review-form-row {
             grid-template-columns: 1fr !important;
+          }
+          .property-quick-btn {
+            flex: 1 1 calc(50% - 0.5rem);
+            font-size: 0.8rem !important;
+            padding: 0.5rem 0.6rem !important;
+          }
+        }
+        @media (max-width: 420px) {
+          .property-quick-btn {
+            flex: 1 1 100%;
           }
         }
       `}</style>

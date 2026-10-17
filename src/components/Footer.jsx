@@ -287,13 +287,15 @@ export default function Footer({ navigate, onOpenAI }) {
         className="floating-whatsapp-container"
         style={{
           position: 'fixed',
-          bottom: 'calc(24px + env(safe-area-inset-bottom, 0px))',
-          right: 'calc(24px + env(safe-area-inset-right, 0px))',
+          bottom: 'max(20px, calc(20px + env(safe-area-inset-bottom, 0px)))',
+          right: 'max(20px, calc(20px + env(safe-area-inset-right, 0px)))',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'flex-end',
           gap: '10px',
-          zIndex: 9000
+          zIndex: 9000,
+          pointerEvents: 'none',
+          maxWidth: 'calc(100vw - 32px)'
         }}
       >
         <a
@@ -313,10 +315,13 @@ export default function Footer({ navigate, onOpenAI }) {
             fontSize: '0.88rem',
             boxShadow: '0 8px 25px rgba(37, 211, 102, 0.45)',
             textDecoration: 'none',
-            transition: 'transform 0.2s'
+            transition: 'transform 0.2s',
+            pointerEvents: 'auto',
+            touchAction: 'manipulation'
           }}
           onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-2px)')}
           onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
+          aria-label="Chat on WhatsApp"
         >
           <MessageCircle size={22} style={{ flexShrink: 0 }} />
           <span className="floating-whatsapp-text">Chat on WhatsApp</span>
@@ -334,15 +339,16 @@ export default function Footer({ navigate, onOpenAI }) {
             grid-template-columns: 1fr !important;
           }
           .floating-whatsapp-container {
-            bottom: calc(16px + env(safe-area-inset-bottom, 0px)) !important;
-            right: calc(16px + env(safe-area-inset-right, 0px)) !important;
+            bottom: max(16px, calc(16px + env(safe-area-inset-bottom, 0px))) !important;
+            right: max(16px, calc(16px + env(safe-area-inset-right, 0px))) !important;
           }
           .floating-whatsapp-link {
-            width: 50px !important;
-            height: 50px !important;
+            width: 48px !important;
+            height: 48px !important;
             padding: 0 !important;
             border-radius: 50% !important;
             justify-content: center !important;
+            box-shadow: 0 4px 18px rgba(37, 211, 102, 0.5) !important;
           }
           .floating-whatsapp-text {
             display: none !important;
