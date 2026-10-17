@@ -107,23 +107,43 @@ export default function OfficeMapSection() {
                 </div>
               </div>
 
-              {/* Address Box */}
-              <div
+              {/* Clickable Address Box */}
+              <a
+                href={officeMapUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Click to view office address on Google Maps"
                 style={{
+                  display: 'block',
                   backgroundColor: '#FFFFFF',
                   padding: '1.25rem',
                   borderRadius: 'var(--radius-md)',
-                  border: '1px solid var(--border-light)',
-                  marginBottom: '1.5rem'
+                  border: '1.5px solid var(--border-light)',
+                  marginBottom: '1.5rem',
+                  textDecoration: 'none',
+                  transition: 'border-color 0.2s, box-shadow 0.2s',
+                  cursor: 'pointer'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = '#008F83';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 143, 131, 0.12)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--border-light)';
+                  e.currentTarget.style.boxShadow = 'none';
                 }}
               >
-                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#008F83', textTransform: 'uppercase', marginBottom: '4px' }}>
-                  Address
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#008F83', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <MapPin size={13} />
+                    <span>Office Address (Click to Open in Maps)</span>
+                  </div>
+                  <ExternalLink size={14} color="#008F83" />
                 </div>
                 <div style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-heading)', lineHeight: 1.5 }}>
                   {PART4_MEDIA.address}
                 </div>
-              </div>
+              </a>
 
               {/* Office Contact Info */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', marginBottom: '1.5rem' }}>

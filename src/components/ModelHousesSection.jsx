@@ -105,7 +105,7 @@ export default function ModelHousesSection({ navigate, onViewProperty, onOpenSch
             Model Houses & Finished Villa Elevations
           </h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', margin: '0 auto 1.25rem' }}>
-            Experience actual finished craftsmanship before construction begins. Explore 74 high-resolution photographs and 3 on-site video walkthroughs of our contemporary villas.
+            Experience actual finished craftsmanship before construction begins. Explore 74 high-resolution photographs and 2 on-site video walkthroughs of our contemporary villas.
           </p>
 
           {/* Quick Metrics Bar */}
@@ -127,7 +127,7 @@ export default function ModelHousesSection({ navigate, onViewProperty, onOpenSch
             </span>
             <span style={{ color: 'var(--border-color)' }}>|</span>
             <span style={{ color: 'var(--primary-teal)', fontWeight: 700 }}>
-              3 Video Walkthroughs
+              {videos.length} Video Walkthroughs
             </span>
             <span style={{ color: 'var(--border-color)' }}>|</span>
             <span style={{ color: '#B27B08', fontWeight: 700 }}>

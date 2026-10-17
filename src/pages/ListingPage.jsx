@@ -266,6 +266,7 @@ export default function ListingPage({
               >
                 <option value="all">All Categories</option>
                 <option value="Upcoming Projects">Upcoming Projects</option>
+                <option value="Ready-to-Move">Ready-to-Move House</option>
                 <option value="Plots">Residential Plots</option>
                 <option value="2 BHK Homes">2 BHK Homes</option>
                 <option value="3 BHK Homes">3 BHK Homes</option>

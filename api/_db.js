@@ -195,7 +195,7 @@ function getInitialSeedUsers() {
       firstName: 'Admin',
       lastName: 'Lakshman',
       email: 'srilakshman73@gmail.com',
-      phone: '+91 73050 23919',
+      phone: '+91 78455 85919',
       passwordHash: adminHash,
       avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
       role: 'admin',
@@ -245,7 +245,7 @@ function ensureAdminAccount(users) {
       firstName: 'Admin',
       lastName: 'Lakshman',
       email: adminEmail,
-      phone: '+91 73050 23919',
+      phone: '+91 78455 85919',
       passwordHash: hashPassword(ADMIN_INITIAL_PASSWORD),
       avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
       role: 'admin',
@@ -262,8 +262,8 @@ function ensureAdminAccount(users) {
   } else {
     // Ensure role is admin and contact number is current official company number
     admin.role = 'admin';
-    if (!admin.phone || admin.phone.includes('78455')) {
-      admin.phone = '+91 73050 23919';
+    if (!admin.phone || admin.phone.includes('73050')) {
+      admin.phone = '+91 78455 85919';
     }
     if (!admin.passwordHash) {
       admin.passwordHash = hashPassword(ADMIN_INITIAL_PASSWORD);

@@ -49,7 +49,10 @@ export default function HomePage({
 }) {
   const { properties, setFilters } = useProperties();
 
-  const featuredProperties = properties.filter((p) => !p.isUpcoming && p.category !== 'Upcoming Projects').slice(0, 4);
+  const featuredProperties = [
+    properties.find((p) => p.id === 'ph-113'),
+    ...properties.filter((p) => p.id !== 'ph-113' && !p.isUpcoming && p.category !== 'Upcoming Projects')
+  ].filter(Boolean).slice(0, 4);
   const upcomingProjects = properties.filter((p) => p.isUpcoming || p.category === 'Upcoming Projects');
 
   // Search hero state
@@ -245,6 +248,7 @@ export default function HomePage({
                       style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-heading)', width: '100%', cursor: 'pointer' }}
                     >
                       <option value="all">Any Type</option>
+                      <option value="Ready-to-Move">Ready-to-Move House</option>
                       <option value="Upcoming Projects">Upcoming Projects</option>
                       <option value="Residential Plots">Residential Plots</option>
                       <option value="2 BHK Homes">2 BHK Homes</option>

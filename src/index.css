@@ -639,3 +639,27 @@ img {
   image-rendering: -webkit-optimize-contrast;
   pointer-events: none;
 }
+
+/* ==========================================================================
+   PROPERTY VIDEO GALLERIES RESPONSIVE GRID
+   Desktop: 3 cards/row | Tablet: 2 cards/row | Mobile: 1 card/row
+   ========================================================================== */
+.property-videos-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 1.75rem;
+}
+
+@media (max-width: 1024px) {
+  .property-videos-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 1.25rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .property-videos-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem;
+  }
+}

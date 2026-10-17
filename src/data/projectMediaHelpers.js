@@ -65,7 +65,7 @@ export const PART4_MEDIA = {
   companyName: "Perfect Homes & Developers",
   address: "No: 3, Krishna Nagar, CTH Road, Thiruninravur – 602024, Tamil Nadu, India.",
   email: "perfecthomesd@gmail.com",
-  phonePrimary: "+91 73050 23919",
+  phonePrimary: "+91 78455 85919",
   phoneAlternate: "+91 78455 85919",
   images: IMPORTED_MEDIA.filter((m) => m.partNumber === 4 && m.mediaType === 'image').map((m) => m.storagePath)
 };
@@ -102,7 +102,7 @@ export const PART6_MEDIA = {
   }))
 };
 
-// Part 7: Thiruninravur On-Road Site (Kosavanpalayam)
+// Part 7: Thiruninravur On-Road Site (Kosavanpalayam) - 5 Unique Walkthrough Videos (Deduplicated)
 export const PART7_MEDIA = {
   partNumber: 7,
   projectName: "Thiruninravur On-Road Site",
@@ -114,37 +114,96 @@ export const PART7_MEDIA = {
     { name: "Thiruninravur Railway Station", detail: "approximately 3 km / 10 minutes" }
   ],
   images: IMPORTED_MEDIA.filter((m) => m.partNumber === 7 && m.mediaType === 'image').map((m) => m.storagePath),
-  videos: IMPORTED_MEDIA.filter((m) => m.partNumber === 7 && m.mediaType === 'video').map((m, idx) => ({
-    id: `p7-vid-${idx + 1}`,
-    title: `Kosavanpalayam On-Road Site Video #${idx + 1}`,
-    shortTitle: `Kosavanpalayam Video #${idx + 1}`,
-    description: `Real on-site walkthrough showing road frontage, Perumal Kovil proximity, and electrical infrastructure.`,
-    url: m.storagePath,
-    downloadName: m.filename,
-    poster: IMPORTED_MEDIA.find((x) => x.partNumber === 7 && x.mediaType === 'image')?.storagePath || '',
-    duration: 'Walkthrough',
-    published: true
-  }))
+  videos: [
+    {
+      id: "p7-vid-1",
+      title: "Kosavanpalayam On-Road Approach & Road Frontage",
+      shortTitle: "Main Road Frontage",
+      description: "Direct on-site view of the wide main road frontage and approach connectivity at Kosavanpalayam, Thiruninravur.",
+      url: "/media/part7/videos/whatsapp_video_2026-10-16_at_11_19_22_am_17.mp4",
+      downloadName: "kosavanpalayam-road-frontage-video-1.mp4",
+      poster: "/media/part7/images/whatsapp_image_2026-10-16_at_11_19_17_am_1.jpeg",
+      duration: "0:32",
+      published: true
+    },
+    {
+      id: "p7-vid-2",
+      title: "Internal Plotted Layout & Clear Boundary Stones",
+      shortTitle: "Plotted Layout",
+      description: "Walkthrough of surveyed residential plots, marked boundary stones, and individual layout demarcations.",
+      url: "/media/part7/videos/whatsapp_video_2026-10-16_at_11_19_33_am_19.mp4",
+      downloadName: "kosavanpalayam-plots-layout-video-2.mp4",
+      poster: "/media/part7/images/whatsapp_image_2026-10-16_at_11_19_18_am_3.jpeg",
+      duration: "0:59",
+      published: true
+    },
+    {
+      id: "p7-vid-3",
+      title: "Perumal Kovil Historic Landmark Proximity",
+      shortTitle: "Perumal Kovil Proximity",
+      description: "Site walkthrough showing immediate proximity to the historic Perumal Kovil landmark and surrounding peaceful residential neighborhood.",
+      url: "/media/part7/videos/whatsapp_video_2026-10-16_at_11_19_37_am_20.mp4",
+      downloadName: "kosavanpalayam-perumal-kovil-proximity-video-3.mp4",
+      poster: "/media/part7/images/whatsapp_image_2026-10-16_at_11_19_19_am_5.jpeg",
+      duration: "0:29",
+      published: true
+    },
+    {
+      id: "p7-vid-4",
+      title: "40-Feet Wide Internal Tar Road Walkthrough",
+      shortTitle: "40-Ft Tar Road",
+      description: "Full master walkthrough showcasing the 40-feet wide internal blacktop road, EB power poles, and street lighting.",
+      url: "/media/part7/videos/whatsapp_video_2026-10-16_at_11_19_38_am_22.mp4",
+      downloadName: "kosavanpalayam-40ft-tar-road-video-4.mp4",
+      poster: "/media/part7/images/whatsapp_image_2026-10-16_at_11_19_20_am_8.jpeg",
+      duration: "1:08",
+      published: true
+    },
+    {
+      id: "p7-vid-5",
+      title: "Corner Plot & Road Junction Connectivity",
+      shortTitle: "Corner Plot Junction",
+      description: "Survey view of corner plots, cross-road accessibility, and sweet groundwater table surroundings.",
+      url: "/media/part7/videos/whatsapp_video_2026-10-16_at_11_19_39_am_23.mp4",
+      downloadName: "kosavanpalayam-corner-plot-video-5.mp4",
+      poster: "/media/part7/images/whatsapp_image_2026-10-16_at_11_19_21_am_11.jpeg",
+      duration: "0:19",
+      published: true
+    }
+  ]
 };
 
-// Part 8: Model Houses
+// Part 8: Model Houses - 2 Distinct Model Architectural Walkthroughs (Video #76 moved to Ready-to-Move House in Thiruninravur)
 export const PART8_MEDIA = {
   partNumber: 8,
   title: "Model Houses & Architectural Elevations",
-  subtitle: "74 verified photographs and 3 walkthrough videos of real built villas and interior architecture",
-  totalPhotosExpected: 74, // Note: Verified actual count in part8.zip is 74 images + 3 videos = 77 media files
+  subtitle: "74 verified photographs and 2 walkthrough videos of real built villas and interior architecture",
+  totalPhotosExpected: 74,
   images: IMPORTED_MEDIA.filter((m) => m.partNumber === 8 && m.mediaType === 'image').map((m) => m.storagePath),
-  videos: IMPORTED_MEDIA.filter((m) => m.partNumber === 8 && m.mediaType === 'video').map((m, idx) => ({
-    id: `p8-vid-${idx + 1}`,
-    title: `Model House Architectural Video Walkthrough #${idx + 1}`,
-    shortTitle: `Model House Video #${idx + 1}`,
-    description: `Interior layout, room finishes, modern ceiling lighting, and structural elevation walkthrough.`,
-    url: m.storagePath,
-    downloadName: m.filename,
-    poster: IMPORTED_MEDIA.find((x) => x.partNumber === 8 && x.mediaType === 'image')?.storagePath || '',
-    duration: 'Model Walkthrough',
-    published: true
-  })),
+  videos: [
+    {
+      id: "p8-vid-1",
+      title: "Model Villa Architectural Elevation & Exterior Walkthrough",
+      shortTitle: "Elevation Walkthrough",
+      description: "Exterior elevation, contemporary architectural pergola, boundary wall, and portico entrance walkthrough.",
+      url: "/media/part8/videos/whatsapp_video_2026-10-16_at_11_25_08_am_75.mp4",
+      downloadName: "model-villa-elevation-walkthrough-1.mp4",
+      poster: "/media/part8/images/whatsapp_image_2026-10-16_at_11_25_02_am_70.jpeg",
+      duration: "0:11",
+      published: true
+    },
+    {
+      id: "p8-vid-2",
+      title: "Model Villa Front Portico & Entrance Walkthrough",
+      shortTitle: "Portico & Entrance",
+      description: "Front portico car parking, main teakwood entrance doorway, and exterior facade lighting tour.",
+      url: "/media/part8/videos/whatsapp_video_2026-10-16_at_11_25_14_am_77.mp4",
+      downloadName: "model-villa-entrance-walkthrough-2.mp4",
+      poster: "/media/part8/images/whatsapp_image_2026-10-16_at_11_25_09_am_15.jpeg",
+      duration: "0:13",
+      published: true
+    }
+  ],
   // Distinct Project Model Houses
   modelProjects: [
     {
@@ -180,4 +239,30 @@ export const PART8_MEDIA = {
       images: IMPORTED_MEDIA.filter((m) => m.partNumber === 8 && m.mediaType === 'image').slice(60).map((m) => m.storagePath)
     }
   ]
+};
+
+// Ready-to-Move House in Thiruninravur (Standalone Property Listing)
+export const THIRUNINRAVUR_READY_TO_MOVE_VIDEO = {
+  id: "rtm-thiruninravur-vid-1",
+  title: "Ready-to-Move House in Thiruninravur — Video Walkthrough",
+  shortTitle: "Property Video Tour",
+  description: "Watch the property video to explore the visible features of the ready-to-move house in Thiruninravur.",
+  url: "/media/part8/videos/whatsapp_video_2026-10-16_at_11_25_09_am_76.mp4",
+  downloadName: "ready-to-move-house-thiruninravur-walkthrough.mp4",
+  poster: "/media/part8/images/whatsapp_image_2026-10-16_at_11_25_09_am_15.jpeg",
+  duration: "Walkthrough",
+  published: true
+};
+
+export const THIRUNINRAVUR_READY_TO_MOVE_MEDIA = {
+  title: "Ready-to-Move House in Thiruninravur",
+  location: "Thiruninravur, Tamil Nadu, India",
+  status: "Ready to Move",
+  images: [
+    "/media/part8/images/whatsapp_image_2026-10-16_at_11_25_09_am_15.jpeg",
+    "/media/part8/images/whatsapp_image_2026-10-16_at_11_25_10_am_2__17.jpeg",
+    "/media/part8/images/whatsapp_image_2026-10-16_at_11_25_10_am_18.jpeg",
+    "/media/part8/images/whatsapp_image_2026-10-16_at_11_25_10_am_1__16.jpeg"
+  ],
+  videos: [THIRUNINRAVUR_READY_TO_MOVE_VIDEO]
 };

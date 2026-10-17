@@ -9,7 +9,7 @@ import { useToast } from './ToastContext';
 
 const PropertyContext = createContext(null);
 
-const STORAGE_PROPERTIES_KEY = 'ph_properties_db_v3';
+const STORAGE_PROPERTIES_KEY = 'ph_properties_db_v4';
 const STORAGE_ENQUIRIES_KEY = 'ph_enquiries_db_v1';
 const WISHLIST_PREFIX = 'ph_wishlist_';
 
@@ -59,17 +59,17 @@ export function PropertyProvider({ children }) {
       const saved = localStorage.getItem(STORAGE_PROPERTIES_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        // Ensure all catalog properties (specifically ph-106 Nathamedu) are present
+        // Ensure all catalog properties (specifically ph-113 Thiruninravur ready-to-move house) are present
         const missing = PROPERTIES_DATA.filter((dp) => !parsed.some((p) => p.id === dp.id));
         let merged = [...parsed, ...missing];
 
-        // Ensure catalog videos are synced if existing cached item lacks videos
+        // Ensure catalog videos are synced with verified catalog data
         let hasVideoSync = false;
         merged = merged.map((p) => {
           const catalogProp = PROPERTIES_DATA.find((dp) => dp.id === p.id);
-          if (catalogProp?.videos && (!p.videos || p.videos.length === 0)) {
+          if (catalogProp?.videos) {
             hasVideoSync = true;
-            return { ...p, videos: catalogProp.videos };
+            return { ...p, videos: catalogProp.videos, images: catalogProp.images || p.images };
           }
           return p;
         });

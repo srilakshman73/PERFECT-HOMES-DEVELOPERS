@@ -2163,16 +2163,16 @@ export const IMPORTED_MEDIA = [
   {
     "id": "med_p8_76_bbuw",
     "partNumber": 8,
-    "partName": "Model Houses & Architectural Elevations",
-    "projectId": "ph-model-house-videos",
-    "originalFilename": "WhatsApp Video 2026-10-16 at 11.25.09 AM.mp4",
+    "partName": "Ready-to-Move House in Thiruninravur",
+    "projectId": "ph-113",
+    "originalFilename": "WhatsApp Video 2026-10-16 at 11.27.49 AM.mp4",
     "filename": "whatsapp_video_2026-10-16_at_11_25_09_am_76.mp4",
     "mediaType": "video",
     "storagePath": "/media/part8/videos/whatsapp_video_2026-10-16_at_11_25_09_am_76.mp4",
     "sizeKB": 10926.8,
     "uploadDate": "2026-10-17",
     "isFeatured": false,
-    "caption": "Model House Architecture Video #76"
+    "caption": "Ready-to-Move House in Thiruninravur — Video Walkthrough"
   },
   {
     "id": "med_p8_77_cppo",

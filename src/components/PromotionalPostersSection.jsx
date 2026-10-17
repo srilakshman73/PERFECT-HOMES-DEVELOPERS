@@ -250,7 +250,7 @@ export default function PromotionalPostersSection({ onOpenBrochure }) {
                   fontSize: '0.9rem'
                 }}
               >
-                <PhoneCall size={16} /> Call +91 73050 23919
+                <PhoneCall size={16} /> Call {COMPANY_CONTACT_INFO.phoneDisplay}
               </a>
             </div>
           </div>

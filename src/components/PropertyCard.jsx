@@ -289,23 +289,40 @@ export default function PropertyCard({
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontWeight: 600, color: '#17313D' }}>
                     <BedDouble size={14} color="#008F83" /> {property.bhk} BHK
                   </span>
-                ) : (
+                ) : property.propertyType === 'Plot' || property.category === 'Residential Plots' ? (
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontWeight: 600, color: '#17313D' }}>
                     <Trees size={14} color="#008F83" /> Plot
                   </span>
+                ) : (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontWeight: 600, color: '#17313D' }}>
+                    <Home size={14} color="#008F83" /> {property.propertyType || 'House'}
+                  </span>
                 )}
 
-                <span style={{ color: '#DCE9E6' }}>|</span>
+                {(property.plotAreaRange || property.builtUpArea > 0 || property.plotArea > 0) ? (
+                  <>
+                    <span style={{ color: '#DCE9E6' }}>|</span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontWeight: 600, color: '#17313D' }}>
+                      <Maximize2 size={13} color="#008F83" /> {property.plotAreaRange || (property.builtUpArea > 0 ? `${property.builtUpArea} Sq.ft` : `${property.plotArea} Sq.ft`)}
+                    </span>
+                  </>
+                ) : property.availability ? (
+                  <>
+                    <span style={{ color: '#DCE9E6' }}>|</span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontWeight: 600, color: '#008F83' }}>
+                      <CheckCircle2 size={13} /> {property.availability}
+                    </span>
+                  </>
+                ) : null}
 
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontWeight: 600, color: '#17313D' }}>
-                  <Maximize2 size={13} color="#008F83" /> {property.plotAreaRange || (property.builtUpArea > 0 ? `${property.builtUpArea} Sq.ft` : `${property.plotArea} Sq.ft`)}
-                </span>
-
-                <span style={{ color: '#DCE9E6' }}>|</span>
-
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', color: '#059669', fontWeight: 600 }}>
-                  <CheckCircle2 size={13} /> {property.approval}
-                </span>
+                {property.approval && (
+                  <>
+                    <span style={{ color: '#DCE9E6' }}>|</span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', color: '#059669', fontWeight: 600 }}>
+                      <CheckCircle2 size={13} /> {property.approval}
+                    </span>
+                  </>
+                )}
               </>
             )}
           </div>

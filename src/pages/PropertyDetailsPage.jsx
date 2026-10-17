@@ -307,9 +307,13 @@ export default function PropertyDetailsPage({
                   <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', maxWidth: '300px', lineHeight: 1.4, marginTop: '2px' }}>
                     Final pricing &amp; availability to be confirmed with company
                   </div>
-                ) : (
+                ) : property.price > 0 ? (
                   <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
                     EMI starts from <strong>₹{Math.round(property.price * 0.0087).toLocaleString()}/mo</strong>
+                  </div>
+                ) : (
+                  <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                    Contact for verified pricing &amp; site visit
                   </div>
                 )}
               </div>
@@ -547,7 +551,7 @@ export default function PropertyDetailsPage({
             </>
           ) : (
             <>
-              {/* BHK */}
+              {/* Configuration */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <div style={specIconCircle}>
                   <BedDouble size={20} color="var(--primary-teal)" />
@@ -555,7 +559,7 @@ export default function PropertyDetailsPage({
                 <div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Configuration</div>
                   <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--deep-teal)' }}>
-                    {property.bhk > 0 ? `${property.bhk} BHK` : 'Plotted Land'}
+                    {property.bhk > 0 ? `${property.bhk} BHK` : property.propertyType === 'Plot' || property.category === 'Residential Plots' ? 'Plotted Land' : property.propertyType || 'Independent House'}
                   </div>
                 </div>
               </div>
@@ -568,7 +572,7 @@ export default function PropertyDetailsPage({
                 <div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Built-up Area</div>
                   <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--deep-teal)' }}>
-                    {property.builtUpArea > 0 ? `${property.builtUpArea} sq.ft` : 'Customizable'}
+                    {property.builtUpArea > 0 ? `${property.builtUpArea} sq.ft` : property.availability || 'Ready to Move'}
                   </div>
                 </div>
               </div>
@@ -581,7 +585,7 @@ export default function PropertyDetailsPage({
                 <div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Plot Area</div>
                   <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--deep-teal)' }}>
-                    {property.plotArea} sq.ft
+                    {property.plotArea > 0 ? `${property.plotArea} sq.ft` : 'Direct Road Access'}
                   </div>
                 </div>
               </div>
@@ -636,6 +640,108 @@ export default function PropertyDetailsPage({
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: '2rem' }} className="property-main-layout">
           {/* LEFT: TABS & CONTENT PANELS */}
           <div>
+            {/* Quick Action Buttons Bar */}
+            <div
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: '0.65rem',
+                marginBottom: '1.5rem',
+                padding: '0.85rem 1rem',
+                backgroundColor: '#F5FAF9',
+                borderRadius: 'var(--radius-md)',
+                border: '1.5px solid var(--border-light)',
+                alignItems: 'center'
+              }}
+            >
+              {property.videos && property.videos.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('videos')}
+                  className="btn btn-primary"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '0.55rem 1rem',
+                    fontSize: '0.85rem',
+                    fontWeight: 700
+                  }}
+                >
+                  <Play size={15} fill="#FFFFFF" /> Watch Video
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={() => {
+                  const f = document.getElementById('enquiry-form-card');
+                  if (f) f.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="btn btn-turquoise"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '0.55rem 1rem',
+                  fontSize: '0.85rem',
+                  fontWeight: 700
+                }}
+              >
+                <Send size={15} /> Enquire Now
+              </button>
+
+              <button
+                type="button"
+                onClick={() => onOpenScheduleVisit(property)}
+                className="btn btn-secondary"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '0.55rem 1rem',
+                  fontSize: '0.85rem',
+                  fontWeight: 700
+                }}
+              >
+                <Calendar size={15} /> Schedule a Site Visit
+              </button>
+
+              <a
+                href={COMPANY_CONTACT_INFO.telLink}
+                className="btn btn-secondary"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '0.55rem 1rem',
+                  fontSize: '0.85rem',
+                  fontWeight: 700,
+                  textDecoration: 'none'
+                }}
+              >
+                <PhoneCall size={15} /> Call Us
+              </a>
+
+              <a
+                href={`https://wa.me/${COMPANY_CONTACT_INFO.whatsappNumber}?text=${whatsappMessage}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-whatsapp"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '0.55rem 1rem',
+                  fontSize: '0.85rem',
+                  fontWeight: 700,
+                  textDecoration: 'none'
+                }}
+              >
+                <MessageCircle size={15} /> Chat on WhatsApp
+              </a>
+            </div>
+
             {/* Tab Navigation Buttons */}
             <div
               style={{
@@ -814,7 +920,7 @@ export default function PropertyDetailsPage({
                       Site Visit Videos — {property.title}
                     </h3>
                     <p style={{ color: 'var(--text-secondary)', fontSize: '0.92rem', margin: 0, maxWidth: '720px', lineHeight: 1.6 }}>
-                      Real on-site walkthrough videos of the Niranjan Nagar layout, access road, surrounding residential homes, boundary views, and road connectivity. Watch videos directly on the website or download individual original MP4 files below.
+                      Real on-site walkthrough videos of {property.title}, access road, surrounding residential homes, boundary views, and road connectivity. Watch videos directly on the website or download individual original MP4 files below.
                     </p>
                   </div>
                   <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -1282,6 +1388,7 @@ export default function PropertyDetailsPage({
           {/* RIGHT: STICKY ENQUIRY & CONTACT CARD */}
           <div>
             <div
+              id="enquiry-form-card"
               className="card"
               style={{
                 padding: '1.75rem',

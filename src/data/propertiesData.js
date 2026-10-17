@@ -2,7 +2,7 @@
    PERFECT HOMES & DEVELOPERS - PROPERTIES DATASET
    ========================================================================== */
 
-import { PART1_MEDIA, PART6_MEDIA, PART7_MEDIA, PART8_MEDIA } from './projectMediaHelpers.js';
+import { PART1_MEDIA, PART6_MEDIA, PART7_MEDIA, PART8_MEDIA, THIRUNINRAVUR_READY_TO_MOVE_MEDIA } from './projectMediaHelpers.js';
 
 export const PROPERTIES_DATA = [
   {
@@ -497,7 +497,7 @@ export const PROPERTIES_DATA = [
       "Railway station — approximately 3 km / 10 minutes",
       "Bus stop — approximately 1 minute",
       "16 high-resolution site photographs",
-      "7 on-site walkthrough videos with road connectivity view"
+      "5 on-site walkthrough videos with road connectivity view"
     ],
     amenities: [
       "Direct Main Road Access",
@@ -555,13 +555,13 @@ export const PROPERTIES_DATA = [
     reviewsCount: 22,
     images: PART8_MEDIA.modelProjects[0].images,
     imageAlts: PART8_MEDIA.modelProjects[0].images.map((_, i) => `Model Villa Aster photo #${i + 1}`),
-    videos: PART8_MEDIA.videos,
+    videos: [PART8_MEDIA.videos[0]],
     description: "Model Villa Aster represents a finished 2 BHK individual home showcase featuring modern false ceiling LED lights, premium vitrified floor tiles, carved teakwood main door, and spacious open kitchen.",
     highlights: [
       "Section: Model Houses (Part 8)",
       "2 BHK independent house model architecture",
       "Real finished interior and exterior photographs",
-      "3 full video walkthrough tours",
+      "1 architectural video walkthrough tour",
       "Available for site visit and turnkey reproduction"
     ],
     amenities: [
@@ -619,14 +619,14 @@ export const PROPERTIES_DATA = [
     reviewsCount: 31,
     images: PART8_MEDIA.modelProjects[1].images,
     imageAlts: PART8_MEDIA.modelProjects[1].images.map((_, i) => `Model Villa Bloom photo #${i + 1}`),
-    videos: PART8_MEDIA.videos,
+    videos: [PART8_MEDIA.videos[1]],
     description: "Model Villa Bloom is a two-story luxury duplex model villa featuring stainless steel glass staircase railings, private upper balcony, covered portico car parking, and three spacious en-suite bedrooms.",
     highlights: [
       "Section: Model Houses (Part 8)",
       "3 BHK luxury duplex model architecture",
       "Two floors of premium living space",
       "Real finished interior and exterior photographs",
-      "3 video walkthrough tours included"
+      "1 architectural video walkthrough tour"
     ],
     amenities: [
       "Double Height Living Hall",
@@ -690,7 +690,7 @@ export const PROPERTIES_DATA = [
       "Contemporary villa elevation architecture",
       "Panoramic glass windows and textured facade",
       "Real interior finish photographs",
-      "3 walkthrough videos available"
+      "2 walkthrough videos available"
     ],
     amenities: [
       "Architectural Pergola & Texture Exterior",
@@ -758,6 +758,75 @@ export const PROPERTIES_DATA = [
     specifications: {
       source: "D:\\Perfect homes & developers\\photos\\part8.zip",
       assignment: "Awaiting Administrator Allocation"
+    }
+  },
+  {
+    id: "ph-113",
+    title: "Ready-to-Move House in Thiruninravur",
+    slug: "ready-to-move-house-thiruninravur",
+    tagline: "Conveniently Located Ready-to-Move House near Bus Stand & Railway Station",
+    headline: "Ready-to-Move House in Thiruninravur, Tamil Nadu, India",
+    category: "Ready-to-Move House",
+    propertyType: "Ready-to-Move House",
+    projectStatus: "Ready to Move",
+    statusBadge: "Ready to Move",
+    constructionStatus: "Ready to Move",
+    availability: "Ready to Move",
+    price: 0,
+    priceDisplay: "Contact for Price",
+    priceNote: "Contact Perfect Homes & Developers to arrange a site visit and obtain further property details.",
+    location: "Thiruninravur",
+    fullAddress: "Thiruninravur, Tamil Nadu, India",
+    bhk: null,
+    bathrooms: null,
+    builtUpArea: 0,
+    plotArea: 0,
+    facing: "East",
+    approval: "Verified Property",
+    approvalNo: "Verified Document",
+    bankLoan: "Bank Loan Assistance Available",
+    possession: "Ready to Move",
+    roadWidth: "Direct Road Access",
+    waterSource: "Sweet Ground Water Belt",
+    featured: true,
+    isUpcoming: false,
+    isPublished: true,
+    forSale: true,
+    rating: 5.0,
+    reviewsCount: 16,
+    images: THIRUNINRAVUR_READY_TO_MOVE_MEDIA.images,
+    imageAlts: [
+      "Ready-to-Move House in Thiruninravur — Front elevation, portico, and gate view",
+      "Ready-to-Move House in Thiruninravur — Modular kitchen with granite countertop and cabinets",
+      "Ready-to-Move House in Thiruninravur — Living hall and designer pooja unit partition",
+      "Ready-to-Move House in Thiruninravur — Bedroom with built-in wardrobe and vitrified tile flooring"
+    ],
+    videos: THIRUNINRAVUR_READY_TO_MOVE_MEDIA.videos,
+    description: "Discover this ready-to-move house in Thiruninravur, offering convenient access to public transportation and essential local amenities. The railway station is approximately 10 minutes away, and the bus stand is approximately 5 minutes away. This property is worth exploring for families looking for a home with convenient local connectivity.\n\nWatch the property video to explore the visible features of the house. Contact Perfect Homes & Developers to arrange a site visit and obtain further property details.",
+    highlights: [
+      "Location: Thiruninravur, Tamil Nadu, India",
+      "Property status: Ready to Move",
+      "Railway station: Approximately 10 minutes",
+      "Bus stand: Approximately 5 minutes",
+      "Watch the property video to explore visible features of the house",
+      "Contact Perfect Homes & Developers to arrange a site visit"
+    ],
+    amenities: [
+      "Ready to Move House",
+      "Approximately 10 mins to Railway Station",
+      "Approximately 5 mins to Bus Stand",
+      "Road Connectivity",
+      "Sweet Ground Water"
+    ],
+    nearby: [
+      { name: "Railway Station", distance: "Approximately 10 minutes" },
+      { name: "Bus Stand", distance: "Approximately 5 minutes" }
+    ],
+    specifications: {
+      propertyStatus: "Ready to Move",
+      location: "Thiruninravur, Tamil Nadu, India",
+      connectivity: "Railway station ~10 mins, Bus stand ~5 mins",
+      walkthrough: "Full Video Walkthrough Attached"
     }
   }
 ];
