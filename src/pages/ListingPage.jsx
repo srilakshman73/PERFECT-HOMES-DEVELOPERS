@@ -270,6 +270,7 @@ export default function ListingPage({
                 <option value="2 BHK Homes">2 BHK Homes</option>
                 <option value="3 BHK Homes">3 BHK Homes</option>
                 <option value="Villas">Luxury Villas</option>
+                <option value="Model Houses">Model Houses</option>
                 <option value="Land + Construction">Land + Construction</option>
               </select>
             </div>
@@ -655,6 +656,7 @@ export default function ListingPage({
                 <option value="2 BHK Homes">2 BHK</option>
                 <option value="3 BHK Homes">3 BHK</option>
                 <option value="Villas">Villas</option>
+                <option value="Model Houses">Model Houses</option>
                 <option value="Land + Construction">Land + Construction</option>
               </select>
             </div>

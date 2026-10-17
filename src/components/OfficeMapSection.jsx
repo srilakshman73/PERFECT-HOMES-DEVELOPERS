@@ -1,0 +1,305 @@
+/* ==========================================================================
+   PERFECT HOMES & DEVELOPERS — PART 5: OFFICE MAP SECTION
+   Strictly office location only. Does not apply to property locations.
+   ========================================================================== */
+
+import React from 'react';
+import { MapPin, Navigation, ExternalLink, Phone, Mail, Clock, Building2 } from 'lucide-react';
+import { PART5_OFFICE_MAP, PART4_MEDIA } from '../data/projectMediaHelpers.js';
+
+export default function OfficeMapSection() {
+  const officeMapUrl = PART5_OFFICE_MAP.googleMapsUrl;
+  const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=13.1182,80.0263&destination_place_id=ChIJ...`;
+
+  return (
+    <section
+      id="office-map-section"
+      style={{
+        padding: '3.5rem 0',
+        backgroundColor: '#FFFFFF',
+        borderTop: '1px solid var(--border-light)',
+        borderBottom: '1px solid var(--border-light)'
+      }}
+    >
+      <div className="container">
+        <div style={{ textAlign: 'center', maxWidth: '750px', margin: '0 auto 2.5rem' }}>
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              backgroundColor: 'rgba(0, 143, 131, 0.08)',
+              color: '#008F83',
+              padding: '0.35rem 0.9rem',
+              borderRadius: '999px',
+              fontSize: '0.82rem',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              marginBottom: '0.75rem'
+            }}
+          >
+            <Building2 size={15} />
+            <span>Part 5 — Corporate Headquarters & Office Map</span>
+          </div>
+
+          <h2
+            style={{
+              fontSize: '2.1rem',
+              fontWeight: 800,
+              color: 'var(--deep-teal)',
+              lineHeight: 1.25,
+              margin: '0 0 0.75rem'
+            }}
+          >
+            Visit Our Thiruninravur Office
+          </h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.98rem', margin: 0 }}>
+            Meet our property consultants, review verified DTCP/CMDA master layouts, and discuss bank loans in person at our registered office.
+          </p>
+        </div>
+
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+            gap: '2rem',
+            alignItems: 'stretch'
+          }}
+        >
+          {/* Office Details Card */}
+          <div
+            className="card"
+            style={{
+              padding: '2.2rem',
+              backgroundColor: '#F9FBFB',
+              borderRadius: 'var(--radius-lg)',
+              border: '1.5px solid var(--border-light)',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between'
+            }}
+          >
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '1.5rem' }}>
+                <div
+                  style={{
+                    width: '48px',
+                    height: '48px',
+                    borderRadius: '12px',
+                    backgroundColor: 'rgba(0, 143, 131, 0.12)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#008F83',
+                    flexShrink: 0
+                  }}
+                >
+                  <MapPin size={26} />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--deep-teal)', margin: 0 }}>
+                    {PART4_MEDIA.companyName}
+                  </h3>
+                  <p style={{ fontSize: '0.82rem', color: '#687985', margin: '2px 0 0' }}>
+                    Registered Corporate Office
+                  </p>
+                </div>
+              </div>
+
+              {/* Address Box */}
+              <div
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  padding: '1.25rem',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--border-light)',
+                  marginBottom: '1.5rem'
+                }}
+              >
+                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#008F83', textTransform: 'uppercase', marginBottom: '4px' }}>
+                  Address
+                </div>
+                <div style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-heading)', lineHeight: 1.5 }}>
+                  {PART4_MEDIA.address}
+                </div>
+              </div>
+
+              {/* Office Contact Info */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', marginBottom: '1.5rem' }}>
+                <a
+                  href={`tel:${PART4_MEDIA.phonePrimary.replace(/\s+/g, '')}`}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    color: 'var(--text-heading)',
+                    fontSize: '0.92rem',
+                    textDecoration: 'none'
+                  }}
+                >
+                  <Phone size={17} color="#008F83" />
+                  <span><strong>Primary:</strong> {PART4_MEDIA.phonePrimary}</span>
+                </a>
+                <a
+                  href={`tel:${PART4_MEDIA.phoneAlternate.replace(/\s+/g, '')}`}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    color: 'var(--text-heading)',
+                    fontSize: '0.92rem',
+                    textDecoration: 'none'
+                  }}
+                >
+                  <Phone size={17} color="#008F83" />
+                  <span><strong>Alternate:</strong> {PART4_MEDIA.phoneAlternate}</span>
+                </a>
+                <a
+                  href={`mailto:${PART4_MEDIA.email}`}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    color: 'var(--text-heading)',
+                    fontSize: '0.92rem',
+                    textDecoration: 'none'
+                  }}
+                >
+                  <Mail size={17} color="#008F83" />
+                  <span><strong>Email:</strong> {PART4_MEDIA.email}</span>
+                </a>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    color: 'var(--text-secondary)',
+                    fontSize: '0.92rem'
+                  }}
+                >
+                  <Clock size={17} color="#008F83" />
+                  <span><strong>Working Hours:</strong> Mon – Sun: 9:00 AM – 7:30 PM</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Clickable Action Buttons */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', paddingTop: '1rem', borderTop: '1px solid var(--border-light)' }}>
+              <a
+                href={officeMapUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-primary"
+                style={{
+                  flex: '1 1 auto',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  padding: '0.75rem 1.25rem',
+                  fontSize: '0.92rem',
+                  fontWeight: 700
+                }}
+              >
+                <MapPin size={18} />
+                <span>View on Google Maps</span>
+                <ExternalLink size={14} />
+              </a>
+
+              <a
+                href={officeMapUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-secondary"
+                style={{
+                  flex: '1 1 auto',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  padding: '0.75rem 1.25rem',
+                  fontSize: '0.92rem',
+                  fontWeight: 700
+                }}
+              >
+                <Navigation size={18} />
+                <span>Get Directions</span>
+              </a>
+            </div>
+
+            <div style={{ marginTop: '0.85rem', fontSize: '0.75rem', color: '#8A99A4', textAlign: 'center' }}>
+              Note: This map location belongs exclusively to the corporate office. Property sites have their own respective coordinates.
+            </div>
+          </div>
+
+          {/* Interactive Visual Map Preview Card */}
+          <div
+            className="card"
+            style={{
+              padding: '0',
+              overflow: 'hidden',
+              borderRadius: 'var(--radius-lg)',
+              border: '1.5px solid var(--border-light)',
+              minHeight: '380px',
+              position: 'relative',
+              display: 'flex',
+              flexDirection: 'column'
+            }}
+          >
+            {/* Embedded Google Maps view */}
+            <div style={{ flex: 1, minHeight: '320px', width: '100%', position: 'relative' }}>
+              <iframe
+                title="Perfect Homes & Developers Office Map"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3885.6427329587445!2d80.02410887588147!3d13.118182987210137!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a528659d9c79233%3A0x639db54817a3f87d!2sKrishna%20Nagar%2C%20Thiruninravur%2C%20Tamil%20Nadu%20602024!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
+                width="100%"
+                height="100%"
+                style={{ border: 0, minHeight: '340px' }}
+                allowFullScreen=""
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+            </div>
+
+            {/* Bottom Bar with direct link */}
+            <div
+              style={{
+                padding: '0.9rem 1.25rem',
+                backgroundColor: '#FFFFFF',
+                borderTop: '1px solid var(--border-light)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '0.5rem'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#22C55E' }} />
+                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--deep-teal)' }}>
+                  Office Open for In-Person Consultation
+                </span>
+              </div>
+              <a
+                href={officeMapUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  fontSize: '0.85rem',
+                  fontWeight: 700,
+                  color: '#008F83',
+                  textDecoration: 'none',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}
+              >
+                Open in Google Maps App <ExternalLink size={13} />
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}

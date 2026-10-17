@@ -21,26 +21,21 @@ import {
   EyeOff,
   Search,
   Users,
-  DollarSign,
-  TrendingUp,
-  Clock,
-  UserCheck,
   Phone,
   Mail,
-  Calendar,
-  ShieldCheck,
-  AlertCircle,
   RefreshCw,
-  Layers,
-  MapPin,
   ArrowUp,
   ArrowDown,
   Play,
-  Film
+  Film,
+  Star,
+  Download,
+  Sparkles
 } from 'lucide-react';
+import { IMPORTED_MEDIA } from '../data/mediaData.js';
 
 export default function AdminPage({ navigate }) {
-  const { user, getRegisteredUsersForAdmin, syncUsers } = useAuth();
+  const { user, getRegisteredUsersForAdmin } = useAuth();
   const {
     properties,
     adminProperties,
@@ -67,6 +62,130 @@ export default function AdminPage({ navigate }) {
   const [dbUsers, setDbUsers] = useState([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Media Management State
+  const [mediaAssets, setMediaAssets] = useState(() => {
+    try {
+      const saved = localStorage.getItem('ph_admin_media_catalog_v1');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+    return IMPORTED_MEDIA;
+  });
+  const [mediaPartFilter, setMediaPartFilter] = useState('all');
+  const [mediaTypeFilter, setMediaTypeFilter] = useState('all');
+  const [mediaProjectFilter, setMediaProjectFilter] = useState('all');
+  const [mediaSearchTerm, setMediaSearchTerm] = useState('');
+  const [previewMediaItem, setPreviewMediaItem] = useState(null);
+
+  const saveMediaAssets = (updatedList) => {
+    setMediaAssets(updatedList);
+    try {
+      localStorage.setItem('ph_admin_media_catalog_v1', JSON.stringify(updatedList));
+    } catch (e) {}
+  };
+
+  const handleReassignMedia = async (mediaId, newProjectId) => {
+    const updated = mediaAssets.map((m) =>
+      m.id === mediaId ? { ...m, projectId: newProjectId } : m
+    );
+    saveMediaAssets(updated);
+    addToast('Media asset reassigned to ' + (newProjectId || 'Unassigned'), 'success');
+
+    try {
+      await fetch('/api/media', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: mediaId, projectId: newProjectId })
+      });
+    } catch (e) {}
+  };
+
+  const handleToggleFeaturedMedia = async (mediaId) => {
+    const item = mediaAssets.find((m) => m.id === mediaId);
+    if (!item) return;
+    const newFeatured = !item.isFeatured;
+    const updated = mediaAssets.map((m) => {
+      if (m.id === mediaId) return { ...m, isFeatured: newFeatured };
+      if (newFeatured && m.projectId && m.projectId === item.projectId) {
+        return { ...m, isFeatured: false };
+      }
+      return m;
+    });
+    saveMediaAssets(updated);
+    addToast(newFeatured ? 'Marked as featured property cover' : 'Unmarked featured', 'info');
+
+    try {
+      await fetch('/api/media', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: mediaId, isFeatured: newFeatured })
+      });
+    } catch (e) {}
+  };
+
+  const handleToggleSoftDeleteMedia = async (mediaId) => {
+    const item = mediaAssets.find((m) => m.id === mediaId);
+    if (!item) return;
+    const newArchived = !item.isArchived;
+    const updated = mediaAssets.map((m) =>
+      m.id === mediaId ? { ...m, isArchived: newArchived } : m
+    );
+    saveMediaAssets(updated);
+    addToast(
+      newArchived
+        ? 'Asset removed from active website display. Local file remains safely preserved.'
+        : 'Asset restored to active website display.',
+      'info'
+    );
+
+    try {
+      await fetch('/api/media', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: mediaId, isArchived: newArchived })
+      });
+    } catch (e) {}
+  };
+
+  const handleBulkAssignPart8 = (targetProjectId, count = 8) => {
+    let assigned = 0;
+    const updated = mediaAssets.map((m) => {
+      if (m.partNumber === 8 && (m.projectId === 'ph-112' || m.projectId === 'unassigned') && assigned < count) {
+        assigned++;
+        return { ...m, projectId: targetProjectId };
+      }
+      return m;
+    });
+    saveMediaAssets(updated);
+    addToast(`Successfully allocated ${assigned} Part 8 photographs to ${targetProjectId}!`, 'success');
+  };
+
+  const filteredMedia = useMemo(() => {
+    return mediaAssets.filter((m) => {
+      if (mediaPartFilter !== 'all' && m.partNumber !== parseInt(mediaPartFilter, 10)) {
+        return false;
+      }
+      if (mediaTypeFilter !== 'all' && m.mediaType !== mediaTypeFilter) {
+        return false;
+      }
+      if (mediaProjectFilter !== 'all' && m.projectId !== mediaProjectFilter) {
+        return false;
+      }
+      if (mediaSearchTerm.trim()) {
+        const q = mediaSearchTerm.trim().toLowerCase();
+        const matches =
+          m.originalFilename?.toLowerCase().includes(q) ||
+          m.filename?.toLowerCase().includes(q) ||
+          m.caption?.toLowerCase().includes(q) ||
+          m.partName?.toLowerCase().includes(q);
+        if (!matches) return false;
+      }
+      return true;
+    });
+  }, [mediaAssets, mediaPartFilter, mediaTypeFilter, mediaProjectFilter, mediaSearchTerm]);
 
   // Fetch live registered users from persistent database
   const loadUsers = useCallback(async (showNotification = false) => {
@@ -265,6 +384,13 @@ export default function AdminPage({ navigate }) {
               {enquiries.filter((e) => e.status === 'New').length}
             </div>
           </div>
+
+          <div className="card" style={{ padding: '1.25rem', backgroundColor: '#FFFFFF', border: '1.5px solid var(--border-color)' }}>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Project Media</div>
+            <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--primary-teal)', marginTop: '4px' }}>
+              {mediaAssets.length} <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: 600 }}>({mediaAssets.filter((m) => m.mediaType === 'video').length} vids)</span>
+            </div>
+          </div>
         </div>
 
         {/* Tab Toggle Navigation */}
@@ -286,6 +412,12 @@ export default function AdminPage({ navigate }) {
             className={`btn btn-sm ${activeAdminTab === 'enquiries' ? 'btn-primary' : 'btn-secondary'}`}
           >
             <FileText size={15} /> Customer Enquiries ({enquiries.length})
+          </button>
+          <button
+            onClick={() => setActiveAdminTab('media')}
+            className={`btn btn-sm ${activeAdminTab === 'media' ? 'btn-primary' : 'btn-secondary'}`}
+          >
+            <Film size={15} /> Media & Video Catalog ({mediaAssets.length})
           </button>
         </div>
 
@@ -671,6 +803,411 @@ export default function AdminPage({ navigate }) {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* ========================================================
+            TAB 4: PROJECT MEDIA & VIDEO CATALOG MANAGEMENT
+            ======================================================== */}
+        {activeAdminTab === 'media' && (
+          <div className="card" style={{ backgroundColor: '#FFFFFF', border: '1.5px solid var(--border-color)', borderRadius: 'var(--radius-xl)', overflow: 'hidden' }}>
+            {/* Header & Overview */}
+            <div
+              style={{
+                padding: '1.25rem 1.5rem',
+                borderBottom: '1px solid var(--border-light)',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '1rem',
+                backgroundColor: '#F9FBFB'
+              }}
+            >
+              <div>
+                <h3 style={{ fontSize: '1.25rem', color: 'var(--deep-teal)', margin: '0 0 4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Film size={20} color="#008F83" />
+                  <span>Project Media &amp; Video Catalog</span>
+                </h3>
+                <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                  156 Local Media Assets (128 Photos + 28 Walkthrough Videos) across Parts 1–8. Reassign projects, toggle featured covers, or preview videos.
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <span className="badge badge-teal" style={{ fontSize: '0.8rem', padding: '6px 12px' }}>
+                  {filteredMedia.length} Assets Shown
+                </span>
+              </div>
+            </div>
+
+            {/* Special Part 8 Unassigned Gallery Review Alert */}
+            {mediaAssets.filter((m) => m.partNumber === 8 && (m.projectId === 'ph-112' || m.projectId === 'unassigned')).length > 0 && (
+              <div
+                style={{
+                  margin: '1.25rem 1.5rem 0',
+                  padding: '1.2rem 1.5rem',
+                  backgroundColor: '#FFFBEB',
+                  border: '1.5px solid #FDE68A',
+                  borderRadius: 'var(--radius-md)',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: '1rem'
+                }}
+              >
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800, color: '#92400E', fontSize: '0.98rem' }}>
+                    <Sparkles size={18} color="#D97706" />
+                    <span>Part 8 Model Houses Unassigned Review Gallery ({mediaAssets.filter((m) => m.partNumber === 8 && (m.projectId === 'ph-112' || m.projectId === 'unassigned')).length} Photos)</span>
+                  </div>
+                  <p style={{ margin: '4px 0 0', fontSize: '0.84rem', color: '#B45309' }}>
+                    These photographs are preserved in the review archive rather than guessed. You can quick-allocate them in batches or individually:
+                  </p>
+                </div>
+
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                  <button
+                    onClick={() => handleBulkAssignPart8('ph-109', 8)}
+                    className="btn btn-sm"
+                    style={{ backgroundColor: '#008F83', color: '#FFFFFF', fontSize: '0.78rem' }}
+                  >
+                    +8 to Villa Aster
+                  </button>
+                  <button
+                    onClick={() => handleBulkAssignPart8('ph-110', 8)}
+                    className="btn btn-sm"
+                    style={{ backgroundColor: '#008F83', color: '#FFFFFF', fontSize: '0.78rem' }}
+                  >
+                    +8 to Villa Bloom
+                  </button>
+                  <button
+                    onClick={() => handleBulkAssignPart8('ph-111', 8)}
+                    className="btn btn-sm"
+                    style={{ backgroundColor: '#008F83', color: '#FFFFFF', fontSize: '0.78rem' }}
+                  >
+                    +8 to Villa Celeste
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Filter Bar */}
+            <div
+              style={{
+                padding: '1.25rem 1.5rem',
+                borderBottom: '1px solid var(--border-light)',
+                display: 'flex',
+                gap: '1rem',
+                flexWrap: 'wrap',
+                alignItems: 'center'
+              }}
+            >
+              {/* Part Filter */}
+              <div style={{ flex: '1 1 180px' }}>
+                <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>
+                  Filter by Part (1–8)
+                </label>
+                <select
+                  className="form-select"
+                  value={mediaPartFilter}
+                  onChange={(e) => setMediaPartFilter(e.target.value)}
+                  style={{ fontSize: '0.85rem' }}
+                >
+                  <option value="all">All Parts (1–8)</option>
+                  <option value="1">Part 1: Kuberan Avenue (Nathamedu)</option>
+                  <option value="2">Part 2: Promotional Posters</option>
+                  <option value="3">Part 3: Construction Progress</option>
+                  <option value="4">Part 4: Company Office (19 Photos)</option>
+                  <option value="6">Part 6: Rail Nagar (Veppampattu)</option>
+                  <option value="7">Part 7: Thiruninravur Site (Kosavanpalayam)</option>
+                  <option value="8">Part 8: Model Houses (74 Photos + 3 Videos)</option>
+                </select>
+              </div>
+
+              {/* Type Filter */}
+              <div style={{ flex: '1 1 140px' }}>
+                <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>
+                  Media Type
+                </label>
+                <select
+                  className="form-select"
+                  value={mediaTypeFilter}
+                  onChange={(e) => setMediaTypeFilter(e.target.value)}
+                  style={{ fontSize: '0.85rem' }}
+                >
+                  <option value="all">All Media (Photos &amp; Videos)</option>
+                  <option value="image">Photos Only ({mediaAssets.filter((m) => m.mediaType === 'image').length})</option>
+                  <option value="video">Videos Only ({mediaAssets.filter((m) => m.mediaType === 'video').length})</option>
+                </select>
+              </div>
+
+              {/* Project Filter */}
+              <div style={{ flex: '1 1 180px' }}>
+                <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>
+                  Assigned Project
+                </label>
+                <select
+                  className="form-select"
+                  value={mediaProjectFilter}
+                  onChange={(e) => setMediaProjectFilter(e.target.value)}
+                  style={{ fontSize: '0.85rem' }}
+                >
+                  <option value="all">All Project Assignments</option>
+                  <option value="ph-106">ph-106: Kuberan Avenue</option>
+                  <option value="ph-107">ph-107: Rail Nagar</option>
+                  <option value="ph-108">ph-108: Thiruninravur On-Road</option>
+                  <option value="ph-109">ph-109: Villa Aster</option>
+                  <option value="ph-110">ph-110: Villa Bloom</option>
+                  <option value="ph-111">ph-111: Villa Celeste</option>
+                  <option value="ph-112">ph-112: Part 8 Review Archive</option>
+                  <option value="office">Corporate Office</option>
+                  <option value="construction">Construction Site</option>
+                  <option value="promotional">Promotional Materials</option>
+                </select>
+              </div>
+
+              {/* Keyword Search */}
+              <div style={{ flex: '2 1 220px', position: 'relative' }}>
+                <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>
+                  Search Filename / Caption
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <Search size={15} color="var(--text-muted)" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)' }} />
+                  <input
+                    type="text"
+                    className="form-input"
+                    placeholder="Search media..."
+                    value={mediaSearchTerm}
+                    onChange={(e) => setMediaSearchTerm(e.target.value)}
+                    style={{ paddingLeft: '2.2rem', fontSize: '0.85rem' }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Media Grid Cards */}
+            <div
+              style={{
+                padding: '1.5rem',
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+                gap: '1.25rem'
+              }}
+            >
+              {filteredMedia.length === 0 ? (
+                <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '3rem 0', color: 'var(--text-secondary)' }}>
+                  No media assets found matching the selected filters.
+                </div>
+              ) : (
+                filteredMedia.map((m) => {
+                  const isVideo = m.mediaType === 'video';
+                  return (
+                    <div
+                      key={m.id}
+                      className="card"
+                      style={{
+                        padding: '0',
+                        borderRadius: 'var(--radius-md)',
+                        overflow: 'hidden',
+                        border: m.isFeatured ? '2px solid #E5A823' : '1px solid var(--border-light)',
+                        backgroundColor: '#FFFFFF',
+                        boxShadow: 'var(--shadow-sm)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        opacity: m.isArchived ? 0.45 : 1,
+                        position: 'relative'
+                      }}
+                    >
+                      {/* Thumbnail Container */}
+                      <div
+                        style={{
+                          position: 'relative',
+                          aspectRatio: '16/10',
+                          backgroundColor: '#000000',
+                          cursor: 'pointer',
+                          overflow: 'hidden'
+                        }}
+                        onClick={() => setPreviewMediaItem(m)}
+                      >
+                        {isVideo ? (
+                          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#111827' }}>
+                            <Play size={36} color="#FFFFFF" fill="#008F83" />
+                          </div>
+                        ) : (
+                          <img
+                            src={m.storagePath}
+                            alt={m.filename}
+                            loading="lazy"
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
+                        )}
+
+                        {/* Top Badges */}
+                        <div style={{ position: 'absolute', top: '8px', left: '8px', display: 'flex', gap: '4px' }}>
+                          <span
+                            style={{
+                              backgroundColor: 'rgba(6, 78, 73, 0.85)',
+                              color: '#FFFFFF',
+                              padding: '2px 7px',
+                              borderRadius: '4px',
+                              fontSize: '0.7rem',
+                              fontWeight: 700,
+                              backdropFilter: 'blur(4px)'
+                            }}
+                          >
+                            Part {m.partNumber}
+                          </span>
+                          <span
+                            style={{
+                              backgroundColor: isVideo ? '#DC2626' : '#008F83',
+                              color: '#FFFFFF',
+                              padding: '2px 7px',
+                              borderRadius: '4px',
+                              fontSize: '0.7rem',
+                              fontWeight: 700
+                            }}
+                          >
+                            {isVideo ? 'VIDEO' : 'PHOTO'}
+                          </span>
+                        </div>
+
+                        {/* Featured Star Button */}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleToggleFeaturedMedia(m.id);
+                          }}
+                          style={{
+                            position: 'absolute',
+                            top: '8px',
+                            right: '8px',
+                            backgroundColor: m.isFeatured ? '#E5A823' : 'rgba(0,0,0,0.5)',
+                            color: '#FFFFFF',
+                            border: 'none',
+                            borderRadius: '50%',
+                            width: '28px',
+                            height: '28px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer'
+                          }}
+                          title={m.isFeatured ? 'Featured Image' : 'Mark as Featured Cover'}
+                        >
+                          <Star size={14} fill={m.isFeatured ? '#FFFFFF' : 'none'} />
+                        </button>
+
+                        <div
+                          style={{
+                            position: 'absolute',
+                            bottom: '6px',
+                            right: '6px',
+                            backgroundColor: 'rgba(0,0,0,0.7)',
+                            color: '#FFFFFF',
+                            padding: '2px 6px',
+                            borderRadius: '3px',
+                            fontSize: '0.68rem',
+                            fontWeight: 600
+                          }}
+                        >
+                          {m.sizeKB ? (m.sizeKB > 1024 ? `${(m.sizeKB / 1024).toFixed(1)} MB` : `${m.sizeKB} KB`) : ''}
+                        </div>
+                      </div>
+
+                      {/* Info & Project Assignment */}
+                      <div style={{ padding: '0.9rem', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '8px' }}>
+                        <div>
+                          <div
+                            style={{
+                              fontSize: '0.8rem',
+                              fontWeight: 700,
+                              color: 'var(--text-heading)',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                              marginBottom: '2px'
+                            }}
+                            title={m.originalFilename || m.filename}
+                          >
+                            {m.originalFilename || m.filename}
+                          </div>
+                          <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+                            {m.partName}
+                          </div>
+                        </div>
+
+                        {/* Reassignment Dropdown */}
+                        <div>
+                          <label style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '2px' }}>
+                            Assign to Project:
+                          </label>
+                          <select
+                            className="form-select"
+                            value={m.projectId || 'unassigned'}
+                            onChange={(e) => handleReassignMedia(m.id, e.target.value)}
+                            style={{ fontSize: '0.78rem', padding: '0.35rem 0.5rem' }}
+                          >
+                            <option value="ph-106">Kuberan Avenue (ph-106)</option>
+                            <option value="ph-107">Rail Nagar (ph-107)</option>
+                            <option value="ph-108">Kosavanpalayam (ph-108)</option>
+                            <option value="ph-109">Villa Aster (ph-109)</option>
+                            <option value="ph-110">Villa Bloom (ph-110)</option>
+                            <option value="ph-111">Villa Celeste (ph-111)</option>
+                            <option value="ph-112">Part 8 Review Archive (ph-112)</option>
+                            <option value="office">Corporate Office (Part 4)</option>
+                            <option value="construction">Construction Site (Part 3)</option>
+                            <option value="promotional">Promotional Poster (Part 2)</option>
+                            <option value="unassigned">Unassigned</option>
+                          </select>
+                        </div>
+
+                        {/* Card Action Buttons */}
+                        <div style={{ display: 'flex', gap: '6px', paddingTop: '6px', borderTop: '1px solid var(--border-light)' }}>
+                          <button
+                            type="button"
+                            onClick={() => setPreviewMediaItem(m)}
+                            className="btn btn-secondary btn-sm"
+                            style={{ flex: 1, padding: '0.35rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
+                          >
+                            <Eye size={12} /> Preview
+                          </button>
+
+                          <a
+                            href={m.storagePath}
+                            download={m.filename}
+                            className="btn btn-secondary btn-sm"
+                            style={{ flex: 1, padding: '0.35rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', textDecoration: 'none' }}
+                            title="Download file"
+                          >
+                            <Download size={12} /> Save
+                          </a>
+
+                          <button
+                            type="button"
+                            onClick={() => handleToggleSoftDeleteMedia(m.id)}
+                            style={{
+                              backgroundColor: m.isArchived ? '#22C55E' : '#EF4444',
+                              color: '#FFFFFF',
+                              border: 'none',
+                              borderRadius: 'var(--radius-sm)',
+                              padding: '0.35rem 0.6rem',
+                              fontSize: '0.75rem',
+                              cursor: 'pointer'
+                            }}
+                            title={m.isArchived ? "Restore to active site" : "Soft-delete from website (keeps local file safe)"}
+                          >
+                            {m.isArchived ? <Eye size={12} /> : <Trash2 size={12} />}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </div>
         )}
@@ -1464,6 +2001,86 @@ export default function AdminPage({ navigate }) {
                 >
                   Close Preview
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* MEDIA PREVIEW MODAL */}
+        {previewMediaItem && (
+          <div className="modal-backdrop" onClick={() => setPreviewMediaItem(null)} style={{ zIndex: 1200 }}>
+            <div
+              className="modal-content"
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                maxWidth: '780px',
+                width: '92%',
+                padding: '1.5rem',
+                backgroundColor: '#0F172A',
+                color: '#FFFFFF',
+                borderRadius: 'var(--radius-lg)'
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <div>
+                  <h4 style={{ margin: 0, fontSize: '1.1rem', color: '#FFFFFF' }}>
+                    {previewMediaItem.originalFilename || previewMediaItem.filename}
+                  </h4>
+                  <span style={{ fontSize: '0.8rem', color: '#94A3B8' }}>
+                    Part {previewMediaItem.partNumber} • {previewMediaItem.partName} • {previewMediaItem.mediaType.toUpperCase()}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setPreviewMediaItem(null)}
+                  style={{ background: 'none', border: 'none', color: '#FFFFFF', cursor: 'pointer', padding: '4px' }}
+                >
+                  <X size={22} />
+                </button>
+              </div>
+
+              <div style={{ width: '100%', maxHeight: '65vh', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', borderRadius: '8px', backgroundColor: '#000000' }}>
+                {previewMediaItem.mediaType === 'video' ? (
+                  <video
+                    src={previewMediaItem.storagePath}
+                    controls
+                    autoPlay
+                    playsInline
+                    style={{ width: '100%', maxHeight: '65vh', objectFit: 'contain' }}
+                  >
+                    Your browser does not support HTML5 video preview.
+                  </video>
+                ) : (
+                  <img
+                    src={previewMediaItem.storagePath}
+                    alt={previewMediaItem.filename}
+                    style={{ width: '100%', maxHeight: '65vh', objectFit: 'contain' }}
+                  />
+                )}
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+                <div style={{ fontSize: '0.82rem', color: '#94A3B8' }}>
+                  Project: <strong>{previewMediaItem.projectId || 'Unassigned'}</strong> | Size: {previewMediaItem.sizeKB} KB
+                </div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <a
+                    href={previewMediaItem.storagePath}
+                    download={previewMediaItem.filename}
+                    className="btn btn-primary btn-sm"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                  >
+                    <Download size={14} /> Download File
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => setPreviewMediaItem(null)}
+                    className="btn btn-secondary btn-sm"
+                    style={{ color: '#FFFFFF', borderColor: '#475569' }}
+                  >
+                    Close
+                  </button>
+                </div>
               </div>
             </div>
           </div>

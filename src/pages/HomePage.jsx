@@ -11,6 +11,9 @@ import {
   TRUST_INDICATORS
 } from '../data/propertiesData';
 import { LOCATIONS_DATA, COMPANY_CONTACT_INFO } from '../data/locationsData';
+import PromotionalPostersSection from '../components/PromotionalPostersSection';
+import ConstructionProgressSection from '../components/ConstructionProgressSection';
+import ModelHousesSection from '../components/ModelHousesSection';
 import {
   Search,
   MapPin,
@@ -399,7 +402,7 @@ export default function HomePage({
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(6, 1fr)',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
               gap: '1.25rem'
             }}
             className="categories-grid-5"
@@ -464,7 +467,22 @@ export default function HomePage({
               </div>
             </div>
 
-            {/* 5. Land + Construction */}
+            {/* 5. Model Houses */}
+            <div
+              className="card"
+              onClick={() => navigate('listing', { category: 'Model Houses' })}
+              style={categoryCardStyle}
+            >
+              <div style={categoryIconStyle}>
+                <Sparkles size={24} color="#008F83" />
+              </div>
+              <div style={{ textAlign: 'left' }}>
+                <h3 style={{ fontSize: '0.98rem', fontWeight: 800, color: '#064E49', margin: 0 }}>Model Houses</h3>
+                <p style={{ fontSize: '0.78rem', color: '#687985', margin: '2px 0 0' }}>Turnkey Architecture</p>
+              </div>
+            </div>
+
+            {/* 6. Land + Construction */}
             <div
               className="card"
               onClick={() => navigate('listing', { category: 'Land + Construction' })}
@@ -479,7 +497,7 @@ export default function HomePage({
               </div>
             </div>
 
-            {/* 6. Upcoming Projects */}
+            {/* 7. Upcoming Projects */}
             <div
               className="card"
               onClick={() => navigate('listing', { category: 'Upcoming Projects' })}
@@ -663,6 +681,28 @@ export default function HomePage({
           </div>
         </div>
       </section>
+
+      {/* ==========================================================
+          PART 8 — MODEL HOUSES & FINISHED VILLA ELEVATIONS SHOWCASE
+          74 Verified Photographs + 3 Walkthrough Videos
+          ========================================================== */}
+      <ModelHousesSection
+        navigate={navigate}
+        onViewProperty={onViewProperty}
+        onOpenScheduleVisit={onOpenScheduleVisit}
+      />
+
+      {/* ==========================================================
+          PART 3 — ON-SITE CONSTRUCTION WORK & ENGINEERING QUALITY
+          Live Foundation, Brickwork & 2 Walkthrough Videos
+          ========================================================== */}
+      <ConstructionProgressSection />
+
+      {/* ==========================================================
+          PART 2 — OFFICIAL PROMOTIONAL POSTERS & LAUNCH MATERIALS
+          High-Resolution Posters with Approvals & Contact Credentials
+          ========================================================== */}
+      <PromotionalPostersSection onOpenBrochure={onOpenBrochure} />
 
       {/* ==========================================================
           4. POPULAR LOCATIONS

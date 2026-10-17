@@ -9,7 +9,7 @@ import { useToast } from './ToastContext';
 
 const PropertyContext = createContext(null);
 
-const STORAGE_PROPERTIES_KEY = 'ph_properties_db_v2';
+const STORAGE_PROPERTIES_KEY = 'ph_properties_db_v3';
 const STORAGE_ENQUIRIES_KEY = 'ph_enquiries_db_v1';
 const WISHLIST_PREFIX = 'ph_wishlist_';
 

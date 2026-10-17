@@ -20,6 +20,7 @@ import {
   ShieldCheck,
   Car
 } from 'lucide-react';
+import OfficeMapSection from '../components/OfficeMapSection';
 
 export default function ContactPage({ onOpenScheduleVisit }) {
   const { submitEnquiry } = useProperties();
@@ -308,6 +309,11 @@ export default function ContactPage({ onOpenScheduleVisit }) {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Part 5 — Thiruninravur Office Google Maps Section */}
+      <div style={{ marginTop: '4rem' }}>
+        <OfficeMapSection />
       </div>
     </div>
   );

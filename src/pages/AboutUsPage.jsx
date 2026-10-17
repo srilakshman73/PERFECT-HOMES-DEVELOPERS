@@ -19,6 +19,8 @@ import {
   MapPin,
   Sparkles
 } from 'lucide-react';
+import OfficeGallerySection from '../components/OfficeGallerySection';
+import OfficeMapSection from '../components/OfficeMapSection';
 
 export default function AboutUsPage({ navigate, onOpenScheduleVisit }) {
   return (
@@ -228,6 +230,14 @@ export default function AboutUsPage({ navigate, onOpenScheduleVisit }) {
           </div>
         </div>
       </section>
+
+      {/* Part 4 — Corporate Headquarters 19 Photos Gallery */}
+      <div style={{ marginTop: '4rem' }}>
+        <OfficeGallerySection />
+      </div>
+
+      {/* Part 5 — Thiruninravur Office Google Maps Integration */}
+      <OfficeMapSection />
     </div>
   );
 }
