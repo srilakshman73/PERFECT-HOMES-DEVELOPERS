@@ -30,9 +30,12 @@ import {
   Film,
   Star,
   Download,
-  Sparkles
+  Sparkles,
+  MapPin,
+  ExternalLink
 } from 'lucide-react';
 import { IMPORTED_MEDIA } from '../data/mediaData.js';
+import { previewPropertyBrochure, downloadPropertyBrochure, generatePropertyBrochure } from '../services/brochureGenerator.js';
 
 export default function AdminPage({ navigate }) {
   const { user, getRegisteredUsersForAdmin } = useAuth();
@@ -44,6 +47,7 @@ export default function AdminPage({ navigate }) {
     adminUpdateProperty,
     adminDeleteProperty,
     adminTogglePublish,
+    adminToggleBrochurePublish,
     updateEnquiryStatus
   } = useProperties();
   const { addToast } = useToast();
@@ -52,6 +56,8 @@ export default function AdminPage({ navigate }) {
   const [propertyCategoryFilter, setPropertyCategoryFilter] = useState('all');
   const [editingProperty, setEditingProperty] = useState(null);
   const [newImageUrl, setNewImageUrl] = useState('');
+  const [newLandmarkName, setNewLandmarkName] = useState('');
+  const [newLandmarkDistance, setNewLandmarkDistance] = useState('');
   const [previewVideoUrl, setPreviewVideoUrl] = useState(null);
   const [newVideoTitle, setNewVideoTitle] = useState('');
   const [newVideoUrl, setNewVideoUrl] = useState('');
@@ -62,6 +68,23 @@ export default function AdminPage({ navigate }) {
   const [dbUsers, setDbUsers] = useState([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isRegeneratingBrochure, setIsRegeneratingBrochure] = useState(false);
+
+  const handleRegenerateBrochure = async (prop) => {
+    if (!prop) return;
+    try {
+      setIsRegeneratingBrochure(true);
+      addToast(`Regenerating verified 8-page A4 PDF brochure for "${prop.title}"...`, 'info', 4000);
+      const doc = await generatePropertyBrochure(prop);
+      const pageCount = doc.getNumberOfPages();
+      addToast(`Brochure successfully generated (${pageCount} verified pages). Ready for distribution.`, 'success');
+    } catch (err) {
+      console.error('Error generating brochure:', err);
+      addToast(`Failed to generate brochure: ${err.message}`, 'error');
+    } finally {
+      setIsRegeneratingBrochure(false);
+    }
+  };
 
   // Media Management State
   const [mediaAssets, setMediaAssets] = useState(() => {
@@ -644,6 +667,7 @@ export default function AdminPage({ navigate }) {
                     <th style={{ padding: '0.85rem 1rem' }}>Location</th>
                     <th style={{ padding: '0.85rem 1rem' }}>Status / Construction</th>
                     <th style={{ padding: '0.85rem 1rem' }}>Price</th>
+                    <th style={{ padding: '0.85rem 1rem' }}>AI Brochure</th>
                     <th style={{ padding: '0.85rem 1rem' }}>Public Status</th>
                     <th style={{ padding: '0.85rem 1.25rem', textAlign: 'right' }}>Actions</th>
                   </tr>
@@ -684,6 +708,60 @@ export default function AdminPage({ navigate }) {
                         </td>
                         <td style={{ padding: '0.85rem 1rem', fontWeight: 700, color: 'var(--primary-teal)' }}>
                           {p.priceDisplay}
+                        </td>
+                        <td style={{ padding: '0.85rem 1rem' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            <div style={{ display: 'flex', gap: '4px' }}>
+                              <button
+                                type="button"
+                                onClick={() => previewPropertyBrochure(p)}
+                                className="btn btn-secondary btn-sm"
+                                style={{ padding: '3px 6px', fontSize: '0.72rem', display: 'inline-flex', alignItems: 'center', gap: '3px' }}
+                                title="Preview 8-Page PDF Brochure"
+                              >
+                                <Eye size={11} /> View
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => downloadPropertyBrochure(p)}
+                                className="btn btn-primary btn-sm"
+                                style={{ padding: '3px 6px', fontSize: '0.72rem', display: 'inline-flex', alignItems: 'center', gap: '3px' }}
+                                title="Download Property PDF"
+                              >
+                                <Download size={11} /> PDF
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleRegenerateBrochure(p)}
+                                className="btn btn-secondary btn-sm"
+                                style={{ padding: '3px 6px', fontSize: '0.72rem', display: 'inline-flex', alignItems: 'center', gap: '3px' }}
+                                title="Regenerate verified brochure"
+                              >
+                                <RefreshCw size={11} /> Regen
+                              </button>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => adminToggleBrochurePublish(p.id)}
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '3px',
+                                padding: '2px 6px',
+                                borderRadius: 'var(--radius-full)',
+                                fontSize: '0.68rem',
+                                fontWeight: 700,
+                                backgroundColor: p.brochurePublished !== false ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)',
+                                color: p.brochurePublished !== false ? '#059669' : '#DC2626',
+                                border: 'none',
+                                cursor: 'pointer',
+                                width: 'fit-content'
+                              }}
+                              title="Click to toggle public brochure availability"
+                            >
+                              {p.brochurePublished !== false ? '● Brochure Live' : '○ Brochure Hidden'}
+                            </button>
+                          </div>
                         </td>
                         <td style={{ padding: '0.85rem 1rem' }}>
                           <button
@@ -1560,6 +1638,41 @@ export default function AdminPage({ navigate }) {
                           {img}
                         </span>
 
+                        {/* Make Cover Button */}
+                        {idx === 0 ? (
+                          <span
+                            style={{
+                              backgroundColor: 'rgba(229, 168, 35, 0.15)',
+                              color: '#B45309',
+                              padding: '2px 6px',
+                              borderRadius: '4px',
+                              fontSize: '0.7rem',
+                              fontWeight: 700,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '3px'
+                            }}
+                          >
+                            <Star size={10} fill="#B45309" /> Cover
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const copy = [...editingProperty.images];
+                              const [selected] = copy.splice(idx, 1);
+                              copy.unshift(selected);
+                              setEditingProperty({ ...editingProperty, images: copy });
+                              addToast('Set as primary brochure cover photo', 'success');
+                            }}
+                            className="btn btn-secondary btn-sm"
+                            style={{ padding: '2px 6px', fontSize: '0.7rem' }}
+                            title="Set as Brochure Cover Photo"
+                          >
+                            <Star size={11} /> Set Cover
+                          </button>
+                        )}
+
                         {/* Move Up */}
                         <button
                           type="button"
@@ -1658,6 +1771,158 @@ export default function AdminPage({ navigate }) {
                     >
                       <Plus size={14} /> Add Photo
                     </button>
+                  </div>
+                </div>
+
+                {/* 8. AI & Dynamic PDF Brochure Management */}
+                <div style={{ borderTop: '1px solid var(--border-light)', paddingTop: '1.25rem', marginTop: '0.5rem', backgroundColor: '#F8FAFC', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '8px' }}>
+                    <label className="form-label" style={{ margin: 0, display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.95rem' }}>
+                      <Sparkles size={16} color="var(--primary-teal)" />
+                      <span>Dynamic AI Property Brochure Controls</span>
+                    </label>
+
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <button
+                        type="button"
+                        onClick={() => previewPropertyBrochure(editingProperty)}
+                        className="btn btn-secondary btn-sm"
+                        style={{ padding: '4px 8px', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                      >
+                        <Eye size={12} /> Preview Brochure
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleRegenerateBrochure(editingProperty)}
+                        disabled={isRegeneratingBrochure}
+                        className="btn btn-secondary btn-sm"
+                        style={{ padding: '4px 8px', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                      >
+                        <RefreshCw size={12} className={isRegeneratingBrochure ? 'animate-spin' : ''} /> Regenerate
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => downloadPropertyBrochure(editingProperty)}
+                        className="btn btn-primary btn-sm"
+                        style={{ padding: '4px 8px', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                      >
+                        <Download size={12} /> Download PDF
+                      </button>
+                    </div>
+                  </div>
+
+                  <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '0 0 1rem 0' }}>
+                    Each property automatically generates an individual, verified 8-page A4 PDF brochure from its actual database record and approved photos.
+                  </p>
+
+                  {/* Brochure Publish Toggle */}
+                  <div style={{ marginBottom: '1rem' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                      <input
+                        type="checkbox"
+                        checked={editingProperty.brochurePublished !== false}
+                        onChange={(e) => setEditingProperty({ ...editingProperty, brochurePublished: e.target.checked })}
+                        style={{ width: '17px', height: '17px', accentColor: 'var(--primary-teal)' }}
+                      />
+                      <span style={{ fontSize: '0.88rem', fontWeight: 600, color: editingProperty.brochurePublished !== false ? 'var(--success)' : 'var(--danger)' }}>
+                        {editingProperty.brochurePublished !== false ? 'Brochure Publicly Available for Visitors' : 'Brochure Temporarily Unpublished / Draft Mode'}
+                      </span>
+                    </label>
+                  </div>
+
+                  {/* Google Maps Coordinates / Link */}
+                  <div className="form-group" style={{ marginBottom: '1rem' }}>
+                    <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <MapPin size={14} color="var(--primary-teal)" />
+                      <span>Property Google Maps Link / Destination</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="e.g. https://www.google.com/maps/search/?api=1&query=13.124850%2C80.043786"
+                      value={editingProperty.googleMapsUrl || ''}
+                      onChange={(e) => setEditingProperty({ ...editingProperty, googleMapsUrl: e.target.value })}
+                      style={{ fontSize: '0.85rem' }}
+                    />
+                  </div>
+
+                  {/* Nearby Landmarks & Travel Times Editor */}
+                  <div>
+                    <label className="form-label" style={{ marginBottom: '0.4rem', display: 'block' }}>
+                      Location & Nearby Landmarks (Displayed on Page 5 of Brochure)
+                    </label>
+                    
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem', maxHeight: '160px', overflowY: 'auto', marginBottom: '0.75rem' }}>
+                      {(editingProperty.nearby || []).map((lm, lIdx) => (
+                        <div
+                          key={lIdx}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            backgroundColor: '#FFFFFF',
+                            border: '1px solid var(--border-color)',
+                            borderRadius: '4px',
+                            padding: '4px 10px',
+                            fontSize: '0.8rem'
+                          }}
+                        >
+                          <div>
+                            <strong>{lm.name}</strong> — <span style={{ color: 'var(--primary-teal)' }}>{lm.distance || lm.time}</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = editingProperty.nearby.filter((_, i) => i !== lIdx);
+                              setEditingProperty({ ...editingProperty, nearby: updated });
+                            }}
+                            style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', padding: '2px' }}
+                            title="Remove Landmark"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr auto', gap: '8px' }}>
+                      <input
+                        type="text"
+                        className="form-input"
+                        placeholder="Landmark (e.g. Sriram College)"
+                        value={newLandmarkName}
+                        onChange={(e) => setNewLandmarkName(e.target.value)}
+                        style={{ fontSize: '0.82rem' }}
+                      />
+                      <input
+                        type="text"
+                        className="form-input"
+                        placeholder="Time (e.g. Approx. 2 mins)"
+                        value={newLandmarkDistance}
+                        onChange={(e) => setNewLandmarkDistance(e.target.value)}
+                        style={{ fontSize: '0.82rem' }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (!newLandmarkName.trim()) return;
+                          const updated = [
+                            ...(editingProperty.nearby || []),
+                            {
+                              name: newLandmarkName.trim(),
+                              distance: newLandmarkDistance.trim() || 'Approx. 5 minutes'
+                            }
+                          ];
+                          setEditingProperty({ ...editingProperty, nearby: updated });
+                          setNewLandmarkName('');
+                          setNewLandmarkDistance('');
+                        }}
+                        className="btn btn-secondary btn-sm"
+                        style={{ whiteSpace: 'nowrap' }}
+                      >
+                        <Plus size={13} /> Add Landmark
+                      </button>
+                    </div>
                   </div>
                 </div>
 

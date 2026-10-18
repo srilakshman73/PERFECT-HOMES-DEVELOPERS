@@ -289,6 +289,25 @@ export function PropertyProvider({ children }) {
     );
   };
 
+  const adminToggleBrochurePublish = (id) => {
+    const updated = properties.map((p) => {
+      if (p.id === id) {
+        const isNowLive = p.brochurePublished === false ? true : false;
+        return { ...p, brochurePublished: isNowLive };
+      }
+      return p;
+    });
+    setProperties(updated);
+    localStorage.setItem(STORAGE_PROPERTIES_KEY, JSON.stringify(updated));
+    const target = updated.find((p) => p.id === id);
+    addToast(
+      target?.brochurePublished !== false
+        ? `Brochure for "${target?.title}" is now LIVE for visitors.`
+        : `Brochure for "${target?.title}" is now UNPUBLISHED (Draft).`,
+      'info'
+    );
+  };
+
   // Reset search filters
   const resetFilters = () => {
     setFilters({
@@ -332,6 +351,7 @@ export function PropertyProvider({ children }) {
         adminUpdateProperty,
         adminDeleteProperty,
         adminTogglePublish,
+        adminToggleBrochurePublish,
         filters,
         setFilters,
         resetFilters
