@@ -20,9 +20,13 @@ import {
   ShieldCheck,
   Car,
   Navigation,
-  ExternalLink
+  ExternalLink,
+  FileText,
+  Download,
+  Loader2
 } from 'lucide-react';
 import OfficeMapSection from '../components/OfficeMapSection';
+import { downloadCompanyContactPdf } from '../services/brochureGenerator';
 
 export default function ContactPage({ onOpenScheduleVisit }) {
   const { submitEnquiry } = useProperties();
@@ -40,6 +44,21 @@ export default function ContactPage({ onOpenScheduleVisit }) {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+
+  const handleDownloadCompanyPdf = async () => {
+    try {
+      setIsDownloadingPdf(true);
+      addToast('Preparing official company profile PDF...', 'info');
+      await downloadCompanyContactPdf();
+      addToast('Company profile PDF downloaded successfully!', 'success');
+    } catch (err) {
+      console.error('Error downloading company PDF:', err);
+      addToast('Failed to download company PDF. Please try again.', 'error');
+    } finally {
+      setIsDownloadingPdf(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -229,6 +248,43 @@ export default function ContactPage({ onOpenScheduleVisit }) {
                   style={{ fontSize: '0.84rem' }}
                 >
                   <Car size={15} /> Free Cab Visit
+                </button>
+              </div>
+
+              {/* Download Official Company Profile PDF */}
+              <div style={{ marginTop: '0.75rem' }}>
+                <button
+                  onClick={handleDownloadCompanyPdf}
+                  disabled={isDownloadingPdf}
+                  className="btn btn-outline btn-sm"
+                  id="download-company-profile-btn"
+                  aria-label="Download Official Company Profile PDF"
+                  style={{
+                    width: '100%',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    fontSize: '0.86rem',
+                    padding: '0.65rem 1rem',
+                    borderColor: 'var(--primary-teal)',
+                    color: 'var(--primary-teal)',
+                    backgroundColor: 'rgba(0, 143, 131, 0.05)',
+                    fontWeight: 600,
+                    cursor: 'pointer'
+                  }}
+                >
+                  {isDownloadingPdf ? (
+                    <>
+                      <Loader2 size={16} className="spin" />
+                      <span>Generating PDF...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Download size={16} />
+                      <span>Download Official Company Profile (PDF)</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>

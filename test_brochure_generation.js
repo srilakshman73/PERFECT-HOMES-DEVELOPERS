@@ -1,6 +1,6 @@
 // Automated Property Brochure Verification Test
 import { PROPERTIES_DATA } from './src/data/propertiesData.js';
-import { generatePropertyBrochure, getBrochureFilename, getPropertyForBrochure } from './src/services/brochureGenerator.js';
+import { generatePropertyBrochure, getBrochureFilename, getPropertyForBrochure, generateCompanyContactPdf } from './src/services/brochureGenerator.js';
 import fs from 'fs';
 import path from 'path';
 
@@ -79,6 +79,33 @@ async function runBrochureTests() {
     throw new Error('Images between properties are identical!');
   }
   console.log('✅ Confirmed: Properties use individual, non-overlapping media and specifications.\n');
+
+  // 4. Test Standalone Company Profile & Contact Card PDF
+  console.log('----------------------------------------------------------------');
+  console.log('TESTING STANDALONE COMPANY PROFILE & CONTACT CARD PDF:');
+  console.log('----------------------------------------------------------------');
+  const contactStart = Date.now();
+  const contactDoc = await generateCompanyContactPdf();
+  const contactDuration = Date.now() - contactStart;
+  const contactPages = contactDoc.getNumberOfPages();
+  const contactFilename = 'Perfect-Homes-Developers-Company-Profile.pdf';
+  const contactOutPath = path.join(process.cwd(), 'scratch', contactFilename);
+  const contactPdfBytes = contactDoc.output('arraybuffer');
+  fs.writeFileSync(contactOutPath, Buffer.from(contactPdfBytes));
+  const contactSizeKB = (fs.statSync(contactOutPath).size / 1024).toFixed(1);
+
+  console.log(`- Company Profile PDF generated: ${contactPages} page(s) in ${contactDuration}ms`);
+  console.log(`- Saved to: ${contactFilename} (${contactSizeKB} KB)`);
+  console.log('✅ Passed Standalone Company Profile & Contact Card PDF generation!\n');
+
+  generatedBrochures.push({
+    id: 'company-contact',
+    title: 'Company Profile & Contact Card',
+    category: 'Corporate Profile',
+    filename: contactFilename,
+    sizeKB: contactSizeKB,
+    pageCount: contactPages
+  });
 
   console.log('================================================================');
   console.log('ALL BROCHURE GENERATION TESTS COMPLETED SUCCESSFULLY!');

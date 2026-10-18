@@ -1,7 +1,7 @@
 /* ==========================================================================
    PERFECT HOMES & DEVELOPERS — DYNAMIC AI PROPERTY BROCHURE GENERATION ENGINE
-   Generates verified, property-specific 8-Page A4 PDF brochures matching
-   the official Perfect Homes & Developers brand identity & visual reference.
+   Professional 8-Page Verified A4 PDF Engine with Native Vector Icon Graphics,
+   Strict Standard-Compliant Typography, and Exact Visual Reference Alignment.
    ========================================================================== */
 
 import { jsPDF } from 'jspdf';
@@ -27,122 +27,265 @@ export const COLORS = {
   mapsBlue: [66, 133, 244]         // #4285F4
 };
 
+// ============================================================================
+// 1. NATIVE PDF VECTOR ICON DRAWING PRIMITIVES
+// Zero external font or Unicode emoji dependencies. Guaranteed sharp at all DPIs.
+// ============================================================================
+
 /**
- * Format property filename according to specification:
- * e.g. Model-Villa-Aster-Property-Brochure.pdf
+ * 5-Pointed Star Vector
  */
-export function getBrochureFilename(property) {
-  if (!property) return 'Property-Brochure.pdf';
-  const raw = property.title || 'Property';
-  const primaryName = raw.split('—')[0].replace(/[-–]/g, ' ').trim();
-  const words = primaryName.replace(/[^a-zA-Z0-9\s]/g, '').trim().split(/\s+/);
-  const titleCased = words
-    .filter(Boolean)
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-    .join('-');
-  return `${titleCased || 'Property'}-Property-Brochure.pdf`;
+export function drawStarVector(doc, cx, cy, rOuter = 3.5, rInner = 1.6, fillColor = COLORS.gold) {
+  doc.saveGraphicsState();
+  doc.setFillColor(...fillColor);
+  const points = [];
+  for (let i = 0; i < 10; i++) {
+    const angle = (i * 36 - 90) * (Math.PI / 180);
+    const r = i % 2 === 0 ? rOuter : rInner;
+    points.push({ x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle) });
+  }
+  const lines = [];
+  for (let i = 1; i < points.length; i++) {
+    lines.push([points[i].x - points[i - 1].x, points[i].y - points[i - 1].y]);
+  }
+  lines.push([points[0].x - points[points.length - 1].x, points[0].y - points[points.length - 1].y]);
+  doc.lines(lines, points[0].x, points[0].y, [1, 1], 'F', true);
+  doc.restoreGraphicsState();
 }
 
 /**
- * Helper: Asynchronously load an image URL into a base64 Data URL via HTML Canvas
+ * Checkmark Vector
  */
-export async function loadImageAsBase64(url) {
-  if (!url || typeof window === 'undefined') return null;
-
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.crossOrigin = 'Anonymous';
-
-    // Timeout safety: 4 seconds max per image
-    const timer = setTimeout(() => {
-      resolve(null);
-    }, 4000);
-
-    img.onload = () => {
-      clearTimeout(timer);
-      try {
-        const canvas = document.createElement('canvas');
-        const maxDim = 1200;
-        let w = img.naturalWidth || img.width || 800;
-        let h = img.naturalHeight || img.height || 600;
-
-        if (w > maxDim || h > maxDim) {
-          if (w > h) {
-            h = Math.round((h * maxDim) / w);
-            w = maxDim;
-          } else {
-            w = Math.round((w * maxDim) / h);
-            h = maxDim;
-          }
-        }
-
-        canvas.width = w;
-        canvas.height = h;
-        const ctx = canvas.getContext('2d');
-        ctx.fillStyle = '#FFFFFF';
-        ctx.fillRect(0, 0, w, h);
-        ctx.drawImage(img, 0, 0, w, h);
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
-        resolve({ dataUrl, width: w, height: h });
-      } catch (err) {
-        console.warn('Canvas conversion failed for image:', url, err);
-        resolve(null);
-      }
-    };
-
-    img.onerror = () => {
-      clearTimeout(timer);
-      resolve(null);
-    };
-
-    img.src = url;
-  });
+export function drawCheckmarkVector(doc, cx, cy, size = 3, strokeColor = COLORS.mintAccent) {
+  doc.saveGraphicsState();
+  doc.setDrawColor(...strokeColor);
+  doc.setLineWidth(size * 0.28);
+  doc.setLineCap('round');
+  doc.setLineJoin('round');
+  doc.line(cx - size * 0.5, cy, cx - size * 0.1, cy + size * 0.4);
+  doc.line(cx - size * 0.1, cy + size * 0.4, cx + size * 0.6, cy - size * 0.5);
+  doc.restoreGraphicsState();
 }
 
 /**
- * Retrieve verified property information by ID or object
- * Checks backend API, local stored edits, and catalog fallback
+ * Phone Receiver Vector
  */
-export async function getPropertyForBrochure(propertyOrId) {
-  if (typeof propertyOrId === 'object' && propertyOrId !== null && propertyOrId.id) {
-    return propertyOrId;
+export function drawPhoneVector(doc, cx, cy, size = 3.2, color = COLORS.white, bgColor = null) {
+  doc.saveGraphicsState();
+  if (bgColor) {
+    doc.setFillColor(...bgColor);
+    doc.circle(cx, cy, size * 1.5, 'F');
   }
 
-  const propertyId = typeof propertyOrId === 'string' ? propertyOrId.trim() : String(propertyOrId);
+  doc.setDrawColor(...color);
+  doc.setFillColor(...color);
+  doc.setLineWidth(size * 0.22);
+  doc.setLineCap('round');
+  doc.setLineJoin('round');
 
-  // 1. Try fetching from backend API endpoint
-  if (typeof window !== 'undefined' && window.fetch) {
-    try {
-      const res = await fetch(`/api/property?id=${encodeURIComponent(propertyId)}`);
-      if (res.ok) {
-        const data = await res.json();
-        if (data.success && data.property) {
-          return data.property;
-        }
-      }
-    } catch (err) {
-      console.warn('Backend API property lookup fallback:', err.message);
-    }
-  }
-
-  // 2. Try localStorage stored properties (e.g. administrator modifications)
-  if (typeof window !== 'undefined' && window.localStorage) {
-    try {
-      const saved = localStorage.getItem('ph_properties_db_v5');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        const found = parsed.find((p) => p.id === propertyId || p.slug === propertyId);
-        if (found) return found;
-      }
-    } catch {}
-  }
-
-  // 3. Fallback to verified catalog PROPERTIES_DATA
-  const catalogFound = PROPERTIES_DATA.find((p) => p.id === propertyId || p.slug === propertyId);
-  if (catalogFound) return catalogFound;
-
-  throw new Error(`Property with ID "${propertyId}" was not found in verified database.`);
+  const r = size * 0.65;
+  // Handset arc
+  doc.line(cx - r * 0.4, cy + r * 0.4, cx - r * 0.6, cy + r * 0.1);
+  doc.line(cx - r * 0.6, cy + r * 0.1, cx - r * 0.2, cy - r * 0.4);
+  doc.line(cx - r * 0.2, cy - r * 0.4, cx + r * 0.1, cy - r * 0.5);
+  // Earpiece and mouthpiece
+  doc.circle(cx - r * 0.5, cy + r * 0.35, size * 0.22, 'F');
+  doc.circle(cx + r * 0.2, cy - r * 0.45, size * 0.22, 'F');
+  doc.restoreGraphicsState();
 }
+
+/**
+ * WhatsApp Speech Bubble & Handset Vector
+ */
+export function drawWhatsAppVector(doc, cx, cy, size = 3.5, color = COLORS.white, bgColor = COLORS.whatsappGreen) {
+  doc.saveGraphicsState();
+  if (bgColor) {
+    doc.setFillColor(...bgColor);
+    doc.circle(cx, cy, size * 1.5, 'F');
+  }
+
+  // Outer speech bubble
+  doc.setFillColor(...color);
+  const r = size * 0.85;
+  doc.circle(cx, cy - 0.2, r, 'F');
+  // Speech bubble pointer tail
+  doc.triangle(
+    cx - r * 0.85, cy + r * 0.3,
+    cx - r * 0.2, cy + r * 0.8,
+    cx - r * 1.05, cy + r * 1.0,
+    'F'
+  );
+
+  // Phone silhouette inside
+  const phoneColor = bgColor || COLORS.deepTeal;
+  drawPhoneVector(doc, cx, cy - 0.2, size * 0.55, phoneColor);
+  doc.restoreGraphicsState();
+}
+
+/**
+ * Email Envelope Vector
+ */
+export function drawEmailVector(doc, cx, cy, size = 3.2, color = COLORS.white, bgColor = null) {
+  doc.saveGraphicsState();
+  if (bgColor) {
+    doc.setFillColor(...bgColor);
+    doc.circle(cx, cy, size * 1.5, 'F');
+  }
+
+  doc.setDrawColor(...color);
+  doc.setLineWidth(0.45);
+  const w = size * 1.5;
+  const h = size * 1.0;
+  doc.roundedRect(cx - w / 2, cy - h / 2, w, h, 0.4, 0.4, 'S');
+  doc.line(cx - w / 2, cy - h / 2, cx, cy + h * 0.15);
+  doc.line(cx, cy + h * 0.15, cx + w / 2, cy - h / 2);
+  doc.restoreGraphicsState();
+}
+
+/**
+ * Location Pin Vector
+ */
+export function drawLocationPinVector(doc, cx, cy, size = 3.5, color = COLORS.white, bgColor = null, innerDotColor = null) {
+  doc.saveGraphicsState();
+  if (bgColor) {
+    doc.setFillColor(...bgColor);
+    doc.circle(cx, cy, size * 1.5, 'F');
+  }
+
+  doc.setFillColor(...color);
+  doc.circle(cx, cy - size * 0.25, size * 0.45, 'F');
+  doc.triangle(
+    cx - size * 0.42, cy - size * 0.1,
+    cx + size * 0.42, cy - size * 0.1,
+    cx, cy + size * 0.6,
+    'F'
+  );
+
+  // Center hole
+  doc.setFillColor(...(innerDotColor || bgColor || COLORS.white));
+  doc.circle(cx, cy - size * 0.25, size * 0.18, 'F');
+  doc.restoreGraphicsState();
+}
+
+/**
+ * Globe / Website Vector
+ */
+export function drawGlobeVector(doc, cx, cy, size = 3.2, color = COLORS.white, bgColor = null) {
+  doc.saveGraphicsState();
+  if (bgColor) {
+    doc.setFillColor(...bgColor);
+    doc.circle(cx, cy, size * 1.5, 'F');
+  }
+
+  doc.setDrawColor(...color);
+  doc.setLineWidth(0.38);
+  const r = size * 0.75;
+  doc.circle(cx, cy, r, 'S');
+  doc.line(cx - r, cy, cx + r, cy);
+  doc.line(cx, cy - r, cx, cy + r);
+  doc.ellipse(cx, cy, r * 0.48, r, 'S');
+  doc.restoreGraphicsState();
+}
+
+/**
+ * House Icon Badge Vector (for Quality Homes badge)
+ */
+export function drawHouseBadgeVector(doc, cx, cy, size = 3.5, color = COLORS.white, bgColor = COLORS.deepTeal) {
+  doc.saveGraphicsState();
+  if (bgColor) {
+    doc.setFillColor(...bgColor);
+    doc.circle(cx, cy, size * 1.5, 'F');
+  }
+
+  doc.setFillColor(...color);
+  // Roof
+  doc.triangle(
+    cx, cy - size * 0.7,
+    cx - size * 0.7, cy - size * 0.05,
+    cx + size * 0.7, cy - size * 0.05,
+    'F'
+  );
+  // Body
+  doc.rect(cx - size * 0.5, cy - size * 0.05, size, size * 0.65, 'F');
+  // Doorway cutout
+  doc.setFillColor(...(bgColor || COLORS.deepTeal));
+  doc.rect(cx - size * 0.18, cy + size * 0.2, size * 0.36, size * 0.4, 'F');
+  doc.restoreGraphicsState();
+}
+
+/**
+ * Community / People Badge Vector (for Better Communities badge)
+ */
+export function drawPeopleBadgeVector(doc, cx, cy, size = 3.5, color = COLORS.white, bgColor = COLORS.deepTeal) {
+  doc.saveGraphicsState();
+  if (bgColor) {
+    doc.setFillColor(...bgColor);
+    doc.circle(cx, cy, size * 1.5, 'F');
+  }
+
+  doc.setFillColor(...color);
+  // Center person head & shoulders
+  doc.circle(cx, cy - size * 0.35, size * 0.28, 'F');
+  doc.roundedRect(cx - size * 0.45, cy + size * 0.02, size * 0.9, size * 0.5, 0.4, 0.4, 'F');
+
+  // Left teammate
+  doc.circle(cx - size * 0.65, cy - size * 0.15, size * 0.2, 'F');
+  doc.roundedRect(cx - size * 0.95, cy + size * 0.12, size * 0.5, size * 0.4, 0.3, 0.3, 'F');
+
+  // Right teammate
+  doc.circle(cx + size * 0.65, cy - size * 0.15, size * 0.2, 'F');
+  doc.roundedRect(cx + size * 0.45, cy + size * 0.12, size * 0.5, size * 0.4, 0.3, 0.3, 'F');
+  doc.restoreGraphicsState();
+}
+
+/**
+ * Growth Chart Badge Vector (for Brighter Futures badge)
+ */
+export function drawChartBadgeVector(doc, cx, cy, size = 3.5, color = COLORS.white, bgColor = COLORS.deepTeal) {
+  doc.saveGraphicsState();
+  if (bgColor) {
+    doc.setFillColor(...bgColor);
+    doc.circle(cx, cy, size * 1.5, 'F');
+  }
+
+  doc.setFillColor(...color);
+  // 3 Ascending Bars
+  doc.rect(cx - size * 0.6, cy + size * 0.1, size * 0.3, size * 0.45, 'F');
+  doc.rect(cx - size * 0.15, cy - size * 0.18, size * 0.3, size * 0.73, 'F');
+  doc.rect(cx + size * 0.3, cy - size * 0.5, size * 0.3, size * 1.05, 'F');
+
+  // Trendline arrow
+  doc.setDrawColor(...color);
+  doc.setLineWidth(0.35);
+  doc.line(cx - size * 0.6, cy - size * 0.1, cx + size * 0.6, cy - size * 0.65);
+  doc.restoreGraphicsState();
+}
+
+/**
+ * Vector Map Thumbnail with location roads & red pin
+ */
+export function drawMapVectorThumbnail(doc, x, y, w, h) {
+  doc.saveGraphicsState();
+  doc.setFillColor(238, 245, 243);
+  doc.roundedRect(x, y, w, h, 2, 2, 'F');
+  doc.setDrawColor(...COLORS.lightMint);
+  doc.setLineWidth(0.4);
+  doc.roundedRect(x, y, w, h, 2, 2, 'S');
+
+  // White roads
+  doc.setDrawColor(255, 255, 255);
+  doc.setLineWidth(2.5);
+  doc.line(x + 2, y + h * 0.55, x + w - 2, y + h * 0.55);
+  doc.line(x + w * 0.45, y + 2, x + w * 0.45, y + h - 2);
+
+  // Red Pin
+  drawLocationPinVector(doc, x + w * 0.45, y + h * 0.45, 3.8, [234, 67, 53], null, [255, 255, 255]);
+  doc.restoreGraphicsState();
+}
+
+// ============================================================================
+// 2. BRAND LOGO & SYSTEM HELPERS
+// ============================================================================
 
 /**
  * Draw the official Perfect Homes & Developers vector logo mark
@@ -179,11 +322,130 @@ export function drawBrandLogo(doc, x, y, scale = 1, isWhite = false) {
   doc.setFillColor(...(isWhite ? COLORS.deepTeal : COLORS.white));
   doc.roundedRect(x + 12.5 * scale, y + 12 * scale, 3.8 * scale, 7.5 * scale, 0.5 * scale, 0.5 * scale, 'F');
 
+  // Base wave swoosh in gold
+  doc.setFillColor(...goldCol);
+  doc.ellipse(x + 10 * scale, y + 20.5 * scale, 9 * scale, 1.2 * scale, 'F');
+
   doc.restoreGraphicsState();
 }
 
 /**
- * Draw standard Page Footer with page number & brand tag
+ * Format property filename according to specification:
+ * e.g. Model-Villa-Aster-Property-Brochure.pdf
+ */
+export function getBrochureFilename(property) {
+  if (!property) return 'Property-Brochure.pdf';
+  const raw = property.title || 'Property';
+  const primaryName = raw.split('—')[0].replace(/[-–]/g, ' ').trim();
+  const words = primaryName.replace(/[^a-zA-Z0-9\s]/g, '').trim().split(/\s+/);
+  const titleCased = words
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join('-');
+  return `${titleCased || 'Property'}-Property-Brochure.pdf`;
+}
+
+/**
+ * Helper: Asynchronously load an image URL into a base64 Data URL via HTML Canvas
+ */
+export async function loadImageAsBase64(url) {
+  if (!url || typeof window === 'undefined') return null;
+
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'Anonymous';
+
+    const timer = setTimeout(() => {
+      resolve(null);
+    }, 4000);
+
+    img.onload = () => {
+      clearTimeout(timer);
+      try {
+        const canvas = document.createElement('canvas');
+        const maxDim = 1200;
+        let w = img.naturalWidth || img.width || 800;
+        let h = img.naturalHeight || img.height || 600;
+
+        if (w > maxDim || h > maxDim) {
+          if (w > h) {
+            h = Math.round((h * maxDim) / w);
+            w = maxDim;
+          } else {
+            w = Math.round((w * maxDim) / h);
+            h = maxDim;
+          }
+        }
+
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(img, 0, 0, w, h);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+        resolve({ dataUrl, width: w, height: h });
+      } catch (err) {
+        console.warn('Canvas conversion fallback for:', url, err);
+        resolve(null);
+      }
+    };
+
+    img.onerror = () => {
+      clearTimeout(timer);
+      resolve(null);
+    };
+
+    img.src = url;
+  });
+}
+
+/**
+ * Retrieve verified property information by ID or object
+ */
+export async function getPropertyForBrochure(propertyOrId) {
+  if (typeof propertyOrId === 'object' && propertyOrId !== null && propertyOrId.id) {
+    return propertyOrId;
+  }
+
+  const propertyId = typeof propertyOrId === 'string' ? propertyOrId.trim() : String(propertyOrId);
+
+  // 1. Try fetching from backend API endpoint
+  if (typeof window !== 'undefined' && window.fetch) {
+    try {
+      const res = await fetch(`/api/property?id=${encodeURIComponent(propertyId)}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.property) {
+          return data.property;
+        }
+      }
+    } catch (err) {
+      console.warn('Backend API lookup fallback:', err.message);
+    }
+  }
+
+  // 2. Try localStorage stored properties
+  if (typeof window !== 'undefined' && window.localStorage) {
+    try {
+      const saved = localStorage.getItem('ph_properties_db_v5');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        const found = parsed.find((p) => p.id === propertyId || p.slug === propertyId);
+        if (found) return found;
+      }
+    } catch {}
+  }
+
+  // 3. Fallback to verified catalog PROPERTIES_DATA
+  const catalogFound = PROPERTIES_DATA.find((p) => p.id === propertyId || p.slug === propertyId);
+  if (catalogFound) return catalogFound;
+
+  throw new Error(`Property with ID "${propertyId}" was not found in verified database.`);
+}
+
+/**
+ * Standard Page Footer
  */
 export function drawPageFooter(doc, pageNum, pageTitle) {
   doc.saveGraphicsState();
@@ -195,21 +457,18 @@ export function drawPageFooter(doc, pageNum, pageTitle) {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
   doc.setTextColor(...COLORS.midGray);
-  doc.text('Perfect Homes & Developers — Official Property Brochure', 18, y + 4.5);
-  doc.text(`Page ${pageNum} — ${pageTitle}`, 192, y + 4.5, { align: 'right' });
+  doc.text('Perfect Homes & Developers - Official Property Brochure', 18, y + 4.5);
+  doc.text(`Page ${pageNum} - ${pageTitle}`, 192, y + 4.5, { align: 'right' });
   doc.restoreGraphicsState();
 }
 
 /**
- * Draw Decorative Arched Top Page Header Canopy for interior pages (Pages 2 - 7)
- * Faithfully matches the arched canopy and typography seen in the reference brochure.
+ * Decorative Arched Top Page Header Canopy for interior pages (Pages 2 - 6)
  */
 export function drawPageHeaderRibbon(doc, title, subtitle) {
   doc.saveGraphicsState();
 
-  // Top elegant arched canopy in deep teal
   doc.setFillColor(...COLORS.deepTeal);
-  // Main top bar with smooth arched corners
   doc.rect(0, 0, 210, 20, 'F');
 
   // Corner decorative arches
@@ -217,17 +476,14 @@ export function drawPageHeaderRibbon(doc, title, subtitle) {
   doc.circle(210, 0, 36, 'F');
   doc.circle(0, 0, 22, 'F');
 
-  // Soft gold / mint subtle accent arch
   doc.setFillColor(...COLORS.mintAccent);
   doc.circle(105, -38, 52, 'F');
 
-  // Centered Title
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(14.5);
   doc.setTextColor(...COLORS.white);
   doc.text(title, 105, 11, { align: 'center' });
 
-  // Subtitle
   if (subtitle) {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
@@ -238,10 +494,308 @@ export function drawPageHeaderRibbon(doc, title, subtitle) {
   doc.restoreGraphicsState();
 }
 
+// ============================================================================
+// 3. STANDALONE COMPANY CONTACT PAGE RENDERER
+// Precisely matches the uploaded reference image:
+// - White background with fluid teal & gold wave corner flourishes
+// - Top-left logo with tagline & Top-right 3 brand badges
+// - Left column 5 rounded pill rows with native vector icons
+// - Right column framed property photo
+// - 3 large action buttons (Call Now, Chat on WhatsApp, Send Email)
+// - Bottom office card with map vector thumbnail & View on Google Maps button
+// ============================================================================
+
+export function renderCompanyContactSheet(doc, property = null, heroPhoto = null) {
+  doc.saveGraphicsState();
+
+  // 1. Fluid decorative corner waves
+  doc.setFillColor(...COLORS.deepTeal);
+  doc.circle(0, 0, 32, 'F');
+  doc.setFillColor(...COLORS.primaryTeal);
+  doc.circle(210, 0, 42, 'F');
+  doc.setFillColor(...COLORS.gold);
+  doc.circle(210, 297, 45, 'F');
+  doc.setFillColor(...COLORS.deepTeal);
+  doc.circle(0, 297, 36, 'F');
+
+  // 2. Main Outer Card Frame
+  const cardX = 14;
+  const cardY = 12;
+  const cardW = 182;
+  const cardH = 268;
+
+  doc.setFillColor(255, 255, 255);
+  doc.roundedRect(cardX, cardY, cardW, cardH, 5, 5, 'F');
+  doc.setDrawColor(...COLORS.primaryTeal);
+  doc.setLineWidth(0.7);
+  doc.roundedRect(cardX, cardY, cardW, cardH, 5, 5, 'S');
+
+  // 3. Header: Left Logo & Right 3 Badges
+  // Logo
+  drawBrandLogo(doc, cardX + 6, cardY + 7, 1.25, false);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(16);
+  doc.setTextColor(...COLORS.deepTeal);
+  doc.text('PERFECT HOMES', cardX + 35, cardY + 14.5);
+  doc.setFontSize(12.5);
+  doc.text('& DEVELOPERS', cardX + 35, cardY + 21);
+
+  doc.setFont('helvetica', 'italic');
+  doc.setFontSize(8.5);
+  doc.setTextColor(...COLORS.gold);
+  doc.text('Your Dream - Our Commitment', cardX + 35, cardY + 27);
+
+  // Right 3 Badges
+  const badgeBaseX = cardX + 112;
+  const badgeY = cardY + 10;
+
+  // Badge 1: Quality Homes
+  drawHouseBadgeVector(doc, badgeBaseX + 8, badgeY + 6, 3.2, COLORS.white, COLORS.deepTeal);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7.2);
+  doc.setTextColor(...COLORS.darkSlate);
+  doc.text('Quality Homes', badgeBaseX + 8, badgeY + 14.5, { align: 'center' });
+
+  // Badge 2: Better Communities
+  drawPeopleBadgeVector(doc, badgeBaseX + 32, badgeY + 6, 3.2, COLORS.white, COLORS.deepTeal);
+  doc.text('Better Communities', badgeBaseX + 32, badgeY + 14.5, { align: 'center' });
+
+  // Badge 3: Brighter Futures
+  drawChartBadgeVector(doc, badgeBaseX + 56, badgeY + 6, 3.2, COLORS.white, COLORS.deepTeal);
+  doc.text('Brighter Futures', badgeBaseX + 56, badgeY + 14.5, { align: 'center' });
+
+  // Divider
+  doc.setDrawColor(...COLORS.lightMint);
+  doc.setLineWidth(0.4);
+  doc.line(cardX + 6, cardY + 31, cardX + cardW - 6, cardY + 31);
+
+  // 4. Two-Column Body: Left 5 Pill Rows & Right Framed Photo
+  const colLeftX = cardX + 6;
+  const colLeftW = 86;
+  const colRightX = cardX + 96;
+  const colRightW = cardW - 102;
+  const bodyStartY = cardY + 36;
+
+  // Contact rows definitions matching reference image
+  const contactPills = [
+    {
+      label: 'Direct Phone / Enquiry:',
+      value: '+91 73050 23919',
+      height: 18,
+      drawIcon: (cx, cy) => drawPhoneVector(doc, cx, cy, 3.2, COLORS.white, COLORS.deepTeal)
+    },
+    {
+      label: 'WhatsApp Concierge:',
+      value: '+91 73050 23919',
+      height: 18,
+      drawIcon: (cx, cy) => drawWhatsAppVector(doc, cx, cy, 3.4, COLORS.white, COLORS.whatsappGreen)
+    },
+    {
+      label: 'Official Email:',
+      value: 'perfecthomesd@gmail.com',
+      height: 18,
+      drawIcon: (cx, cy) => drawEmailVector(doc, cx, cy, 3.2, COLORS.white, COLORS.primaryTeal)
+    },
+    {
+      label: 'Registered Office Address:',
+      value: 'No. 3, Krishna Nagar, CTH Road,\nThiruninravur - 602024, Tamil Nadu, India.',
+      height: 25,
+      drawIcon: (cx, cy) => drawLocationPinVector(doc, cx, cy, 3.4, COLORS.white, COLORS.primaryTeal, COLORS.deepTeal)
+    },
+    {
+      label: 'Official Website:',
+      value: 'www.perfecthomesdevelopers.in',
+      height: 18,
+      drawIcon: (cx, cy) => drawGlobeVector(doc, cx, cy, 3.2, COLORS.white, COLORS.deepTeal)
+    }
+  ];
+
+  let curPillY = bodyStartY;
+  contactPills.forEach((p) => {
+    // Pill background
+    doc.setFillColor(...COLORS.mintSoft);
+    doc.roundedRect(colLeftX, curPillY, colLeftW, p.height, 3, 3, 'F');
+    doc.setDrawColor(...COLORS.lightMint);
+    doc.setLineWidth(0.35);
+    doc.roundedRect(colLeftX, curPillY, colLeftW, p.height, 3, 3, 'S');
+
+    // Icon
+    p.drawIcon(colLeftX + 8, curPillY + p.height / 2);
+
+    // Label
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8.2);
+    doc.setTextColor(...COLORS.deepTeal);
+    doc.text(p.label, colLeftX + 17, curPillY + 5.8);
+
+    // Value
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8.2);
+    doc.setTextColor(...COLORS.darkSlate);
+    const splitVal = doc.splitTextToSize(p.value, colLeftW - 20);
+    doc.text(splitVal, colLeftX + 17, curPillY + 11.2);
+
+    curPillY += p.height + 3.2;
+  });
+
+  // Right Column: Framed Villa / Property Photo
+  const photoH = curPillY - bodyStartY - 3.2; // Match total height of pills exactly
+  if (heroPhoto) {
+    doc.setFillColor(255, 255, 255);
+    doc.roundedRect(colRightX - 0.5, bodyStartY - 0.5, colRightW + 1, photoH + 1, 3.5, 3.5, 'F');
+    doc.addImage(heroPhoto.dataUrl, 'JPEG', colRightX, bodyStartY, colRightW, photoH);
+    doc.setDrawColor(...COLORS.primaryTeal);
+    doc.setLineWidth(0.6);
+    doc.roundedRect(colRightX, bodyStartY, colRightW, photoH, 3, 3, 'S');
+  } else {
+    // Graphic fallback villa card
+    doc.setFillColor(...COLORS.mintSoft);
+    doc.roundedRect(colRightX, bodyStartY, colRightW, photoH, 3, 3, 'F');
+    doc.setDrawColor(...COLORS.primaryTeal);
+    doc.roundedRect(colRightX, bodyStartY, colRightW, photoH, 3, 3, 'S');
+    drawBrandLogo(doc, colRightX + colRightW / 2 - 10, bodyStartY + photoH / 2 - 18, 1.8, false);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.setTextColor(...COLORS.deepTeal);
+    doc.text('Model Architecture', colRightX + colRightW / 2, bodyStartY + photoH / 2 + 16, { align: 'center' });
+  }
+
+  // 5. Middle Row: 3 Wide Action Buttons matching reference image
+  const actBtnY = curPillY + 3;
+  const actBtnW = (cardW - 16) / 3;
+  const actBtnH = 20;
+
+  // Button 1: Call Now
+  const b1X = cardX + 6;
+  doc.setFillColor(...COLORS.deepTeal);
+  doc.roundedRect(b1X, actBtnY, actBtnW, actBtnH, 3.5, 3.5, 'F');
+  drawPhoneVector(doc, b1X + 10, actBtnY + 10, 3.5, COLORS.white);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10.5);
+  doc.setTextColor(...COLORS.white);
+  doc.text('Call Now', b1X + actBtnW / 2 + 4, actBtnY + 8, { align: 'center' });
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.2);
+  doc.setTextColor(...COLORS.lightMint);
+  doc.text('+91 73050 23919', b1X + actBtnW / 2 + 4, actBtnY + 15, { align: 'center' });
+  doc.link(b1X, actBtnY, actBtnW, actBtnH, { url: 'tel:+917305023919' });
+
+  // Button 2: Chat on WhatsApp
+  const b2X = b1X + actBtnW + 2;
+  doc.setFillColor(...COLORS.whatsappGreen);
+  doc.roundedRect(b2X, actBtnY, actBtnW, actBtnH, 3.5, 3.5, 'F');
+  drawWhatsAppVector(doc, b2X + 10, actBtnY + 10, 3.5, COLORS.white, COLORS.whatsappGreen);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10.5);
+  doc.setTextColor(...COLORS.white);
+  doc.text('Chat on WhatsApp', b2X + actBtnW / 2 + 4, actBtnY + 8, { align: 'center' });
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.2);
+  doc.setTextColor(...COLORS.white);
+  doc.text('+91 73050 23919', b2X + actBtnW / 2 + 4, actBtnY + 15, { align: 'center' });
+  const waPropName = property?.title ? `"${property.title}"` : 'your projects';
+  const waUrl = `https://wa.me/917305023919?text=${encodeURIComponent(`Hello Perfect Homes & Developers, I would like to schedule a site visit and enquire about ${waPropName}.`)}`;
+  doc.link(b2X, actBtnY, actBtnW, actBtnH, { url: waUrl });
+
+  // Button 3: Send Email
+  const b3X = b2X + actBtnW + 2;
+  doc.setFillColor(...COLORS.primaryTeal);
+  doc.roundedRect(b3X, actBtnY, actBtnW, actBtnH, 3.5, 3.5, 'F');
+  drawEmailVector(doc, b3X + 10, actBtnY + 10, 3.5, COLORS.white);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10.5);
+  doc.setTextColor(...COLORS.white);
+  doc.text('Send Email', b3X + actBtnW / 2 + 4, actBtnY + 8, { align: 'center' });
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7.5);
+  doc.setTextColor(...COLORS.lightMint);
+  doc.text('perfecthomesd@gmail.com', b3X + actBtnW / 2 + 4, actBtnY + 15, { align: 'center' });
+  doc.link(b3X, actBtnY, actBtnW, actBtnH, { url: 'mailto:perfecthomesd@gmail.com' });
+
+  // 6. Bottom Office Location Card
+  const offCardY = actBtnY + actBtnH + 6;
+  const offCardW = cardW - 12;
+  const offCardH = 26;
+  const offCardX = cardX + 6;
+
+  doc.setFillColor(...COLORS.mintSoft);
+  doc.roundedRect(offCardX, offCardY, offCardW, offCardH, 3.5, 3.5, 'F');
+  doc.setDrawColor(...COLORS.lightMint);
+  doc.setLineWidth(0.4);
+  doc.roundedRect(offCardX, offCardY, offCardW, offCardH, 3.5, 3.5, 'S');
+
+  // Vector map thumbnail on left
+  drawMapVectorThumbnail(doc, offCardX + 5, offCardY + 4, 20, 18);
+
+  // Address text
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(...COLORS.deepTeal);
+  doc.text('Visit Our Registered Office', offCardX + 30, offCardY + 10.5);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(...COLORS.midGray);
+  doc.text('No. 3, Krishna Nagar, CTH Road, Thiruninravur - 602024, Tamil Nadu, India.', offCardX + 30, offCardY + 18);
+
+  // "View on Google Maps" button on right
+  const mapBtnW = 54;
+  const mapBtnH = 14;
+  const mapBtnX = offCardX + offCardW - mapBtnW - 6;
+  const mapBtnY = offCardY + 6;
+
+  doc.setFillColor(...COLORS.deepTeal);
+  doc.roundedRect(mapBtnX, mapBtnY, mapBtnW, mapBtnH, 3, 3, 'F');
+  drawLocationPinVector(doc, mapBtnX + 8, mapBtnY + 7, 2.8, COLORS.white, COLORS.deepTeal);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8.2);
+  doc.setTextColor(...COLORS.white);
+  doc.text('View on Google Maps', mapBtnX + mapBtnW / 2 + 3, mapBtnY + 8.8, { align: 'center' });
+  doc.link(mapBtnX, mapBtnY, mapBtnW, mapBtnH, { url: COMPANY_CONTACT_INFO.googleMapsUrl || 'https://www.google.com/maps/search/?api=1&query=13.124850%2C80.043786' });
+
+  doc.restoreGraphicsState();
+}
+
 /**
- * Main Brochure Generator
- * Accepts a property record or property ID and produces an 8-page verified PDF
+ * Generate Standalone Company Profile & Contact Card PDF
  */
+export async function generateCompanyContactPdf() {
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4',
+    compress: true
+  });
+
+  const heroPhoto = await loadImageAsBase64('/images/thank-you-house.jpg') ||
+                    await loadImageAsBase64('/media/part8/images/whatsapp_image_2026-10-16_at_11_24_53_am_1__1.jpeg');
+
+  renderCompanyContactSheet(doc, null, heroPhoto);
+  drawPageFooter(doc, 1, 'Company Profile & Contact Card');
+  return doc;
+}
+
+export async function downloadCompanyContactPdf() {
+  const doc = await generateCompanyContactPdf();
+  const filename = 'Perfect-Homes-Developers-Company-Profile.pdf';
+  doc.save(filename);
+  return { success: true, filename };
+}
+
+export async function previewCompanyContactPdf() {
+  const doc = await generateCompanyContactPdf();
+  const blob = doc.output('blob');
+  const url = URL.createObjectURL(blob);
+  window.open(url, '_blank');
+  return { success: true, url };
+}
+
+// ============================================================================
+// 4. MAIN DYNAMIC 8-PAGE VERIFIED PROPERTY BROCHURE GENERATOR
+// ============================================================================
+
 export async function generatePropertyBrochure(propertyOrId) {
   const property = await getPropertyForBrochure(propertyOrId);
   if (!property) throw new Error('Valid property record is required for brochure generation');
@@ -261,17 +815,17 @@ export async function generatePropertyBrochure(propertyOrId) {
     if (loaded) loadedImages.push(loaded);
   }
 
-  // Preload logo if available
+  // Preload logo
   const logoImg = (await loadImageAsBase64('/perfect-homes-logo-horizontal.png')) ||
                  (await loadImageAsBase64('/perfect-homes-logo.png'));
 
-  // Preload floor plan image if available
+  // Preload floor plan image
   let floorPlanImg = property.floorPlanImg ? await loadImageAsBase64(property.floorPlanImg) : null;
   if (!floorPlanImg && (property.bhk || (property.category && property.category.includes('House')) || property.id === 'ph-109')) {
     floorPlanImg = await loadImageAsBase64('/images/model-villa-floor-plan.jpg');
   }
 
-  // Preload map snapshot image if available
+  // Preload map snapshot
   const mapImg = await loadImageAsBase64('/images/thiruninravur-map.jpg');
 
   // Preload thank-you miniature house photo for Page 8
@@ -281,8 +835,10 @@ export async function generatePropertyBrochure(propertyOrId) {
   const propTitle = property.title || 'Exclusive Property Listing';
   const propCategory = property.category || property.propertyType || 'Residential';
   const propLocation = property.location || 'Thiruninravur, Chennai';
-  const propAddress = property.fullAddress || `${propLocation}, Tamil Nadu – 602024`;
-  const propPrice = property.priceDisplay || (property.price ? `₹${(property.price / 100000).toFixed(1)} Lakhs` : 'Contact us for details');
+  const propAddress = property.fullAddress || `${propLocation}, Tamil Nadu - 602024`;
+  const propPrice = property.priceDisplay
+    ? property.priceDisplay.replace(/₹/g, 'Rs. ')
+    : (property.price ? `Rs. ${(property.price / 100000).toFixed(1)} Lakhs` : 'Contact us for details');
   const propApproval = property.approval || 'DTCP & CMDA Compliant';
   const propRoad = property.roadWidth || '40ft & 33ft Wide Blacktop Tar Roads';
   const propFacing = property.facing || 'East / North';
@@ -306,7 +862,6 @@ export async function generatePropertyBrochure(propertyOrId) {
   /* ==========================================================================
      PAGE 1 — COVER PAGE
      ========================================================================== */
-  // Top Header Area: Logo & Company Motto
   if (logoImg) {
     doc.addImage(logoImg.dataUrl, 'JPEG', 18, 12, 54, 15);
   } else {
@@ -333,7 +888,7 @@ export async function generatePropertyBrochure(propertyOrId) {
   doc.setLineWidth(0.6);
   doc.line(18, 29, 192, 29);
 
-  // Property Title Formatting matching visual reference
+  // Property Title Formatting
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(13);
   doc.setTextColor(...COLORS.darkSlate);
@@ -349,13 +904,14 @@ export async function generatePropertyBrochure(propertyOrId) {
   doc.setTextColor(...COLORS.deepTeal);
   doc.text(subTitle, 18, 54);
 
-  // Category Badge Pill
+  // Category Badge Pill with native Star Vector
   doc.setFillColor(...COLORS.lightMint);
   doc.roundedRect(18, 57.5, 76, 7, 3.5, 3.5, 'F');
+  drawStarVector(doc, 22.5, 61, 2.2, 1.0, COLORS.deepTeal);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8.2);
   doc.setTextColor(...COLORS.deepTeal);
-  doc.text(`★ Category: ${propCategory}`, 23, 62.2);
+  doc.text(`Category: ${propCategory}`, 26.5, 62.2);
 
   // Cover Hero Photo
   const heroImg = loadedImages[0];
@@ -363,7 +919,6 @@ export async function generatePropertyBrochure(propertyOrId) {
   const photoH = 106;
 
   if (heroImg) {
-    // Border card frame
     doc.setFillColor(...COLORS.mintSoft);
     doc.roundedRect(17, photoY - 1, 176, photoH + 2, 4, 4, 'F');
     doc.addImage(heroImg.dataUrl, 'JPEG', 18, photoY, 174, photoH);
@@ -371,7 +926,6 @@ export async function generatePropertyBrochure(propertyOrId) {
     doc.setLineWidth(0.7);
     doc.roundedRect(18, photoY, 174, photoH, 3, 3, 'S');
   } else {
-    // Elegant fallback card
     doc.setFillColor(...COLORS.mintSoft);
     doc.roundedRect(18, photoY, 174, photoH, 3, 3, 'F');
     doc.setDrawColor(...COLORS.primaryTeal);
@@ -386,7 +940,7 @@ export async function generatePropertyBrochure(propertyOrId) {
     doc.text(propLocation, 105, photoY + 77, { align: 'center' });
   }
 
-  // 4 Feature Badges (Horizontal strip) matching visual reference
+  // 4 Feature Badges with native Checkmark Vector
   const badgeY = 182;
   const badgeLabels = propCategory.includes('Plot')
     ? ['DTCP / CMDA Approved', 'Clear 40-Yr Parent Deed', 'Wide Blacktop Roads', 'Prime Growth Corridor']
@@ -400,13 +954,10 @@ export async function generatePropertyBrochure(propertyOrId) {
     doc.setLineWidth(0.4);
     doc.roundedRect(bx, badgeY, 41, 17, 2.5, 2.5, 'S');
 
-    // Circular badge icon
+    // Circular badge icon with vector checkmark
     doc.setFillColor(...COLORS.deepTeal);
     doc.circle(bx + 8, badgeY + 8.5, 4.5, 'F');
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8);
-    doc.setTextColor(...COLORS.mintAccent);
-    doc.text('✓', bx + 6.8, badgeY + 10);
+    drawCheckmarkVector(doc, bx + 8, badgeY + 8.5, 3.2, COLORS.mintAccent);
 
     // Label
     doc.setFont('helvetica', 'bold');
@@ -421,7 +972,6 @@ export async function generatePropertyBrochure(propertyOrId) {
   doc.setFillColor(...COLORS.deepTeal);
   doc.roundedRect(18, bannerY, 174, 38, 4, 4, 'F');
 
-  // Decorative inner graphic accents
   doc.setFillColor(...COLORS.primaryTeal);
   doc.circle(185, bannerY + 12, 14, 'F');
   doc.circle(25, bannerY + 30, 8, 'F');
@@ -434,7 +984,7 @@ export async function generatePropertyBrochure(propertyOrId) {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
   doc.setTextColor(...COLORS.lightMint);
-  doc.text('Verified Legal Approvals • Transparent Pricing • Complete Peace of Mind', 105, bannerY + 24, { align: 'center' });
+  doc.text('Verified Legal Approvals | Transparent Pricing | Complete Peace of Mind', 105, bannerY + 24, { align: 'center' });
 
   doc.setFontSize(8);
   doc.setTextColor(...COLORS.mintAccent);
@@ -474,25 +1024,21 @@ export async function generatePropertyBrochure(propertyOrId) {
 
   let currentY = specCardY + 3;
   specItems.forEach((item, idx) => {
-    // Alternating row background
     if (idx % 2 === 0) {
       doc.setFillColor(...COLORS.mintSoft);
       doc.rect(19, currentY, 172, 11.8, 'F');
     }
 
-    // Bullet icon badge
     doc.setFillColor(...COLORS.deepTeal);
     doc.circle(26, currentY + 5.9, 2.5, 'F');
     doc.setFillColor(...COLORS.mintAccent);
     doc.circle(26, currentY + 5.9, 1, 'F');
 
-    // Label
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(8.5);
     doc.setTextColor(...COLORS.deepTeal);
     doc.text(item.label, 32, currentY + 7.5);
 
-    // Value
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8.5);
     doc.setTextColor(...COLORS.darkGray);
@@ -510,7 +1056,6 @@ export async function generatePropertyBrochure(propertyOrId) {
   doc.setLineWidth(0.5);
   doc.roundedRect(18, aboutY, 174, 94, 3, 3, 'S');
 
-  // About Header Badge
   doc.setFillColor(...COLORS.deepTeal);
   doc.roundedRect(24, aboutY + 8, 38, 7, 2, 2, 'F');
   doc.setFont('helvetica', 'bold');
@@ -523,7 +1068,6 @@ export async function generatePropertyBrochure(propertyOrId) {
   doc.setTextColor(...COLORS.deepTeal);
   doc.text(`Why Choose ${mainTitlePrefix}?`, 66, aboutY + 13.5);
 
-  // Description text
   const descText = property.description ||
     `${propTitle} is a thoughtfully designed development by Perfect Homes & Developers, providing unmatched lifestyle convenience, sound structural engineering, and verified legal approvals in ${propLocation}. Ideal for families seeking a peaceful residential environment with good connectivity.`;
 
@@ -533,7 +1077,7 @@ export async function generatePropertyBrochure(propertyOrId) {
   const splitDesc = doc.splitTextToSize(descText, 162);
   doc.text(splitDesc, 24, aboutY + 23);
 
-  // Key Highlights Bullets
+  // Key Highlights Bullets with native Vector Gold Dots
   const highlights = (property.highlights && property.highlights.length > 0
     ? property.highlights
     : [
@@ -564,13 +1108,12 @@ export async function generatePropertyBrochure(propertyOrId) {
   doc.addPage();
   drawPageHeaderRibbon(doc, 'Property Gallery', `Actual Photos of ${mainTitlePrefix}`);
 
-  // Gallery Subheader notice
   doc.setFont('helvetica', 'italic');
   doc.setFontSize(8);
   doc.setTextColor(...COLORS.midGray);
   doc.text('Note: These are verified genuine photographs of this property and actual site development.', 105, 26, { align: 'center' });
 
-  // 1. Top Large Hero Photo
+  // Top Large Hero Photo
   const gHeroY = 30;
   const gHeroH = 96;
   const topPhoto = loadedImages[0] || loadedImages[1];
@@ -583,7 +1126,6 @@ export async function generatePropertyBrochure(propertyOrId) {
     doc.setLineWidth(0.5);
     doc.roundedRect(18, gHeroY, 174, gHeroH, 2, 2, 'S');
 
-    // Caption overlay tag
     doc.setFillColor(...COLORS.deepTeal);
     doc.roundedRect(22, gHeroY + 4, 64, 6, 2, 2, 'F');
     doc.setFont('helvetica', 'bold');
@@ -600,7 +1142,7 @@ export async function generatePropertyBrochure(propertyOrId) {
     doc.text('Actual Site Photo Gallery', 105, gHeroY + 60, { align: 'center' });
   }
 
-  // 2. Bottom 4 Sub-Photos (2x2 Grid)
+  // Bottom 4 Sub-Photos (2x2 Grid)
   const gGridY = 132;
   const cellW = 85;
   const cellH = 70;
@@ -623,7 +1165,6 @@ export async function generatePropertyBrochure(propertyOrId) {
         doc.setLineWidth(0.4);
         doc.roundedRect(cellX, cellY, cellW, cellH, 2, 2, 'S');
 
-        // Caption label bar
         doc.setFillColor(0, 0, 0, 0.65);
         doc.rect(cellX, cellY + cellH - 7, cellW, 7, 'F');
         doc.setFont('helvetica', 'bold');
@@ -659,7 +1200,6 @@ export async function generatePropertyBrochure(propertyOrId) {
   if (floorPlanImg) {
     doc.setFillColor(...COLORS.white);
     doc.roundedRect(18, planY, 174, planH, 3, 3, 'F');
-    // Scale image cleanly with margin
     doc.addImage(floorPlanImg.dataUrl, 'JPEG', 20, planY + 4, 170, planH - 22);
     doc.setDrawColor(...COLORS.primaryTeal);
     doc.setLineWidth(0.6);
@@ -673,7 +1213,6 @@ export async function generatePropertyBrochure(propertyOrId) {
     doc.roundedRect(18, planY, 174, planH, 3, 3, 'S');
 
     if (propCategory.includes('Plot')) {
-      // Vector Plotted Layout Scheme
       const plX = 26;
       const plY = planY + 16;
       const plW = 158;
@@ -685,7 +1224,7 @@ export async function generatePropertyBrochure(propertyOrId) {
       doc.setLineWidth(0.8);
       doc.rect(plX, plY, plW, plH, 'S');
 
-      // 40ft Main Road (Vertical Spine)
+      // 40ft Main Road
       doc.setFillColor(...COLORS.lightGray);
       doc.rect(plX + 68, plY, 22, plH, 'F');
       doc.setFont('helvetica', 'bold');
@@ -693,7 +1232,7 @@ export async function generatePropertyBrochure(propertyOrId) {
       doc.setTextColor(...COLORS.darkSlate);
       doc.text('40 FEET WIDE MAIN TAR ROAD', plX + 79, plY + 90, { angle: 90, align: 'center' });
 
-      // Left Plots Grid (Plots 1 to 5)
+      // Left Plots Grid
       for (let i = 0; i < 5; i++) {
         const py = plY + i * 36;
         doc.setFillColor(255, 255, 255);
@@ -709,13 +1248,15 @@ export async function generatePropertyBrochure(propertyOrId) {
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(7.5);
         doc.setTextColor(...COLORS.midGray);
-        doc.text('30\' x 40\'  |  1200 Sq.Ft', plX + 34, py + 22, { align: 'center' });
+        doc.text("30' x 40'  |  1200 Sq.Ft", plX + 34, py + 22, { align: 'center' });
+
+        drawStarVector(doc, plX + 16, py + 26.5, 1.8, 0.8, COLORS.gold);
         doc.setFontSize(6.8);
         doc.setTextColor(...COLORS.gold);
-        doc.text('★ CMDA & RERA Approved', plX + 34, py + 27, { align: 'center' });
+        doc.text('CMDA & RERA Approved', plX + 36, py + 27, { align: 'center' });
       }
 
-      // Right Plots Grid (Plots 6 to 10)
+      // Right Plots Grid
       for (let i = 0; i < 5; i++) {
         const py = plY + i * 36;
         doc.setFillColor(255, 255, 255);
@@ -731,19 +1272,20 @@ export async function generatePropertyBrochure(propertyOrId) {
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(7.5);
         doc.setTextColor(...COLORS.midGray);
-        doc.text('30\' x 40\'  |  1200 Sq.Ft', plX + 124, py + 22, { align: 'center' });
+        doc.text("30' x 40'  |  1200 Sq.Ft", plX + 124, py + 22, { align: 'center' });
+
+        drawStarVector(doc, plX + 104, py + 26.5, 1.8, 0.8, COLORS.gold);
         doc.setFontSize(6.8);
         doc.setTextColor(...COLORS.gold);
-        doc.text('★ Ready for Registration', plX + 124, py + 27, { align: 'center' });
+        doc.text('Ready for Registration', plX + 126, py + 27, { align: 'center' });
       }
     } else {
-      // 2 BHK House Architectural CAD diagram
       const fpX = 26;
       const fpY = planY + 15;
       const fpW = 158;
       const fpH = 180;
 
-      // Outer house boundary wall
+      // Outer house wall
       doc.setFillColor(253, 253, 253);
       doc.rect(fpX, fpY, fpW, fpH, 'F');
       doc.setDrawColor(...COLORS.darkSlate);
@@ -815,7 +1357,7 @@ export async function generatePropertyBrochure(propertyOrId) {
       doc.setTextColor(...COLORS.midGray);
       doc.text('6\'0" x 4\'0"', fpX + 128, fpY + 119, { align: 'center' });
 
-      // Covered Car Parking
+      // Car Parking
       doc.setFillColor(245, 245, 245);
       doc.rect(fpX + 3, fpY + 129, 152, 48, 'FD');
       doc.rect(fpX + 3, fpY + 129, 152, 48, 'S');
@@ -830,7 +1372,6 @@ export async function generatePropertyBrochure(propertyOrId) {
     }
   }
 
-  // Disclaimer text
   doc.setFont('helvetica', 'italic');
   doc.setFontSize(8);
   doc.setTextColor(...COLORS.midGray);
@@ -844,7 +1385,6 @@ export async function generatePropertyBrochure(propertyOrId) {
   doc.addPage();
   drawPageHeaderRibbon(doc, 'Location & Nearby Landmarks', `${propLocation}, Tamil Nadu`);
 
-  // Landmarks Table
   const lmY = 28;
   const landmarks = (property.nearby && property.nearby.length > 0)
     ? property.nearby
@@ -870,19 +1410,14 @@ export async function generatePropertyBrochure(propertyOrId) {
       doc.rect(19, curLmY, 172, 13.5, 'F');
     }
 
-    // Landmark icon
-    doc.setFillColor(...COLORS.deepTeal);
-    doc.circle(28, curLmY + 6.75, 4, 'F');
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8);
-    doc.setTextColor(...COLORS.mintAccent);
-    doc.text('📍', 26.2, curLmY + 8.5);
+    // Native Location Pin Vector
+    drawLocationPinVector(doc, 26, curLmY + 6.8, 3.2, COLORS.primaryTeal, null, COLORS.deepTeal);
 
     // Landmark Name
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(9);
     doc.setTextColor(...COLORS.darkSlate);
-    doc.text(lm.name, 36, curLmY + 8.5);
+    doc.text(lm.name, 35, curLmY + 8.5);
 
     // Distance / Time
     const distText = lm.distance || lm.time || 'Short Drive';
@@ -906,7 +1441,6 @@ export async function generatePropertyBrochure(propertyOrId) {
     doc.setLineWidth(0.6);
     doc.roundedRect(18, mapY, 174, mapH, 3, 3, 'S');
   } else {
-    // Stylized vector map
     doc.setFillColor(...COLORS.mintSoft);
     doc.roundedRect(18, mapY, 174, mapH, 3, 3, 'F');
     doc.setDrawColor(...COLORS.primaryTeal);
@@ -918,33 +1452,15 @@ export async function generatePropertyBrochure(propertyOrId) {
     for (let x = 30; x < 185; x += 18) doc.line(x, mapY + 6, x, mapY + mapH - 24);
     for (let y = mapY + 12; y < mapY + mapH - 24; y += 14) doc.line(22, y, 188, y);
 
-    // Roads
     doc.setDrawColor(255, 255, 255);
     doc.setLineWidth(4);
     doc.line(22, mapY + 38, 188, mapY + 38);
     doc.line(105, mapY + 6, 105, mapY + mapH - 24);
 
-    doc.setDrawColor(...COLORS.gold);
-    doc.setLineWidth(0.8);
-    doc.line(22, mapY + 38, 188, mapY + 38);
-    doc.line(105, mapY + 6, 105, mapY + mapH - 24);
-
-    // Red Pin
-    doc.setFillColor(239, 68, 68);
-    doc.circle(105, mapY + 30, 5, 'F');
-    doc.setFillColor(...COLORS.white);
-    doc.circle(105, mapY + 30, 2, 'F');
-
-    // Pin Label
-    doc.setFillColor(...COLORS.deepTeal);
-    doc.roundedRect(65, mapY + 10, 80, 12, 2, 2, 'F');
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8);
-    doc.setTextColor(...COLORS.white);
-    doc.text(mainTitlePrefix, 105, mapY + 18, { align: 'center' });
+    drawLocationPinVector(doc, 105, mapY + 28, 4.5, [239, 68, 68], null, [255, 255, 255]);
   }
 
-  // Clickable "View on Google Maps" Button
+  // Clickable "View on Google Maps" Button with native location pin
   const btnY = mapY + mapH - 14;
   const btnW = 90;
   const btnX = 105 - btnW / 2;
@@ -956,22 +1472,16 @@ export async function generatePropertyBrochure(propertyOrId) {
   doc.setLineWidth(0.6);
   doc.roundedRect(btnX, btnY, btnW, btnH, 3, 3, 'S');
 
-  // Google Maps pin graphic
-  doc.setFillColor(234, 67, 53);
-  doc.circle(btnX + 12, btnY + 5.5, 2.8, 'F');
-  doc.setFillColor(...COLORS.white);
-  doc.circle(btnX + 12, btnY + 5.5, 1.1, 'F');
+  drawLocationPinVector(doc, btnX + 12, btnY + 5.5, 2.5, COLORS.white, null, [234, 67, 53]);
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(9.5);
   doc.setTextColor(...COLORS.white);
   doc.text('View on Google Maps', btnX + btnW / 2 + 4, btnY + 7.5, { align: 'center' });
 
-  // Attach interactive PDF link to property's verified coordinates
   const mapsUrl = property.googleMapsUrl || 'https://www.google.com/maps/search/?api=1&query=13.124850%2C80.043786';
   doc.link(btnX, btnY, btnW, btnH, { url: mapsUrl });
 
-  // Travel times footnote
   doc.setFont('helvetica', 'italic');
   doc.setFontSize(8);
   doc.setTextColor(...COLORS.midGray);
@@ -985,7 +1495,6 @@ export async function generatePropertyBrochure(propertyOrId) {
   doc.addPage();
   drawPageHeaderRibbon(doc, 'Key Features & Benefits', 'Distinctive Advantages & Construction Standards');
 
-  // 8 Feature Cards Grid (2 Columns x 4 Rows)
   const featGridY = 28;
   const fCardW = 84;
   const fCardH = 41;
@@ -999,7 +1508,7 @@ export async function generatePropertyBrochure(propertyOrId) {
       { title: '90% Bank Loan Support', desc: 'Pre-sanctioned bank loan approval from SBI, HDFC, Canara Bank, and LIC.' },
       { title: 'Elevated Highland Terrain', desc: 'Naturally elevated red-soil land guaranteeing zero waterlogging during monsoons.' },
       { title: 'Rapid Growth Hub', desc: 'Directly linked to Outer Ring Road (ORR) and burgeoning IT & industrial corridors.' },
-      { title: 'Immediate Registration', desc: 'Spot registration support with rapid patta transfer in buyer’s name.' }
+      { title: 'Immediate Registration', desc: 'Spot registration support with rapid patta transfer in buyer name.' }
     ]
     : [
       { title: `Modern ${property.bhk ? `${property.bhk} BHK` : ''} Design`, desc: 'Comfortable and functional living spaces designed for modern families.' },
@@ -1019,34 +1528,26 @@ export async function generatePropertyBrochure(propertyOrId) {
     const fy = featGridY + row * (fCardH + 5);
     const item = featuresList[i];
 
-    // Card Box
     doc.setFillColor(...COLORS.white);
     doc.roundedRect(fx, fy, fCardW, fCardH, 2.5, 2.5, 'F');
     doc.setDrawColor(...COLORS.lightMint);
     doc.setLineWidth(0.5);
     doc.roundedRect(fx, fy, fCardW, fCardH, 2.5, 2.5, 'S');
 
-    // Accent icon badge
-    doc.setFillColor(...COLORS.deepTeal);
-    doc.circle(fx + 10, fy + 12, 5, 'F');
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8.5);
-    doc.setTextColor(...COLORS.mintAccent);
-    doc.text('★', fx + 8, fy + 14.5);
+    // Vector Star Icon
+    drawStarVector(doc, fx + 9, fy + 12, 3.2, 1.4, COLORS.primaryTeal);
 
-    // Title
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(8.8);
     doc.setTextColor(...COLORS.deepTeal);
     const splitTitle = doc.splitTextToSize(item.title, 62);
-    doc.text(splitTitle, fx + 18, fy + 10.5);
+    doc.text(splitTitle, fx + 16, fy + 10.5);
 
-    // Description
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(7.6);
     doc.setTextColor(...COLORS.darkGray);
     const splitDesc = doc.splitTextToSize(item.desc, 70);
-    doc.text(splitDesc, fx + 8, fy + 22);
+    doc.text(splitDesc, fx + 6, fy + 22);
   }
 
   // Bottom Inspirational Brand Banner
@@ -1069,131 +1570,11 @@ export async function generatePropertyBrochure(propertyOrId) {
   drawPageFooter(doc, 6, 'Key Features');
 
   /* ==========================================================================
-     PAGE 7 — CONTACT US & ENQUIRIES
+     PAGE 7 — CONTACT US & COMPANY SHEET
+     Precisely matches the uploaded reference image!
      ========================================================================== */
   doc.addPage();
-  drawPageHeaderRibbon(doc, 'Contact Us', 'For more details, site visit, or to schedule a meeting, please reach out to us.');
-
-  // Consultation Card
-  const compCardY = 32;
-  doc.setFillColor(...COLORS.white);
-  doc.roundedRect(18, compCardY, 174, 114, 3, 3, 'F');
-  doc.setDrawColor(...COLORS.primaryTeal);
-  doc.setLineWidth(0.6);
-  doc.roundedRect(18, compCardY, 174, 114, 3, 3, 'S');
-
-  // Logo in Contact card
-  drawBrandLogo(doc, 28, compCardY + 10, 1.4, false);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(15);
-  doc.setTextColor(...COLORS.deepTeal);
-  doc.text('PERFECT HOMES & DEVELOPERS', 62, compCardY + 18);
-  doc.setFont('helvetica', 'italic');
-  doc.setFontSize(8.5);
-  doc.setTextColor(...COLORS.gold);
-  doc.text('Your Dream — Our Commitment', 62, compCardY + 23);
-
-  // Divider
-  doc.setDrawColor(...COLORS.lightMint);
-  doc.setLineWidth(0.4);
-  doc.line(26, compCardY + 29, 184, compCardY + 29);
-
-  // Contact Details List
-  const contactRows = [
-    { label: 'Direct Phone / Enquiry', val: '+91 73050 23919', icon: '📞' },
-    { label: 'WhatsApp Concierge', val: '+91 73050 23919', icon: '💬' },
-    { label: 'Official Email', val: 'perfecthomesd@gmail.com', icon: '✉️' },
-    { label: 'Registered Office Address', val: 'No. 3, Krishna Nagar, CTH Road, Thiruninravur – 602024, Tamil Nadu, India.', icon: '🏢' },
-    { label: 'Official Website', val: 'www.perfecthomesdevelopers.in', icon: '🌐' }
-  ];
-
-  let cRowY = compCardY + 36;
-  contactRows.forEach((r) => {
-    doc.setFillColor(...COLORS.deepTeal);
-    doc.circle(32, cRowY + 1, 3.5, 'F');
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7.5);
-    doc.setTextColor(...COLORS.mintAccent);
-    doc.text(r.icon, 30.5, cRowY + 3);
-
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8.5);
-    doc.setTextColor(...COLORS.deepTeal);
-    doc.text(r.label + ':', 40, cRowY + 2.5);
-
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8.5);
-    doc.setTextColor(...COLORS.darkGray);
-    const splitV = doc.splitTextToSize(r.val, 95);
-    doc.text(splitV, 90, cRowY + 2.5);
-
-    cRowY += 13;
-  });
-
-  // 3 Interactive Action Buttons (Real PDF clickable links) matching visual reference
-  const actBtnY = 154;
-  const actBtnW = 54;
-  const actBtnH = 17;
-
-  // 1. Call Now Button
-  const callX = 18;
-  doc.setFillColor(...COLORS.deepTeal);
-  doc.roundedRect(callX, actBtnY, actBtnW, actBtnH, 3, 3, 'F');
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9);
-  doc.setTextColor(...COLORS.white);
-  doc.text('📞 Call Now', callX + actBtnW / 2, actBtnY + 11, { align: 'center' });
-  doc.link(callX, actBtnY, actBtnW, actBtnH, { url: 'tel:+917305023919' });
-
-  // 2. Chat on WhatsApp Button
-  const waX = 18 + actBtnW + 6;
-  doc.setFillColor(...COLORS.whatsappGreen);
-  doc.roundedRect(waX, actBtnY, actBtnW, actBtnH, 3, 3, 'F');
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9);
-  doc.setTextColor(...COLORS.white);
-  doc.text('💬 Chat on WhatsApp', waX + actBtnW / 2, actBtnY + 11, { align: 'center' });
-  const waMsg = encodeURIComponent(`Hello Perfect Homes & Developers, I just generated the brochure for "${propTitle}" and would like to schedule a site visit.`);
-  doc.link(waX, actBtnY, actBtnW, actBtnH, { url: `https://wa.me/917305023919?text=${waMsg}` });
-
-  // 3. Send Email Button
-  const mailX = waX + actBtnW + 6;
-  doc.setFillColor(...COLORS.primaryTeal);
-  doc.roundedRect(mailX, actBtnY, actBtnW, actBtnH, 3, 3, 'F');
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9);
-  doc.setTextColor(...COLORS.white);
-  doc.text('✉️ Send Email', mailX + actBtnW / 2, actBtnY + 11, { align: 'center' });
-  doc.link(mailX, actBtnY, actBtnW, actBtnH, { url: 'mailto:perfecthomesd@gmail.com' });
-
-  // Office Location Map Snapshot Card
-  const offCardY = 182;
-  doc.setFillColor(...COLORS.mintSoft);
-  doc.roundedRect(18, offCardY, 174, 58, 3, 3, 'F');
-  doc.setDrawColor(...COLORS.lightMint);
-  doc.roundedRect(18, offCardY, 174, 58, 3, 3, 'S');
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(10.5);
-  doc.setTextColor(...COLORS.deepTeal);
-  doc.text('Visit Our Registered Office', 26, offCardY + 12);
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8.5);
-  doc.setTextColor(...COLORS.midGray);
-  doc.text('No. 3, Krishna Nagar, CTH Road, Thiruninravur – 602024 (Near Bus Stand & Railway Station)', 26, offCardY + 20);
-
-  // View Office Map Link Button
-  const offBtnX = 26;
-  const offBtnY = offCardY + 29;
-  doc.setFillColor(...COLORS.deepTeal);
-  doc.roundedRect(offBtnX, offBtnY, 82, 12, 2.5, 2.5, 'F');
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8.5);
-  doc.setTextColor(...COLORS.white);
-  doc.text('📍 Open Office Map in Google Maps', offBtnX + 41, offBtnY + 7.8, { align: 'center' });
-  doc.link(offBtnX, offBtnY, 82, 12, { url: 'https://www.google.com/maps/search/?api=1&query=13.124850%2C80.043786' });
-
+  renderCompanyContactSheet(doc, property, heroImg);
   drawPageFooter(doc, 7, 'Contact Us');
 
   /* ==========================================================================
@@ -1205,7 +1586,6 @@ export async function generatePropertyBrochure(propertyOrId) {
   doc.setFillColor(...COLORS.deepTeal);
   doc.rect(0, 0, 210, 297, 'F');
 
-  // Decorative corner graphics
   doc.setFillColor(...COLORS.primaryTeal);
   doc.circle(210, 0, 70, 'F');
   doc.circle(0, 297, 85, 'F');
@@ -1223,9 +1603,9 @@ export async function generatePropertyBrochure(propertyOrId) {
   doc.setFont('helvetica', 'italic');
   doc.setFontSize(9);
   doc.setTextColor(...COLORS.mintAccent);
-  doc.text('Your Dream — Our Commitment', 105, 54, { align: 'center' });
+  doc.text('Your Dream - Our Commitment', 105, 54, { align: 'center' });
 
-  // Hero Thank You Title matching visual reference
+  // Hero Thank You Title
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(28);
   doc.setTextColor(...COLORS.white);
@@ -1251,7 +1631,6 @@ export async function generatePropertyBrochure(propertyOrId) {
     doc.setLineWidth(0.6);
     doc.roundedRect(handCardX, handCardY, handCardW, handCardH, 3, 3, 'S');
   } else {
-    // Vector emblem card
     doc.setFillColor(255, 255, 255, 0.12);
     doc.roundedRect(handCardX, handCardY, handCardW, handCardH, 6, 6, 'F');
     doc.setDrawColor(...COLORS.mintAccent);
@@ -1269,7 +1648,7 @@ export async function generatePropertyBrochure(propertyOrId) {
     doc.text(propLocation, 105, handCardY + 68, { align: 'center' });
   }
 
-  // 4 Category Badges at bottom of Back Page matching visual reference
+  // 4 Category Badges at bottom with vector stars
   const bCatY = 214;
   const categoriesList = ['Residential Plots', 'Independent Houses', 'Villas', 'Land with Construction'];
 
@@ -1281,10 +1660,7 @@ export async function generatePropertyBrochure(propertyOrId) {
     doc.setLineWidth(0.4);
     doc.roundedRect(cx, bCatY, 41, 25, 3, 3, 'S');
 
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(11);
-    doc.setTextColor(...COLORS.gold);
-    doc.text('★', cx + 20.5, bCatY + 9, { align: 'center' });
+    drawStarVector(doc, cx + 20.5, bCatY + 8, 2.5, 1.1, COLORS.gold);
 
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(7.5);
@@ -1297,16 +1673,15 @@ export async function generatePropertyBrochure(propertyOrId) {
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8.5);
   doc.setTextColor(...COLORS.mintAccent);
-  doc.text('PERFECT HOMES & DEVELOPERS — Building Quality Communities', 105, 258, { align: 'center' });
+  doc.text('PERFECT HOMES & DEVELOPERS - Building Quality Communities', 105, 258, { align: 'center' });
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7.5);
   doc.setTextColor(...COLORS.lightMint);
-  doc.text('No. 3, Krishna Nagar, CTH Road, Thiruninravur – 602024  |  +91 73050 23919', 105, 264, { align: 'center' });
+  doc.text(`No. 3, Krishna Nagar, CTH Road, Thiruninravur - 602024  |  +91 73050 23919`, 105, 264, { align: 'center' });
 
-  // Page 8 Footer text in light mint
   doc.setFontSize(8);
   doc.setTextColor(...COLORS.lightMint);
-  doc.text('Page 8 — Back Page', 192, 288, { align: 'right' });
+  doc.text('Page 8 - Back Page', 192, 288, { align: 'right' });
 
   return doc;
 }
@@ -1320,7 +1695,6 @@ export async function downloadPropertyBrochure(propertyOrId) {
     const doc = await generatePropertyBrochure(property);
     const filename = getBrochureFilename(property);
 
-    // Save with precise filename
     doc.save(filename);
     return { success: true, filename, property };
   } catch (err) {
